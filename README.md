@@ -72,8 +72,8 @@ Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul răm
 
 ### Mișcarea și gesturile
 
-- Mișcare puțină și curată (`motion.css`): butoanele se lasă puțin sub deget, foile și ferestrele apar scurt (sub 0,3 s), pașii configurării vin din dreapta (sau din stânga la „Înapoi”), iar între file e doar o estompare de 0,18 s. Nimic nu se animă la pornire; cu „reducere mișcare” din sistem totul se oprește.
-- Sticlă (liquid glass, variabilele `--glass-*` din `app.css`) doar pe ce plutește: bara de file de pe telefon (o capsulă), butoanele rotunde din colț, toast-urile, panoul de notificări și butoanele configurării. Cardurile cu note rămân opace, ca să se citească bine.
+- Mișcare curată (`motion.css`): lentila de sub fila aleasă alunecă cu un mic arc, iar iconița sare ușor; în segmente (Materii / Progres / Ce-ar fi dacă, ținta din configurare) bucata aleasă alunecă, chiar și de la o pagină la alta (`glideAll()` din `js/ui/fluid.js`); la o filă nouă, cardurile urcă puțin, unul după altul; calendarul, materia următoare și secțiunile vin din partea în care mergi; foile urcă, ferestrele apar din mijloc, butoanele se lasă sub deget, comutatoarele se lungesc când le apeși. Nimic nu se animă la pornire; cu „reducere mișcare” din sistem totul se oprește.
+- Sticlă (liquid glass, variabilele `--lg-*` din `app.css`) doar pe ce plutește: bara de file (o capsulă), lentila filei alese, butoanele rotunde din colț, toast-urile și butoanele configurării. E aproape transparentă și înviorează culorile de dedesubt, cu o margine de 1 px care prinde lumina (gradient decupat cu mască), lumină moale în interior și o umbră largă și slabă. Cardurile cu note rămân opace.
 - Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
 
 ### Mascotele

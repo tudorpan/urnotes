@@ -2,14 +2,49 @@
    și o estompare scurtă între file. Nimic nu se animă la pornire. Totul se oprește cu „reducere mișcare”. */
 
 /* nimic nu sare și nu intră pe rând */
-.stg, .np-pop, .is-catch, .home-tile-value, .mobile-nav-btn.is-pop .ico, .mobile-nav-btn.is-pop,
-.side-nav.has-pill .tab-btn.side-link.active .ico, .slide-from-l, .slide-from-r, .slide-up, .anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
+.stg, .np-pop, .is-catch, .home-tile-value,
+.side-nav.has-pill .tab-btn.side-link.active .ico, .anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
 .confetti, .tick-pop, .grade-fly, .ripple-host, .toast.is-celebrate::after { display: none !important; }
 .toast .toast-ico { animation: none !important; }
 
 /* schimbarea filei: doar o estompare scurtă */
 .tab-content.active, .tab-content.active.enter-fwd, .tab-content.active.enter-back { animation: none !important; }
-body.nav-fade .tab-content.active { animation: mFade .18s ease-out both !important; }
+body.page-in .tab-content.active { animation: mFade .2s ease-out both !important; }
+/* cardurile paginii noi urcă puțin, unul după altul (doar la schimbarea filei, nu la pornire sau la o redesenare) */
+body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation: mRise .38s cubic-bezier(.22, .8, .3, 1) both; }
+body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(2) { animation-delay: .035s; }
+body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(3) { animation-delay: .07s; }
+body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(4) { animation-delay: .1s; }
+body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(n+5) { animation-delay: .13s; }
+@keyframes mRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* bara de file: lentila alunecă cu un mic arc, iconița aleasă sare ușor */
+.nav-pill { transition: transform .5s cubic-bezier(.3, 1.3, .4, 1), width .35s cubic-bezier(.3, 1.2, .4, 1), opacity .2s !important; }
+.mobile-nav-btn.is-pop .ico { animation: mIconPop .42s cubic-bezier(.3, 1.6, .5, 1) !important; }
+@keyframes mIconPop { 0% { transform: scale(1); } 40% { transform: scale(1.18) translateY(-1px); } 100% { transform: scale(1); } }
+.mobile-nav-btn:active ~ .nav-pill, .mobile-bottom-nav:has(.mobile-nav-btn.active:active) .nav-pill { transform-origin: center; }
+.side-pill { transition: transform .42s cubic-bezier(.3, 1.2, .4, 1), height .3s ease, width .3s ease, opacity .2s !important; }
+
+/* segmentele: bucata aleasă alunecă */
+.seg-glide { transition: transform .42s cubic-bezier(.3, 1.25, .4, 1), width .32s cubic-bezier(.3, 1.2, .4, 1), height .32s ease, opacity .2s; }
+
+/* calendarul, materia următoare, secțiunile: conținutul vine din partea în care mergi */
+.slide-from-r { animation: mSlideR .3s cubic-bezier(.22, .8, .3, 1) both !important; }
+.slide-from-l { animation: mSlideLft .3s cubic-bezier(.22, .8, .3, 1) both !important; }
+.slide-up { animation: mRise .3s cubic-bezier(.22, .8, .3, 1) both !important; }
+@keyframes mSlideR { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
+@keyframes mSlideLft { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
+
+/* comutatorul: cerculețul se lungește când îl apeși, ca pe iPhone */
+.wz-switch i::after { transition: transform .28s cubic-bezier(.3, 1.3, .4, 1), width .2s ease !important; }
+.wz-switch input:active + i::after { width: 33px; }
+.wz-switch input:checked:active + i::after { transform: translateX(14px); }
+
+/* bifa de la „Totul e pregătit” */
+.wz-done { animation: mDone .5s .08s cubic-bezier(.3, 1.5, .5, 1) both; }
+.wz-done .ico { animation: mFade .3s .3s ease-out both; }
+@keyframes mDone { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+.wz-bar i { transition: width .45s cubic-bezier(.3, 1.2, .4, 1) !important; }
 @keyframes mFade { from { opacity: 0; } to { opacity: 1; } }
 
 /* apăsare: butonul se lasă puțin sub deget */

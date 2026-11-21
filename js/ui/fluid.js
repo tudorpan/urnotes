@@ -150,8 +150,6 @@ function staggerIn(root) {
 
 /* ---------- alunecă din partea în care mergi ---------- */
 function slideIn(el, dir) {
-    return; // fără mișcare în pagină: filele se schimbă pe loc
-    // eslint-disable-next-line no-unreachable
     if (!el || reduceMotion()) return;
     el.classList.remove("slide-from-l", "slide-from-r", "slide-up");
     void el.offsetWidth;
@@ -174,6 +172,48 @@ document.addEventListener("click", event => {
     });
 });
 
+/* ---------- segmentele: alegerea e o bucată de sticlă care alunecă ---------- */
+/* Merge și peste redesenări și schimbări de filă: noua bucată pornește de unde a rămas cea veche (aceeași etichetă) și alunecă la locul ei. */
+const GLIDE_SEL = ".subnav, .azi-seg, .wz-seg";
+const glideLast = new Map();
+function glideKey(box) {
+    const label = box.getAttribute("aria-label") || box.getAttribute("aria-labelledby") || "";
+    return label ? `${box.className.split(" ")[0]}|${label}` : "";
+}
+function placeGlide(g, p, animate) {
+    g.style.transition = animate ? "" : "none";
+    g.style.width = `${p.w}px`;
+    g.style.height = `${p.h}px`;
+    g.style.transform = `translate(${p.x}px, ${p.y}px)`;
+    g.style.opacity = "1";
+}
+function glideAll() {
+    document.querySelectorAll(GLIDE_SEL).forEach(box => {
+        if (!box.offsetParent) return; // ascuns: nu măsurăm
+        const on = box.querySelector(".subnav-btn.active, :scope > [aria-pressed=\"true\"]");
+        let g = box.querySelector(":scope > .seg-glide");
+        if (!on) { if (g) g.style.opacity = "0"; return; }
+        const pos = { x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight };
+        const key = glideKey(box);
+        if (!g) {
+            g = document.createElement("span");
+            g.className = "seg-glide";
+            g.setAttribute("aria-hidden", "true");
+            box.prepend(g);
+            box.classList.add("has-glide");
+            const prev = key && glideLast.get(key);
+            placeGlide(g, prev && prev.w ? prev : pos, false);
+            void g.offsetWidth;
+        }
+        const cur = g._pos;
+        if (!cur || cur.x !== pos.x || cur.y !== pos.y || cur.w !== pos.w || cur.h !== pos.h) placeGlide(g, pos, !reduceMotion());
+        g._pos = pos;
+        if (key) glideLast.set(key, pos);
+    });
+}
+let glideFrame = 0;
+const queueGlide = () => { if (!glideFrame) glideFrame = requestAnimationFrame(() => { glideFrame = 0; glideAll(); }); };
+
 /* ---------- pornire ---------- */
 (() => {
     const nav = document.querySelector(".side-nav");
@@ -183,6 +223,11 @@ document.addEventListener("click", event => {
     }
     window.addEventListener("resize", queueSidePill, { passive: true });
     queueSidePill();
+    if (typeof MutationObserver === "function" && !/jsdom/i.test(navigator.userAgent || "")) {
+        new MutationObserver(queueGlide).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "aria-pressed", "hidden"] });
+        window.addEventListener("resize", queueGlide, { passive: true });
+        queueGlide();
+    }
     // bucla de gesturi pornește doar într-un browser adevărat (nu în testele automate, unde ar ține procesul deschis)
     if (!/jsdom/i.test(navigator.userAgent || "")) palIdleTick();
 })();
