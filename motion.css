@@ -1,6 +1,4 @@
-/* urNotes · Mișcarea: doar tranziția dintre file (js/ui/pagefx.js). Când atingi o filă, un panou în culoarea ei,
-   cu iconița și numele, urcă de jos și acoperă ecranul; pagina se schimbă dedesubt; panoul pleacă în sus.
-   Nimic nu se animă când se deschide aplicația sau o pagină. Totul dispare cu „reducere mișcare”. */
+/* urNotes · Mișcarea: nicio animație de pagină; filele se schimbă pe loc. Rămân doar bara de timp de la „Anulează” și mânerul foii pe telefon. */
 
 /* nimic nu sare și nu intră pe rând */
 .stg, .np-pop, .is-catch, .home-tile-value, .mobile-nav-btn.is-pop .ico, .mobile-nav-btn.is-pop,
@@ -9,21 +7,8 @@
 .confetti, .tick-pop, .grade-fly, .ripple-host, .toast.is-celebrate::after { display: none !important; }
 .toast .toast-ico { animation: none !important; }
 
-/* tranziția dintre file */
-.pt { position: fixed; inset: 0; z-index: 99999; overflow: hidden; pointer-events: auto; contain: strict; }
-.pt.is-out { pointer-events: none; }
-body.pt-run .tab-content.active { animation: none !important; }
-.pt-panel { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; background: var(--pt-c); color: #fff; }
-.pt-icon { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 20px; background: rgba(255, 255, 255, 0.2); }
-.pt-icon .ico { width: 44px; height: 44px; stroke-width: 2; color: #fff; }
-.pt-name { font: 700 30px/1.1 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; letter-spacing: -0.02em; }
-.pt.is-in .pt-panel { animation: ptUp .32s cubic-bezier(.32, .72, 0, 1) both; }
-.pt.is-in :is(.pt-icon, .pt-name) { animation: ptRise .32s .06s cubic-bezier(.32, .72, 0, 1) both; }
-.pt.is-out .pt-panel { animation: ptAway .42s cubic-bezier(.65, 0, .35, 1) both; }
-@keyframes ptUp { from { transform: translateY(100%); } to { transform: none; } }
-@keyframes ptRise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-@keyframes ptAway { from { transform: none; } to { transform: translateY(-100%); } }
-@media (prefers-reduced-motion: reduce) { .pt { display: none !important; } }
+/* schimbarea filei e instantanee */
+.tab-content.active, .tab-content.active.enter-fwd, .tab-content.active.enter-back { animation: none !important; }
 
 /* „Anulează”: bara care arată cât timp mai ai */
 .toast { position: relative; overflow: hidden; }

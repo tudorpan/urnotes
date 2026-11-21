@@ -150,7 +150,7 @@ function staggerIn(root) {
 
 /* ---------- alunecă din partea în care mergi ---------- */
 function slideIn(el, dir) {
-    return; // fără mișcare în pagină: singura tranziție e cea dintre file (animateTabEnter)
+    return; // fără mișcare în pagină: filele se schimbă pe loc
     // eslint-disable-next-line no-unreachable
     if (!el || reduceMotion()) return;
     el.classList.remove("slide-from-l", "slide-from-r", "slide-up");

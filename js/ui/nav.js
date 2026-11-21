@@ -20,7 +20,6 @@ function switchTab(tabId) {
     hideChartTip();
     closeCustomSelect({ restoreFocus: false });
     const changed = ui.activeTab !== tabId;
-    const from = ui.activeTab;
     ui.activeTab = tabId;
     // cifrele „numără” doar la prima deschidere; la următoarele intrări pagina apare direct, fără să pară reîncărcată
     // Progresul apare direct (fără bare care cresc sau cifre care numără)
@@ -45,11 +44,6 @@ function switchTab(tabId) {
 
     closeQuickAdd({ restoreFocus: false });
     renderActiveTab();
-    if (changed) {
-        // desenul animat al paginii: pornit deja de navigateWithFx; altfel (căutare, legături) foaia apare direct peste tot
-        if (typeof pageFx === "function" && typeof pfx !== "undefined" && !pfx.fromFx) pageFx(tabId, { instant: true });
-        animateTabEnter(tabId, from);
-    }
     moveNavPill();
     // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
     requestAnimationFrame(() => moveNavPill(false));

@@ -72,9 +72,8 @@ Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul răm
 
 ### Mișcarea și gesturile
 
-- Singura animație e tranziția dintre file (`js/ui/pagefx.js`, stilurile `pt-*` din `motion.css`): când atingi o filă, un panou în culoarea ei, cu iconița și numele filei, acoperă tot ecranul, pagina se schimbă dedesubt și panoul pleacă (sub o secundă). Nimic nu se animă când se deschide aplicația sau o pagină; căutarea și butonul Înapoi schimbă pagina direct.
+- Fără animații: filele se schimbă pe loc, iar nimic nu se animă când se deschide aplicația sau o pagină. Rămâne doar bara cu timpul rămas de la „Anulează”.
 - Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
-- Cu „reducere mișcare” din sistem se oprește și tranziția dintre file.
 
 ### Mascotele
 
