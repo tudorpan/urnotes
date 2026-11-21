@@ -1,170 +1,177 @@
-/* urNotes · Calendarul: rezumat, săptămână, lună.
+/* urNotes · Calendarul, în felul Google Calendar: Zi, Săptămână (cu orele zilei), Lună și Program (lista).
+   În stânga (pe calculator): „Creează”, calendarul mic, ce a rămas neterminat și „Calendarele mele” (ce straturi vezi).
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
 
-/* ---------- CALENDAR ---------- */
+const CAL_VIEWS = ["day", "week", "month", "schedule"];
+const CAL_VIEW_LABEL = { day: "Zi", week: "Săptămână", month: "Lună", schedule: "Program" };
+const CAL_VIEW_KEY = { day: "D", week: "W", month: "M", schedule: "A" };
+/* vechile moduri (Agendă, Tabel, Panou) se deschid ca listă */
+const calViewFrom = v => CAL_VIEWS.includes(v) ? v : v === "agenda" || v === "table" || v === "board" ? "schedule" : "week";
+
+const HOUR_PX = 48;                 // înălțimea unei ore în grilă
+const EV_MIN_DEFAULT = 50;          // un eveniment cu oră ține cât o oră de curs
+const SCHEDULE_DAYS = 45;           // cât de departe se uită lista „Program”
+/* Orele de curs: de la 8:00, 50 de minute plus 10 de pauză (orarul nu are ore scrise) */
+const lessonStartMin = () => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(state.settings.school?.start || "");
+    return m ? Number(m[1]) * 60 + Number(m[2]) : 8 * 60;
+};
+const lessonSpan = i => { const s = lessonStartMin() + i * 60; return { from: s, to: s + 50 }; };
+const minToHM = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const hmToMin = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+
+/* Straturile din „Calendarele mele”: fiecare se poate ascunde */
+const CAL_LAYERS = [
+    { id: "test", label: "Teste și examene", types: ["Test", "Examen"] },
+    { id: "tema", label: "Teme", types: ["Temă"] },
+    { id: "proiect", label: "Proiecte și prezentări", types: ["Proiect", "Prezentare"] },
+    { id: "personal", label: "Personal", types: ["Personal"] },
+    { id: "orar", label: "Orarul" },
+    { id: "plan", label: "Plan de învățat" },
+    { id: "vacanta", label: "Vacanțe" }
+];
+const CAL_HIDDEN_KEY = "urn_cal_hidden_v1";
+function calHidden() {
+    if (!ui.cal.hidden) {
+        try { ui.cal.hidden = new Set(JSON.parse(localStorage.getItem(CAL_HIDDEN_KEY) || "[]")); } catch (_) { ui.cal.hidden = new Set(); }
+    }
+    return ui.cal.hidden;
+}
+const layerOfType = type => CAL_LAYERS.find(l => l.types?.includes(type))?.id || "personal";
+const layerOn = id => !calHidden().has(id);
+const evClass = ev => `gc-${EVENT_TYPE_CLASS[ev.type] || "personal"}`;
+
+function calOccurrences(from, to) {
+    return occurrencesBetween(from, to).filter(o => layerOn(layerOfType(o.ev.type)));
+}
+const isHoliday = date => { const wd = parseDateKey(date).getDay(); return !isSchoolDay(date) && wd >= 1 && wd <= 5; };
+function calLessonsOn(date) {
+    if (!layerOn("orar") || !isSchoolDay(date)) return [];
+    return (state.timetable[parseDateKey(date).getDay()] || []).map((m, i) => ({ mat: m, i })).filter(l => l.mat);
+}
+
+/* ==================== desenarea ==================== */
 function renderCalendar() {
     const body = $("cal-body");
     if (!body) return;
-
-    document.querySelectorAll("[data-action='cal-view']").forEach(btn => {
-        btn.setAttribute("aria-pressed", String(btn.dataset.view === ui.cal.view));
-    });
-
-    if (typeof renderCompose === "function" && !document.activeElement?.closest?.("#cal-compose")) renderCompose();
+    ui.cal.view = calViewFrom(ui.cal.view);
+    renderCalToolbar();
+    renderMiniMonth();
+    renderCalLayers();
     renderCalOverview();
-    // „Tabel” și „Panou” arată testele și temele ca o bază de date (ca în Notion); săptămâna și luna, ca un calendar
-    const dbView = ui.cal.view === "table" || ui.cal.view === "board";
-    document.querySelector(".cal-shell")?.classList.toggle("is-db", dbView);
-    if (ui.cal.view === "agenda") renderAgendaView();
-    else if (ui.cal.view === "month") renderMonthView();
-    else if (ui.cal.view === "table") renderTableView();
-    else if (ui.cal.view === "board") renderBoardView();
-    else renderWeekView();
+    const keepScroll = ui.cal.renderedKey === `${ui.cal.view}|${ui.cal.date}` ? $("gc-scroll")?.scrollTop : null;
+    if (ui.cal.view === "month") renderMonthView();
+    else if (ui.cal.view === "schedule") renderScheduleView();
+    else renderTimeGrid(ui.cal.view === "day" ? [ui.cal.date] : Array.from({ length: 7 }, (_, i) => addDays(weekStart(ui.cal.date), i)));
+    const scroller = $("gc-scroll");
+    if (scroller) scroller.scrollTop = keepScroll ?? calFirstScroll();
+    ui.cal.renderedKey = `${ui.cal.view}|${ui.cal.date}`;
+    if (typeof cc !== "undefined" && cc.open) document.querySelector(`#cal-body [data-day="${cc.date}"]`)?.classList.add("is-target");
 }
 
-/* ---------- baza de date: aceleași teste și teme, ca tabel sau ca panou cu coloane ---------- */
-const OCC_STATUS = { todo: "De făcut", doing: "În lucru", done: "Gata" };
-function occStatus(ev, date, links) {
-    if (isOccurrenceDone(ev, date, links)) return "done";
-    return ev.doingDates?.[date] ? "doing" : "todo";
+/** Prima poziție a grilei: puțin înainte de prima oră sau primul eveniment (ca la Google, nu de la miezul nopții). */
+function calFirstScroll() {
+    return Math.max(0, (lessonStartMin() - 45) / 60 * HOUR_PX);
 }
 
-/** Schimbă starea unei apariții; o notă legată ține testul la „Gata”. */
-function setOccStatus(id, date, status) {
-    const found = findEvent(id);
-    if (!found || !OCC_STATUS[status] || !requireAccount()) return;
-    const { ev } = found;
-    if (linkedGrade(gradeLinks(), ev, date) && status !== "done") { showToast("⚠️ Testul are deja notă, deci rămâne la „Gata”."); return; }
-    const before = occStatus(ev, date, gradeLinks());
-    if (before === status) return;
-    ev.doneDates ||= {}; ev.doingDates ||= {};
-    delete ev.doneDates[date]; delete ev.doingDates[date];
-    if (status === "done") ev.doneDates[date] = true;
-    if (status === "doing") ev.doingDates[date] = true;
-    if (!Object.keys(ev.doneDates).length) delete ev.doneDates;
-    if (!Object.keys(ev.doingDates).length) delete ev.doingDates;
-    if ((status === "done") !== (before === "done")) state.pal.events = Math.max(0, state.pal.events + (status === "done" ? 1 : -1));
-    if (status === "done") addActivity(`Ai bifat „${ev.title}” ca făcut.`);
-    refresh();
-}
-
-function dbRows() {
+function renderCalToolbar() {
+    const v = ui.cal.view;
+    const d = parseDateKey(ui.cal.date);
+    let title;
+    if (v === "day") title = `${d.getDate()} ${MONTHS[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+    else if (v === "week") {
+        const a = parseDateKey(weekStart(ui.cal.date)), b = parseDateKey(addDays(weekStart(ui.cal.date), 6));
+        title = a.getMonth() === b.getMonth() ? `${MONTHS[a.getMonth()]} ${a.getFullYear()}`
+            : a.getFullYear() === b.getFullYear() ? `${MONTH_SHORT[a.getMonth()]} – ${MONTH_SHORT[b.getMonth()]} ${b.getFullYear()}`
+            : `${MONTH_SHORT[a.getMonth()]} ${a.getFullYear()} – ${MONTH_SHORT[b.getMonth()]} ${b.getFullYear()}`;
+        title = title.replace(/^./, c => c.toUpperCase());
+    } else title = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    // pe telefon, ca în aplicația Google: fără anul curent, ca să încapă
+    const phone = typeof matchMedia === "function" && matchMedia("(max-width: 640px)").matches;
+    if (phone) title = title.replace(` ${new Date().getFullYear()}`, "");
+    setText("cal-title", title);
+    // pentru cititoarele de ecran: unde ești față de azi
     const today = getLocalDateKey();
-    const links = gradeLinks();
-    const from = ui.cal.dbPast ? addDays(today, -60) : addDays(today, -14);
-    return occurrencesBetween(from, addDays(today, 90))
-        .filter(o => ui.cal.dbPast || o.date >= today || occStatus(o.ev, o.date, links) !== "done")
-        .map(o => ({ ...o, status: occStatus(o.ev, o.date, links) }));
+    let cap = "";
+    if (v === "week" || v === "day") {
+        const diff = Math.round(daysBetween(weekStart(today), weekStart(ui.cal.date)) / 7);
+        cap = diff === 0 ? "Săptămâna aceasta" : diff === 1 ? "Săptămâna viitoare" : diff === -1 ? "Săptămâna trecută"
+            : diff > 0 ? `Peste ${plural(diff, "săptămână", "săptămâni")}` : `Acum ${plural(-diff, "săptămână", "săptămâni")}`;
+        if (v === "day") cap = relativeDayLabel(ui.cal.date);
+    } else if (v === "month") {
+        const md = (d.getFullYear() - parseDateKey(today).getFullYear()) * 12 + d.getMonth() - parseDateKey(today).getMonth();
+        cap = md === 0 ? "Luna aceasta" : md === 1 ? "Luna viitoare" : md === -1 ? "Luna trecută" : "";
+    } else cap = `Următoarele ${SCHEDULE_DAYS} de zile`;
+    setText("cal-caption", cap);
+    const btn = $("gc-viewbtn");
+    if (btn) btn.querySelector("span").textContent = CAL_VIEW_LABEL[v];
+    document.querySelectorAll("#gc-viewmenu [data-action='cal-view']").forEach(b => b.setAttribute("aria-checked", String(b.dataset.view === v)));
+    $("tab-calendar")?.setAttribute("data-view", v);
+    const t = $("cal-title-btn");
+    if (t) {
+        t.setAttribute("aria-expanded", String(Boolean(ui.cal.miniOpen)));
+        // pe ecran mare calendarul mic e mereu în stânga: titlul nu mai e buton
+        const wide = typeof matchMedia === "function" && matchMedia("(min-width: 1001px)").matches;
+        t.tabIndex = wide ? -1 : 0;
+    }
+    document.querySelector(".gcal")?.classList.toggle("is-mini-open", Boolean(ui.cal.miniOpen));
 }
 
-function dbTagHTML(ev) {
-    return `<span class="np-tag t-${EVENT_TYPE_CLASS[ev.type] || "personal"}">${icon(EVENT_TYPE_ICON[ev.type] || "pin")} ${escapeHTML(ev.type)}</span>`;
-}
-function dbSubjectHTML(mat) {
-    return mat ? `<span class="np-tag np-subj" style="${subjectStyle(mat)}">${escapeHTML(shortSubjectName(mat))}</span>` : `<span class="np-empty">–</span>`;
-}
-function dbStatusHTML(o) {
-    const next = { todo: "doing", doing: "done", done: "todo" }[o.status];
-    return `<button type="button" class="db-status s-${o.status}" data-action="occ-status" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}" data-status="${next}"
-        title="Schimbă în „${OCC_STATUS[next]}”" aria-label="${escapeHTML(`Stare: ${OCC_STATUS[o.status]}. Schimbă în ${OCC_STATUS[next]}`)}"><i aria-hidden="true"></i>${OCC_STATUS[o.status]}</button>`;
-}
-
-function renderTableView() {
-    const rows = dbRows();
+/* ---------- calendarul mic ---------- */
+function renderMiniMonth() {
+    const box = $("gc-mini");
+    if (!box) return;
+    const base = parseDateKey(ui.cal.mini || ui.cal.date);
+    const first = getLocalDateKey(new Date(base.getFullYear(), base.getMonth(), 1));
+    const last = getLocalDateKey(new Date(base.getFullYear(), base.getMonth() + 1, 0));
+    const start = weekStart(first);
     const today = getLocalDateKey();
-    $("cal-title").textContent = "Teste și teme";
-    setText("cal-caption", `${plural(rows.length, "rând", "rânduri")}`);
-    $("cal-body").innerHTML = `
-        <div class="db-tools">
-            <label class="db-past"><input type="checkbox" data-action="db-past" ${ui.cal.dbPast ? "checked" : ""}> Arată și ce a trecut și e gata</label>
+    const sel = ui.cal.view === "week" ? [weekStart(ui.cal.date), addDays(weekStart(ui.cal.date), 6)] : [ui.cal.date, ui.cal.date];
+    const marks = new Set(calOccurrences(start, addDays(start, 41)).map(o => o.date));
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+        const date = addDays(start, i);
+        if (i === 35 && date > last) break;
+        const cls = ["gc-mini-d", date < first || date > last ? "is-out" : "", date === today ? "is-today" : "", date >= sel[0] && date <= sel[1] ? "is-sel" : "", marks.has(date) ? "has-ev" : ""].filter(Boolean).join(" ");
+        cells.push(`<button type="button" class="${cls}" data-action="cal-mini-day" data-date="${date}" aria-label="${escapeHTML(getDateLabel(date))}">${parseDateKey(date).getDate()}</button>`);
+    }
+    box.innerHTML = `
+        <div class="gc-mini-head">
+            <b>${MONTHS[base.getMonth()]} ${base.getFullYear()}</b>
+            <span>
+                <button type="button" class="gc-ibtn" data-action="cal-mini" data-offset="-1" aria-label="Luna anterioară">${icon("chevron", "is-flip")}</button>
+                <button type="button" class="gc-ibtn" data-action="cal-mini" data-offset="1" aria-label="Luna următoare">${icon("chevron")}</button>
+            </span>
         </div>
-        ${rows.length ? `
-        <div class="db-table-wrap">
-            <table class="db-table">
-                <thead><tr><th scope="col">Titlu</th><th scope="col">Tip</th><th scope="col">Materie</th><th scope="col">Data</th><th scope="col">Stare</th></tr></thead>
-                <tbody>
-                    ${rows.map(o => `
-                        <tr class="${o.date < today ? "is-past" : ""} ${o.status === "done" ? "is-done" : ""}">
-                            <td><button type="button" class="db-open" data-action="event-open" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}">${escapeHTML(o.ev.title)}</button></td>
-                            <td>${dbTagHTML(o.ev)}</td>
-                            <td>${dbSubjectHTML(o.ev.subject)}</td>
-                            <td class="db-date">${escapeHTML(shortDayLabel(o.date))}${o.ev.time ? ` <span class="np-rel">${escapeHTML(o.ev.time)}</span>` : ""}<small>${escapeHTML(relativeDayLabel(o.date))}</small></td>
-                            <td>${dbStatusHTML(o)}</td>
-                        </tr>`).join("")}
-                </tbody>
-            </table>
-        </div>` : emptyNote("Nimic de dat în următoarele 3 luni. Adaugă un test sau o temă cu „+”.")}`;
-}
-
-function renderBoardView() {
-    const rows = dbRows();
-    const today = getLocalDateKey();
-    $("cal-title").textContent = "Teste și teme";
-    setText("cal-caption", "trage o carte în altă coloană ca să-i schimbi starea");
-    $("cal-body").innerHTML = `
-        <div class="db-board">
-            ${Object.entries(OCC_STATUS).map(([s, label]) => {
-                const list = rows.filter(o => o.status === s);
-                return `
-                    <section class="db-col s-${s}" data-status="${s}" aria-label="${label}">
-                        <h4><i aria-hidden="true"></i>${label} <span class="cat-count">${list.length}</span></h4>
-                        <div class="db-cards">
-                            ${list.map(o => `
-                                <article class="db-card ${o.date < today && s !== "done" ? "is-late" : ""}" draggable="true" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}">
-                                    <button type="button" class="db-open" data-action="event-open" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}">${escapeHTML(o.ev.title)}</button>
-                                    <div class="db-card-tags">${dbTagHTML(o.ev)} ${o.ev.subject ? dbSubjectHTML(o.ev.subject) : ""}</div>
-                                    <div class="db-card-foot"><span>${escapeHTML(shortDayLabel(o.date))} · ${escapeHTML(relativeDayLabel(o.date))}</span>${dbStatusHTML(o)}</div>
-                                </article>`).join("") || `<p class="db-empty">Nimic aici</p>`}
-                        </div>
-                    </section>`;
-            }).join("")}
+        <div class="gc-mini-grid">
+            ${[1, 2, 3, 4, 5, 6, 0].map(wd => `<span class="gc-mini-wd" aria-hidden="true">${WEEKDAY_SHORT[wd][0]}</span>`).join("")}
+            ${cells.join("")}
         </div>`;
 }
 
-/* tragerea cărților între coloane (mouse); pe telefon, butonul de stare de pe carte */
-document.addEventListener("dragstart", event => {
-    const card = event.target.closest?.(".db-card");
-    if (!card) return;
-    event.dataTransfer.setData("text/urn-occ", JSON.stringify({ id: card.dataset.id, date: card.dataset.date }));
-    event.dataTransfer.effectAllowed = "move";
-    card.classList.add("is-dragging");
-});
-document.addEventListener("dragend", event => event.target.closest?.(".db-card")?.classList.remove("is-dragging"));
-document.addEventListener("dragover", event => {
-    const col = event.target.closest?.(".db-col");
-    if (!col || ![...(event.dataTransfer?.types || [])].includes("text/urn-occ")) return;
-    event.preventDefault();
-    document.querySelectorAll(".db-col.is-over").forEach(c => c !== col && c.classList.remove("is-over"));
-    col.classList.add("is-over");
-});
-document.addEventListener("dragleave", event => { const col = event.target.closest?.(".db-col"); if (col && !col.contains(event.relatedTarget)) col.classList.remove("is-over"); });
-document.addEventListener("drop", event => {
-    const col = event.target.closest?.(".db-col");
-    if (!col) return;
-    const raw = event.dataTransfer?.getData("text/urn-occ");
-    document.querySelectorAll(".db-col.is-over").forEach(c => c.classList.remove("is-over"));
-    if (!raw) return;
-    event.preventDefault();
-    try { const { id, date } = JSON.parse(raw); setOccStatus(id, date, col.dataset.status); } catch (_) { /* ignorăm */ }
-});
+/* ---------- „Calendarele mele” ---------- */
+function renderCalLayers() {
+    const box = $("gc-layers");
+    if (!box) return;
+    box.innerHTML = `
+        <p class="gc-side-title">Calendarele mele</p>
+        ${CAL_LAYERS.map(l => `
+            <label class="gc-layer gc-l-${l.id}">
+                <input type="checkbox" data-action="cal-layer" data-layer="${l.id}" ${layerOn(l.id) ? "checked" : ""}>
+                <i aria-hidden="true">${icon("check")}</i><span>${l.label}</span>
+            </label>`).join("")}`;
+}
 
-/* ---------- rezumat: ce urmează + ce necesită atenție ---------- */
+/* ---------- ce a rămas neterminat ---------- */
 function renderCalOverview() {
     const box = $("cal-overview");
     if (!box) return;
-
     const today = getLocalDateKey();
     const links = gradeLinks();
-    const upcoming = occurrencesBetween(today, addDays(today, 30))
-        .filter(o => NEEDS_GRADE.has(o.ev.type) && !isOccurrenceDone(o.ev, o.date, links));
-    const homework = occurrencesBetween(today, addDays(today, 6))
-        .filter(o => o.ev.type === "Temă" && !isOccurrenceDone(o.ev, o.date, links));
-    // Pentru o serie repetată arătăm doar cea mai recentă apariție ratată (+ câte mai vechi), nu câte un rând pe săptămână.
+    // pentru o serie repetată: doar cea mai recentă apariție ratată (+ câte mai vechi)
     const attention = missedOccurrences(links, today);
     const out = [];
-
-    // 1. ce a rămas neterminat: un rând discret pentru fiecare, cu butoanele lui
     if (attention.length) {
         out.push(`
             <div class="cal-attn" role="group" aria-labelledby="cal-attn-title">
@@ -172,7 +179,7 @@ function renderCalOverview() {
                 <ul class="cal-attn-list">${attention.slice(0, 3).map(({ ev, date, older }) => `
                     <li class="cal-att-row">
                         <button type="button" class="cal-att-info" data-action="cal-goto" data-date="${date}">
-                            <i class="ev-dot ev-${EVENT_TYPE_CLASS[ev.type] || "personal"}" aria-hidden="true"></i>
+                            <i class="gc-dot ${evClass(ev)}" aria-hidden="true"></i>
                             <b>${escapeHTML(ev.title)}</b>
                             <small>${escapeHTML([relativeDayLabel(date), older && `+${older} mai ${older === 1 ? "veche" : "vechi"}`].filter(Boolean).join(" · "))}</small>
                         </button>
@@ -185,95 +192,132 @@ function renderCalOverview() {
                 ${attention.length > 3 ? `<p class="cal-attn-more">și încă ${attention.length - 3} în săptămânile trecute</p>` : ""}
             </div>`);
     }
-
-    // 2. ce urmează: câteva „etichete” pe un singur rând
-    const chips = upcoming.slice(0, 4).map(o => {
-        const n = daysBetween(today, o.date);
-        return `<button type="button" class="cal-chip ev-${EVENT_TYPE_CLASS[o.ev.type] || "personal"} ${n <= 2 ? "is-near" : ""}" data-action="cal-goto" data-date="${o.date}"
-            title="${escapeHTML(`${o.ev.title} · ${weekdayLabel(o.date)}${o.ev.time ? `, ${o.ev.time}` : ""}`)}">
-            <i class="ev-dot" aria-hidden="true"></i><b>${escapeHTML(o.ev.subject ? shortSubjectName(o.ev.subject) : o.ev.title)}</b><small>${escapeHTML(n === 0 ? "azi" : n === 1 ? "mâine" : `în ${n} zile`)}</small>
-        </button>`;
-    });
-    if (homework.length) chips.push(`<button type="button" class="cal-chip ev-tema" data-action="cal-goto" data-date="${homework[0].date}"><i class="ev-dot" aria-hidden="true"></i><b>${plural(homework.length, "temă", "teme")}</b><small>în 7 zile</small></button>`);
-    out.push(`
-        <div class="cal-upnext" aria-label="Urmează">
-            <span class="cal-upnext-label">${icon("calendar-check")} Urmează</span>
-            ${chips.length ? chips.join("") : `<span class="cal-upnext-empty">nimic în următoarele 30 de zile</span>`}
-        </div>`);
-
-    // 3. fără orar: o sugestie scurtă
     if (!Object.keys(state.timetable).length && Object.keys(state.subjects).length) {
-        out.push(`<p class="cal-tip">${icon("calendar-days")} Cu orarul, fiecare zi îți arată orele și adaugi un test dintr-o atingere. <button type="button" class="btn btn-text btn-sm" data-action="timetable">Completează orarul</button></p>`);
+        out.push(`<p class="cal-tip">${icon("calendar-days")} Cu orarul, orele tale apar în calendar și adaugi un test dintr-o atingere. <button type="button" class="btn btn-text btn-sm" data-action="timetable">Completează orarul</button></p>`);
     }
     box.innerHTML = out.join("");
+    box.hidden = !out.length;
 }
 
-/* ---------- săptămână ---------- */
-function renderWeekView() {
-    const start = weekStart(ui.cal.date);
-    const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+/* ---------- bucățile unui eveniment ---------- */
+function evTimeLabel(ev) {
+    const s = hmToMin(ev.time);
+    if (s === null) return "Toată ziua";
+    return `${minToHM(s)} – ${minToHM(s + (Number(ev.duration) || EV_MIN_DEFAULT))}`;
+}
+function evStateBits(ev, date, links) {
+    const link = linkedGrade(links, ev, date);
+    const done = isOccurrenceDone(ev, date, links);
+    return { link, done };
+}
+/** Un eveniment, oriunde apare: un bloc pe care îl atingi ca să vezi detaliile (ca la Google). */
+function calEvHTML({ ev, date }, links, { kind = "chip", style = "" } = {}) {
+    const { link, done } = evStateBits(ev, date, links);
+    const id = escapeHTML(ev.id);
+    const timed = hmToMin(ev.time) !== null;
+    const label = `${ev.title}, ${timed ? evTimeLabel(ev) : "toată ziua"}${ev.subject ? `, ${ev.subject}` : ""}${link ? `, nota ${link.grade.val}` : done ? ", făcut" : ""}`;
+    const inner = kind === "block"
+        ? `<b class="gc-ev-title">${escapeHTML(ev.title)}</b><span class="gc-ev-time">${escapeHTML(evTimeLabel(ev))}${ev.repeat ? " · ↻" : ""}</span>${link ? `<span class="gc-ev-grade">Nota ${escapeHTML(link.grade.val)}</span>` : ""}`
+        : kind === "row"
+        ? `<i class="gc-dot ${evClass(ev)}" aria-hidden="true"></i><span class="gc-row-time">${escapeHTML(evTimeLabel(ev))}</span><span class="gc-row-text"><b>${escapeHTML(ev.title)}</b>${ev.subject && ev.title !== autoEventTitle(ev.type, ev.subject) ? `<small>${escapeHTML(ev.subject)}</small>` : ""}</span>${link ? `<span class="gc-row-grade">Nota ${escapeHTML(link.grade.val)}</span>` : done ? `<span class="gc-row-done">${icon("check")} Făcut</span>` : ""}${ev.repeat ? `<span class="gc-row-rep" title="Se repetă">↻</span>` : ""}`
+        : timed
+        ? `<i class="gc-dot ${evClass(ev)}" aria-hidden="true"></i><span class="gc-chip-time">${escapeHTML(ev.time)}</span><b>${escapeHTML(ev.title)}</b>${link ? `<span class="gc-chip-grade">Nota ${escapeHTML(link.grade.val)}</span>` : ""}`
+        : `<b>${escapeHTML(ev.title)}</b>${ev.repeat ? `<span class="gc-chip-rep" aria-hidden="true">↻</span>` : ""}${link ? `<span class="gc-chip-grade">Nota ${escapeHTML(link.grade.val)}</span>` : ""}`;
+    const cls = ["cal-ev", `gc-ev-${kind}`, evClass(ev), timed && kind === "chip" ? "is-timed" : "", done ? "is-done" : ""].filter(Boolean).join(" ");
+    return `<div class="${cls}" draggable="true" data-id="${id}" data-date="${date}" ${style ? `style="${style}"` : ""}>
+        <button type="button" class="cal-ev-main" data-action="cal-ev" data-id="${id}" data-date="${date}" aria-label="${escapeHTML(label)}" aria-haspopup="dialog">${inner}</button>
+    </div>`;
+}
+
+/* ---------- Zi și Săptămână: orele zilei, ca o grilă ---------- */
+function renderTimeGrid(days) {
     const today = getLocalDateKey();
     const links = gradeLinks();
-    const occ = occurrencesBetween(days[0], days[6]);
+    const occ = calOccurrences(days[0], days.at(-1));
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
 
-    const sameMonth = parseDateKey(days[0]).getMonth() === parseDateKey(days[6]).getMonth();
-    const endD = parseDateKey(days[6]);
-    setText("cal-title", sameMonth
-        ? `${parseDateKey(days[0]).getDate()} – ${endD.getDate()} ${MONTHS[endD.getMonth()].toLowerCase()} ${endD.getFullYear()}`
-        : `${shortDayLabel(days[0])} – ${shortDayLabel(days[6])} ${endD.getFullYear()}`);
-    const diff = Math.round(daysBetween(weekStart(today), start) / 7);
-    setText("cal-caption", diff === 0 ? "Săptămâna aceasta" : diff === 1 ? "Săptămâna viitoare" : diff === -1 ? "Săptămâna trecută"
-        : diff > 0 ? `Peste ${plural(diff, "săptămână", "săptămâni")}` : `Acum ${plural(-diff, "săptămână", "săptămâni")}`);
+    const head = days.map(date => {
+        const d = parseDateKey(date), wd = d.getDay();
+        return `<div class="gc-dayhead ${date === today ? "is-today" : ""} ${date < today ? "is-past" : ""}">
+            <span class="gc-wd">${WEEKDAY_SHORT[wd]}</span>
+            <button type="button" class="gc-dnum" data-action="cal-day" data-date="${date}" aria-label="${escapeHTML(`${WEEKDAY_LONG[wd]}, ${getDateLabel(date)}: vezi ziua`)}">${d.getDate()}</button>
+        </div>`;
+    }).join("");
 
-    const strip = `<div class="cal-daystrip" role="group" aria-label="Zilele săptămânii">${days.map(date => {
-        const d = parseDateKey(date);
-        const n = occ.filter(o => o.date === date).length;
-        return `<button type="button" class="cal-dsd ${date === today ? "is-today" : ""}" data-action="cal-jump" data-date="${date}" aria-label="${escapeHTML(`${WEEKDAY_LONG[d.getDay()]}, ${getDateLabel(date)}${n ? `, ${plural(n, "eveniment", "evenimente")}` : ""}`)}">
-            <small>${WEEKDAY_SHORT[d.getDay()].slice(0, 1)}</small><b>${d.getDate()}</b><i class="${n ? "has" : ""}" aria-hidden="true"></i></button>`;
-    }).join("")}</div>`;
-    $("cal-body").innerHTML = `${strip}<div class="cal-week">${days.map(date => dayColumnHTML(date, occ.filter(o => o.date === date), links, today)).join("")}</div>`;
-}
+    const allDay = days.map(date => {
+        const items = occ.filter(o => o.date === date && hmToMin(o.ev.time) === null);
+        const holiday = layerOn("vacanta") && isHoliday(date);
+        const plan = layerOn("plan") ? calPlanHTML(date) : "";
+        return `<div class="gc-adcell ${date === today ? "is-today" : ""}" data-day="${date}" data-drop>
+            ${holiday ? `<span class="gc-holiday">${icon("sun")} Vacanță</span>` : ""}
+            ${items.map(o => calEvHTML(o, links)).join("")}
+            ${plan}
+        </div>`;
+    }).join("");
 
-function dayColumnHTML(date, items, links, today) {
-    const d = parseDateKey(date);
-    const wd = d.getDay();
-    const lessons = isSchoolDay(date) ? (state.timetable[wd] || []) : [];
-    const plan = calPlanHTML(date);
-    const holiday = !isSchoolDay(date) && wd >= 1 && wd <= 5;
-    const classes = [
-        "cal-col",
-        date === today && "is-today",
-        date < today && "is-past",
-        (wd === 0 || wd === 6) && "is-weekend",
-        holiday && "is-holiday",
-        !items.length && !lessons.length && !plan && "is-empty"
-    ].filter(Boolean).join(" ");
+    const hours = Array.from({ length: 23 }, (_, i) => `<span class="gc-hour" style="top:${(i + 1) * HOUR_PX}px">${i + 1}:00</span>`).join("");
 
-    return `
-        <section class="${classes}" data-date="${date}" aria-label="${escapeHTML(`${WEEKDAY_LONG[wd]}, ${getDateLabel(date)}`)}">
-            <header class="cal-col-head">
-                <span class="cal-col-wd">${WEEKDAY_SHORT[wd]}</span>
-                <span class="cal-col-date">${d.getDate()}</span>
-                <span class="cal-col-month">${MONTH_SHORT[d.getMonth()]}</span>
-                ${date === today ? '<span class="cal-today-tag">Azi</span>' : ""}
-                <button type="button" class="cal-add-mini" data-action="cc-day" data-date="${date}" aria-label="Adaugă pe ${escapeHTML(getDateLabel(date))}" title="Adaugă">${icon("plus")}</button>
-            </header>
-            <div class="cal-col-body">
-                <div class="cal-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>
-                ${plan}
-                ${lessons.length ? `
-                    <div class="cal-lessons" aria-label="Orar">
-                        ${lessons.map((m, i) => `
-                            <button type="button" class="cal-lesson" data-action="cc-pick" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}"
-                                title="${escapeHTML(`Ora ${i + 1}: ${m} — adaugă un test sau o temă`)}"><span class="cal-lesson-n">${i + 1}</span><span class="cal-lesson-name">${escapeHTML(shortSubjectName(m))}</span></button>`).join("")}
-                    </div>` : ""}
-                ${!items.length && !lessons.length && !plan ? `<p class="cal-free">${holiday ? "vacanță" : "liber"}</p>` : ""}
-                <button type="button" class="cal-add" data-action="cc-day" data-date="${date}">${icon("plus")} Adaugă</button>
+    const cols = days.map(date => {
+        const d = parseDateKey(date), wd = d.getDay();
+        const timed = occ.filter(o => o.date === date && hmToMin(o.ev.time) !== null)
+            .map(o => { const s = hmToMin(o.ev.time); return { o, s, e: s + (Number(o.ev.duration) || EV_MIN_DEFAULT) }; })
+            .sort((a, b) => a.s - b.s || b.e - a.e);
+        layoutLanes(timed);
+        const lessons = calLessonsOn(date).map(({ mat, i }) => {
+            const { from, to } = lessonSpan(i);
+            return `<button type="button" class="cal-lesson gc-lesson" data-action="cc-pick" data-date="${date}" data-mat="${escapeHTML(mat)}" style="${subjectStyle(mat)}; top:${from / 60 * HOUR_PX}px; height:${(to - from) / 60 * HOUR_PX - 2}px"
+                title="${escapeHTML(`Ora ${i + 1}: ${mat}, ${minToHM(from)}–${minToHM(to)}. Atinge ca să adaugi un test sau o temă.`)}"><span class="cal-lesson-n">${i + 1}</span><span class="cal-lesson-name">${escapeHTML(shortSubjectName(mat))}</span><span class="gc-lesson-time">${minToHM(from)}</span></button>`;
+        }).join("");
+        const evs = timed.map(({ o, s, e, lane, lanes }) => calEvHTML(o, links, {
+            kind: "block",
+            style: `top:${s / 60 * HOUR_PX}px; height:${Math.max(22, (e - s) / 60 * HOUR_PX - 2)}px; left:calc(${lane / lanes * 100}% + 2px); width:calc(${100 / lanes}% - ${lanes > 1 ? 4 : 10}px)`
+        })).join("");
+        const cls = ["cal-col", "gc-col", date === today && "is-today", date < today && "is-past", (wd === 0 || wd === 6) && "is-weekend", isHoliday(date) && "is-holiday"].filter(Boolean).join(" ");
+        return `<div class="${cls}" role="group" data-date="${date}" data-day="${date}" data-drop aria-label="${escapeHTML(`${WEEKDAY_LONG[wd]}, ${getDateLabel(date)}`)}">
+            ${lessons}${evs}
+            ${date === today ? `<div class="gc-now" style="top:${nowMin / 60 * HOUR_PX}px" aria-hidden="true"></div>` : ""}
+        </div>`;
+    }).join("");
+
+    $("cal-body").innerHTML = `
+        <div class="gc-grid" style="--days:${days.length}">
+            <div class="gc-gridhead">
+                <div class="gc-gutter"></div>${head}
             </div>
-        </section>`;
+            <div class="gc-allday">
+                <div class="gc-gutter"><small>toată ziua</small></div>${allDay}
+            </div>
+            <div class="gc-scroll" id="gc-scroll" tabindex="0" aria-label="Orele zilei: derulează ca să vezi tot">
+                <div class="gc-body" style="height:${24 * HOUR_PX}px">
+                    <div class="gc-gutter gc-hours" aria-hidden="true">${hours}</div>${cols}
+                </div>
+            </div>
+        </div>`;
 }
 
-/** Sesiunile din plan, discrete, sub evenimentele zilei (dacă elevul vrea să le vadă în Calendar). */
+/** Evenimentele care se suprapun stau unul lângă altul (ca la Google). */
+function layoutLanes(items) {
+    let cluster = [], end = -1;
+    const flush = () => {
+        const laneEnds = [];
+        cluster.forEach(it => {
+            let lane = laneEnds.findIndex(e => e <= it.s);
+            if (lane < 0) { lane = laneEnds.length; laneEnds.push(it.e); } else laneEnds[lane] = it.e;
+            it.lane = lane;
+        });
+        cluster.forEach(it => { it.lanes = laneEnds.length; });
+        cluster = [];
+    };
+    items.forEach(it => {
+        if (it.s >= end && cluster.length) flush();
+        cluster.push(it);
+        end = Math.max(end, it.e);
+    });
+    if (cluster.length) flush();
+}
+
+/** Sesiunile din plan, discrete, în rândul „toată ziua”. */
 function calPlanHTML(date) {
     if (!state.plan.prefs.setup || !state.plan.prefs.calendar) return "";
     const items = planItemsOn(date);
@@ -283,82 +327,7 @@ function calPlanHTML(date) {
             ${icon(it.done ? "check" : PLAN_KINDS[it.kind].icon)}<span>${escapeHTML(it.mat)} · ${it.min}′</span></button>`).join("")}</div>`;
 }
 
-function eventCardHTML({ ev, date }, links) {
-    const link = linkedGrade(links, ev, date);
-    const done = isOccurrenceDone(ev, date, links);
-    const id = escapeHTML(ev.id);
-    let gradeBtn = "";
-    if (link) {
-        gradeBtn = `<button type="button" class="cal-ev-grade cat-grade-val tone-${gradeTone(Number(link.grade.val))}" data-action="edit-grade"
-            data-mat="${escapeHTML(link.mat)}" data-index="${link.idx}" title="Nota primită — apasă ca s-o modifici">Nota ${escapeHTML(link.grade.val)}</button>`;
-    } else if (NEEDS_GRADE.has(ev.type) && canGradeOccurrence(ev, date, links)) {
-        gradeBtn = `<button type="button" class="cal-ev-addgrade" data-action="event-grade" data-id="${id}" data-date="${date}">+ Notă</button>`;
-    }
-
-    return `
-        <article class="cal-ev ev-${EVENT_TYPE_CLASS[ev.type] || "personal"} ${done ? "is-done" : ""}" draggable="true" data-id="${id}" data-date="${date}">
-            <button type="button" class="cal-ev-check" data-action="event-done" data-id="${id}" data-date="${date}" aria-pressed="${done}"
-                ${link ? "disabled" : ""} title="${link ? "Are notă — e încheiat" : done ? "Marchează ca nefăcut" : "Marchează ca făcut"}"
-                aria-label="${escapeHTML(`${done ? "Nefăcut" : "Făcut"}: ${ev.title}`)}">${done ? "✓" : ""}</button>
-            <button type="button" class="cal-ev-main" data-action="event-open" data-id="${id}" data-date="${date}" title="Editează">
-                <span class="cal-ev-top">
-                    ${ev.time ? `<span class="cal-ev-time">${escapeHTML(ev.time)}</span>` : ""}
-                    <span class="cal-ev-type">${icon(EVENT_TYPE_ICON[ev.type] || "pin")} ${escapeHTML(ev.type)}</span>
-                    ${ev.cls ? `<span class="cal-ev-cls" title="Pus de profesor pentru toată clasa">🏫 ${escapeHTML(ev.cls)}</span>` : ""}
-                    ${ev.repeat ? `<span class="cal-ev-rep" title="${ev.repeat.every === 2 ? "Se repetă la 2 săptămâni" : "Se repetă săptămânal"}">↻</span>` : ""}
-                </span>
-                <b class="cal-ev-title">${escapeHTML(ev.title)}</b>
-                ${ev.subject && ev.title !== autoEventTitle(ev.type, ev.subject) ? `<small class="cal-ev-sub">${escapeHTML(ev.subject)}</small>` : ""}
-            </button>
-            ${gradeBtn}
-        </article>`;
-}
-
-
-/* ---------- agenda: zilele una sub alta, cu tot ce ai în fiecare și „+” pe fiecare zi ---------- */
-const AGENDA_DAYS = 14;
-function renderAgendaView() {
-    const today = getLocalDateKey();
-    const start = weekStart(ui.cal.date);
-    const days = Array.from({ length: AGENDA_DAYS }, (_, i) => addDays(start, i));
-    const links = gradeLinks();
-    const occ = occurrencesBetween(days[0], days.at(-1));
-    const a = parseDateKey(days[0]), b = parseDateKey(days.at(-1));
-    setText("cal-title", a.getMonth() === b.getMonth()
-        ? `${a.getDate()} – ${b.getDate()} ${MONTHS[b.getMonth()].toLowerCase()}`
-        : `${shortDayLabel(days[0])} – ${shortDayLabel(days.at(-1))}`);
-    const diff = Math.round(daysBetween(weekStart(today), start) / 7);
-    setText("cal-caption", diff === 0 ? "Săptămâna asta și următoarea" : diff === -2 ? "Acum două săptămâni" : diff === 2 ? "Peste două săptămâni"
-        : diff > 0 ? `Peste ${plural(diff, "săptămână", "săptămâni")}` : `Acum ${plural(-diff, "săptămână", "săptămâni")}`);
-
-    let html = "";
-    days.forEach((date, i) => {
-        const d = parseDateKey(date), wd = d.getDay();
-        if (i === 7) html += `<p class="ag-week-sep">Săptămâna ${diff + 1 === 1 ? "viitoare" : `din ${shortDayLabel(date)}`}</p>`;
-        const items = occ.filter(o => o.date === date);
-        const lessons = isSchoolDay(date) ? [...new Set(state.timetable[wd] || [])].filter(m => state.subjects[m]) : [];
-        const holiday = !isSchoolDay(date) && wd >= 1 && wd <= 5;
-        const rel = date === today ? "Azi" : date === addDays(today, 1) ? "Mâine" : "";
-        const cls = ["ag-day", date === today && "is-today", date < today && "is-past", (wd === 0 || wd === 6) && "is-weekend", !items.length && "is-empty"].filter(Boolean).join(" ");
-        html += `
-            <section class="${cls}" data-date="${date}" aria-label="${escapeHTML(`${WEEKDAY_LONG[wd]}, ${getDateLabel(date)}`)}">
-                <button type="button" class="ag-date" data-action="cc-day" data-date="${date}" title="Adaugă ceva în ziua asta">
-                    <b>${d.getDate()}</b><span>${escapeHTML(WEEKDAY_SHORT[wd])}${rel ? ` · ${rel}` : ""}</span>
-                </button>
-                <div class="ag-main">
-                    ${items.length ? `<div class="ag-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>` : `<p class="ag-free">${holiday ? "vacanță" : wd === 0 || wd === 6 ? "weekend liber" : "nimic încă"}</p>`}
-                    ${calPlanHTML(date)}
-                    ${lessons.length && date >= today ? `<div class="ag-lessons" aria-label="Orele zilei: atinge una ca să adaugi un test sau o temă">${lessons.map(m => `
-                        <button type="button" class="ag-lesson" data-action="cc-pick" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" title="${escapeHTML(`Adaugă un test sau o temă la ${m}`)}"><i aria-hidden="true"></i>${escapeHTML(shortSubjectName(m))}<span class="ag-lesson-plus" aria-hidden="true">+</span></button>`).join("")}</div>` : ""}
-                </div>
-                <button type="button" class="ag-add" data-action="cc-day" data-date="${date}" aria-label="${escapeHTML(`Adaugă pe ${getDateLabel(date)}`)}" title="Adaugă">${icon("plus")}</button>
-            </section>`;
-    });
-    $("cal-body").innerHTML = `<div class="ag">${html}</div>`;
-    if (typeof cc !== "undefined" && cc.open) document.querySelector(`.ag-day[data-date="${cc.date}"]`)?.classList.add("is-target");
-}
-
-/* ---------- lună ---------- */
+/* ---------- Lună ---------- */
 function renderMonthView() {
     const anchor = parseDateKey(ui.cal.date);
     const first = getLocalDateKey(new Date(anchor.getFullYear(), anchor.getMonth(), 1));
@@ -367,69 +336,196 @@ function renderMonthView() {
     const gridEnd = addDays(weekStart(last), 6);
     const today = getLocalDateKey();
     const links = gradeLinks();
-    const occ = occurrencesBetween(gridStart, gridEnd);
-
-    setText("cal-title", `${MONTHS[anchor.getMonth()]} ${anchor.getFullYear()}`);
-    const monthDiff = (anchor.getFullYear() - new Date().getFullYear()) * 12 + anchor.getMonth() - new Date().getMonth();
-    setText("cal-caption", monthDiff === 0 ? "Luna aceasta" : monthDiff === 1 ? "Luna viitoare" : monthDiff === -1 ? "Luna trecută" : "Apasă o zi pentru detalii");
-
+    const occ = calOccurrences(gridStart, gridEnd);
+    const SHOW = 3;
     const cells = [];
     for (let date = gridStart; date <= gridEnd; date = addDays(date, 1)) {
-        const items = occ.filter(o => o.date === date);
-        const out = date < first || date > last;
+        const d = parseDateKey(date);
+        const items = occ.filter(o => o.date === date).sort((a, b) => (hmToMin(a.ev.time) ?? -1) - (hmToMin(b.ev.time) ?? -1));
+        const holiday = layerOn("vacanta") && isHoliday(date);
+        const cls = ["gc-mcell", date < first || date > last ? "is-out" : "", date === today ? "is-today" : "", d.getDay() === 0 || d.getDay() === 6 ? "is-weekend" : "", holiday ? "is-holiday" : ""].filter(Boolean).join(" ");
+        const shown = items.slice(0, holiday ? SHOW - 1 : SHOW);
         cells.push(`
-            <button type="button" class="cal-mcell ${out ? "is-out" : ""} ${date === today ? "is-today" : ""} ${[0, 6].includes(parseDateKey(date).getDay()) ? "is-weekend" : ""} ${items.length ? "has-items" : ""}" data-action="cal-goto" data-date="${date}" data-date-cell="${date}"
-                aria-label="${escapeHTML(`${getDateLabel(date)}${items.length ? `, ${plural(items.length, "eveniment", "evenimente")}` : ""}`)}">
-                <b>${parseDateKey(date).getDate()}</b>
-                ${items.slice(0, 3).map(({ ev, date: d }) => `<span class="cal-mpill ev-${EVENT_TYPE_CLASS[ev.type] || "personal"} ${isOccurrenceDone(ev, d, links) ? "is-done" : ""}">${escapeHTML(ev.title)}</span>`).join("")}
-                ${items.length > 3 ? `<span class="cal-mmore">+${items.length - 3}</span>` : ""}
-                ${items.length ? `<span class="cal-mdots" aria-hidden="true">${items.slice(0, 4).map(({ ev }) => `<i class="ev-${EVENT_TYPE_CLASS[ev.type] || "personal"}"></i>`).join("")}</span>` : ""}
-            </button>`);
+            <div class="${cls}" data-day="${date}" data-drop>
+                <button type="button" class="gc-mnum" data-action="cal-day" data-date="${date}" aria-label="${escapeHTML(`${getDateLabel(date)}${items.length ? `, ${plural(items.length, "eveniment", "evenimente")}` : ""}: vezi ziua`)}">${d.getDate() === 1 ? `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}` : d.getDate()}</button>
+                <div class="gc-mevs">
+                    ${holiday ? `<span class="gc-holiday">Vacanță</span>` : ""}
+                    ${shown.map(o => calEvHTML(o, links)).join("")}
+                    ${items.length > shown.length ? `<button type="button" class="gc-more" data-action="cal-day" data-date="${date}">încă ${items.length - shown.length}</button>` : ""}
+                </div>
+            </div>`);
     }
-
     $("cal-body").innerHTML = `
-        <div class="cal-month-head" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 0].map(wd => `<span class="cal-month-wd">${WEEKDAY_SHORT[wd]}</span>`).join("")}</div>
-        <div class="cal-month">${cells.join("")}</div>`;
+        <div class="gc-month" style="--rows:${cells.length / 7}">
+            <div class="gc-mhead" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 0].map(wd => `<span>${WEEKDAY_SHORT[wd]}</span>`).join("")}</div>
+            <div class="gc-mgrid">${cells.join("")}</div>
+        </div>`;
 }
 
-/* ---------- navigare ---------- */
+/* ---------- Program: doar zilele cu ceva, una sub alta ---------- */
+function renderScheduleView() {
+    const today = getLocalDateKey();
+    const start = ui.cal.date;
+    const end = addDays(start, SCHEDULE_DAYS - 1);
+    const links = gradeLinks();
+    const occ = calOccurrences(start, end);
+    let html = "", month = -1, any = false;
+    for (let date = start; date <= end; date = addDays(date, 1)) {
+        const d = parseDateKey(date), wd = d.getDay();
+        const items = occ.filter(o => o.date === date).sort((a, b) => (hmToMin(a.ev.time) ?? -1) - (hmToMin(b.ev.time) ?? -1));
+        const plan = layerOn("plan") ? calPlanHTML(date) : "";
+        const holidayStart = layerOn("vacanta") && isHoliday(date) && !isHoliday(addDays(date, -1));
+        if (!items.length && !plan && !holidayStart && date !== today) continue;
+        any = any || items.length > 0;
+        if (d.getMonth() !== month) {
+            month = d.getMonth();
+            html += `<h4 class="gc-smonth">${MONTHS[month]} ${d.getFullYear()}</h4>`;
+        }
+        html += `
+            <section class="gc-sday ${date === today ? "is-today" : ""}" data-day="${date}" data-drop aria-label="${escapeHTML(`${WEEKDAY_LONG[wd]}, ${getDateLabel(date)}`)}">
+                <button type="button" class="gc-sdate" data-action="cal-day" data-date="${date}" aria-label="${escapeHTML(`${getDateLabel(date)}: vezi ziua`)}"><b>${d.getDate()}</b><span>${WEEKDAY_SHORT[wd]}</span></button>
+                <div class="gc-sitems">
+                    ${holidayStart ? `<div class="gc-srow gc-srow-holiday">${icon("sun")} <span>Începe vacanța</span></div>` : ""}
+                    ${items.map(o => calEvHTML(o, links, { kind: "row" })).join("")}
+                    ${plan}
+                    ${!items.length && !plan && !holidayStart ? `<button type="button" class="gc-sempty" data-action="cc-day" data-date="${date}">Nimic azi. Adaugă ceva</button>` : ""}
+                </div>
+            </section>`;
+    }
+    $("cal-body").innerHTML = `<div class="gc-schedule">${html}${any ? "" : `<p class="gc-snone">Nimic programat în următoarele ${SCHEDULE_DAYS} de zile.</p>`}</div>`;
+}
+
+/* ==================== detaliile unui eveniment (fereastra mică, ca la Google) ==================== */
+function openEvPop(id, date, anchor) {
+    const found = findEvent(id);
+    if (!found) return;
+    const { ev } = found;
+    const links = gradeLinks();
+    const { link, done } = evStateBits(ev, date, links);
+    const d = parseDateKey(date);
+    const canGrade = NEEDS_GRADE.has(ev.type) && !link && canGradeOccurrence(ev, date, links);
+    closeEvPop(false);
+    const pop = document.createElement("div");
+    pop.id = "gc-pop";
+    pop.className = "gc-pop";
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-labelledby", "gc-pop-title");
+    pop.innerHTML = `
+        <div class="gc-pop-tools">
+            <button type="button" class="gc-ibtn" data-action="event-open" data-id="${escapeHTML(id)}" data-date="${date}" aria-label="Editează" title="Editează">${icon("pen")}</button>
+            <button type="button" class="gc-ibtn" data-action="event-delete" data-id="${escapeHTML(id)}" data-date="${date}" aria-label="Șterge" title="Șterge">${icon("trash")}</button>
+            <button type="button" class="gc-ibtn" data-action="gc-pop-close" aria-label="Închide" title="Închide">${icon("x")}</button>
+        </div>
+        <div class="gc-pop-row gc-pop-head">
+            <i class="gc-sq ${evClass(ev)}" aria-hidden="true"></i>
+            <div>
+                <h4 id="gc-pop-title" class="${done ? "is-done" : ""}">${escapeHTML(ev.title)}</h4>
+                <p>${escapeHTML(`${WEEKDAY_LONG[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()].toLowerCase()}${d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : ""}`)}${hmToMin(ev.time) !== null ? ` · ${escapeHTML(evTimeLabel(ev))}` : ""}</p>
+                ${ev.repeat ? `<p>↻ ${ev.repeat.every === 2 ? "La două săptămâni" : "În fiecare săptămână"}${ev.repeat.until ? `, până pe ${escapeHTML(getDateLabel(ev.repeat.until))}` : ""}</p>` : ""}
+            </div>
+        </div>
+        <div class="gc-pop-row">${icon(EVENT_TYPE_ICON[ev.type] || "pin")}<span>${escapeHTML(ev.type)}${ev.subject ? ` · ${escapeHTML(ev.subject)}` : ""}</span></div>
+        ${ev.cls ? `<div class="gc-pop-row">${icon("graduation")}<span>Pus de profesor pentru ${escapeHTML(ev.cls)}</span></div>` : ""}
+        ${ev.description ? `<div class="gc-pop-row">${icon("note")}<span class="gc-pop-notes">${escapeHTML(ev.description)}</span></div>` : ""}
+        ${link ? `<div class="gc-pop-row">${icon("check-circle")}<span>Ai primit nota <b>${escapeHTML(link.grade.val)}</b></span></div>` : done ? `<div class="gc-pop-row">${icon("check-circle")}<span>${NEEDS_GRADE.has(ev.type) ? "Încheiat fără notă" : "Făcut"}</span></div>` : ""}
+        <div class="gc-pop-actions">
+            ${canGrade ? `<button type="button" class="btn btn-primary btn-sm" data-action="event-grade" data-id="${escapeHTML(id)}" data-date="${date}">${icon("plus")} Notă</button>` : ""}
+            ${link ? `<button type="button" class="btn btn-glass btn-sm" data-action="edit-grade" data-mat="${escapeHTML(link.mat)}" data-index="${link.idx}">${icon("pen")} Nota ${escapeHTML(link.grade.val)}</button>`
+                : `<button type="button" class="btn btn-glass btn-sm" data-action="event-done" data-id="${escapeHTML(id)}" data-date="${date}" aria-pressed="${done}">${icon(done ? "undo" : "check")} ${done ? "Marchează ca nefăcut" : NEEDS_GRADE.has(ev.type) ? "Fără notă" : "Făcut"}</button>`}
+        </div>`;
+    document.body.appendChild(pop);
+    ui.cal.pop = { id, date, anchor };
+    placeEvPop(pop, anchor);
+    pop.querySelector(".gc-pop-actions button, .gc-pop-tools button")?.focus({ preventScroll: true });
+}
+
+function placeEvPop(pop, anchor) {
+    if (window.innerWidth <= 640 || !anchor?.getBoundingClientRect) { pop.classList.add("is-sheet"); return; }
+    const r = anchor.getBoundingClientRect();
+    const w = pop.offsetWidth || 360, h = pop.offsetHeight || 220;
+    let left = r.right + 10;
+    if (left + w > window.innerWidth - 12) left = r.left - w - 10;
+    if (left < 12) left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left));
+    let top = Math.min(Math.max(12, r.top), window.innerHeight - h - 12);
+    pop.style.left = `${left}px`;
+    pop.style.top = `${top}px`;
+}
+
+function closeEvPop(restoreFocus = true) {
+    const pop = $("gc-pop");
+    if (!pop) return;
+    const back = ui.cal.pop?.anchor;
+    pop.remove();
+    ui.cal.pop = null;
+    if (restoreFocus && back && document.contains(back)) back.focus({ preventScroll: true });
+}
+
+/* ==================== navigare ==================== */
 function calNavigate(offset) {
     const d = parseDateKey(ui.cal.date);
-    ui.cal.date = ui.cal.view === "month"
-        ? getLocalDateKey(new Date(d.getFullYear(), d.getMonth() + offset, 1))
-        : addDays(ui.cal.date, offset * (ui.cal.view === "agenda" ? 14 : 7));
+    const v = ui.cal.view;
+    ui.cal.date = v === "month" ? getLocalDateKey(new Date(d.getFullYear(), d.getMonth() + offset, 1))
+        : addDays(ui.cal.date, offset * (v === "day" ? 1 : v === "week" ? 7 : 30));
+    ui.cal.mini = null;
     renderCalendar();
 }
 
-function calGoto(dateKey, { view = ui.cal.view === "week" ? "week" : "agenda" } = {}) {
+function setCalView(view) {
+    ui.cal.view = calViewFrom(view);
+    try { localStorage.setItem("urn_cal_view_v1", ui.cal.view); } catch (_) { /* fără stocare */ }
+    closeCalMenu();
+    renderCalendar();
+}
+
+function calGoto(dateKey, { view = ui.cal.view } = {}) {
     if (!DATE_KEY_RE.test(String(dateKey))) return;
     ui.cal.date = dateKey;
-    ui.cal.view = view;
+    ui.cal.view = calViewFrom(view);
+    ui.cal.mini = null;
     if (ui.activeTab !== "tab-calendar") switchTab("tab-calendar");
     else renderCalendar();
-
-    const col = document.querySelector(`.cal-col[data-date="${dateKey}"], .ag-day[data-date="${dateKey}"]`);
-    if (col) {
-        col.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        col.classList.add("flash");
-        setTimeout(() => col.classList.remove("flash"), 1600);
+    const el = document.querySelector(`#cal-body [data-day="${dateKey}"]`);
+    if (el) {
+        el.scrollIntoView?.({ block: "nearest", behavior: reduceMotion() ? "auto" : "smooth" });
+        el.classList.add("flash");
+        setTimeout(() => el.classList.remove("flash"), 1600);
     }
 }
 
-
-/** Telefonul: din banda cu zilele săptămânii, sari la ziua aleasă. */
+/** O zi anume, în modul Zi (din numărul zilei, ca la Google). */
 function calJump(date) {
-    const col = document.querySelector(`.cal-col[data-date="${date}"], .ag-day[data-date="${date}"]`);
-    if (!col) return;
-    const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 60;
-    window.scrollTo({ top: col.getBoundingClientRect().top + window.scrollY - bar - 70, behavior: reduceMotion() ? "auto" : "smooth" });
-    col.classList.add("flash");
-    setTimeout(() => col.classList.remove("flash"), 1400);
+    calGoto(date, { view: "day" });
 }
 
 /** Folosită de Dashboard, Catalog și căutare. */
 function showDateInCalendar(dateKey) {
     calGoto(dateKey);
 }
+
+function toggleCalMenu(force) {
+    const menu = $("gc-viewmenu"), btn = $("gc-viewbtn");
+    if (!menu || !btn) return;
+    const open = force ?? menu.hidden;
+    menu.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) menu.querySelector('[aria-checked="true"]')?.focus();
+}
+const closeCalMenu = () => toggleCalMenu(false);
+
+/** Creează: ziua aleasă, dacă se vede; altfel azi. */
+function calCreate() {
+    const today = getLocalDateKey();
+    const v = ui.cal.view;
+    const visible = v === "day" ? [ui.cal.date, ui.cal.date] : v === "week" ? [weekStart(ui.cal.date), addDays(weekStart(ui.cal.date), 6)] : [ui.cal.date, ui.cal.date];
+    ccPreset({ date: today >= visible[0] && today <= visible[1] ? today : ui.cal.date });
+}
+
+/* linia de „acum” se mută singură (doar într-un browser adevărat: în teste ar ține procesul deschis) */
+if (!/jsdom/i.test(navigator.userAgent || "")) setInterval(() => {
+    const line = document.querySelector("#cal-body .gc-now");
+    if (!line) return;
+    const n = new Date();
+    line.style.top = `${(n.getHours() * 60 + n.getMinutes()) / 60 * HOUR_PX}px`;
+}, 60000);
 
 registerTab("tab-calendar", { render: renderCalendar, title: "Calendar", icon: "calendar", group: "calendar" });

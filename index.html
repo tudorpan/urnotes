@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="tokens.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="gcal.css">
     <link rel="stylesheet" href="motion.css">
     <script src="firebase-config.js" defer></script>
     <script src="api-config.js" defer></script>
@@ -313,46 +314,38 @@
             </section>
 
             <!-- ================= CALENDAR ================= -->
-            <section id="tab-calendar" class="tab-content" aria-labelledby="h-calendar">
-                <div class="page-intro">
-                    <div>
-                        <h2 id="h-calendar">Calendar</h2>
-                        <p>Testele, temele și orele tale. Atinge o zi sau o oră din orar ca să adaugi ceva acolo.</p>
-                    </div>
-                    <div class="page-pal" hidden></div>
-                    <div class="intro-actions">
-                        <button type="button" class="btn btn-glass" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orarul meu</button>
-                    </div>
-                </div>
-
-                <!-- Adaugă: butoanele care deschid direct formularul fiecărui tip (js/calendar/cal-compose.js) -->
-                <div id="cal-compose" class="cal-compose"></div>
-
-                <div id="cal-overview" class="cal-overview"></div>
-
-                <div class="cal-shell">
-                    <div class="cal-toolbar">
-                        <div class="cal-nav">
-                            <button type="button" class="btn btn-glass btn-sm cal-today-btn" data-action="cal-today">Azi</button>
-                            <span class="cal-arrows">
-                                <button type="button" class="cal-arrow" data-action="cal-nav" data-offset="-1" aria-label="Înapoi"><svg class="ico is-flip" aria-hidden="true"><use href="#i-chevron"/></svg></button>
-                                <button type="button" class="cal-arrow" data-action="cal-nav" data-offset="1" aria-label="Înainte"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
-                            </span>
-                            <div class="cal-title-wrap">
-                                <h3 id="cal-title" aria-live="polite">…</h3>
-                                <span id="cal-caption" class="calendar-caption"></span>
+            <section id="tab-calendar" class="tab-content gcal-page" aria-labelledby="h-calendar">
+                <h2 id="h-calendar" class="sr-only">Calendar</h2>
+                <!-- Calendarul, ca Google Calendar: desenat în js/calendar/calendar-view.js -->
+                <div class="gcal">
+                    <div class="gcal-bar">
+                        <button type="button" class="gc-today" data-action="cal-today">Azi</button>
+                        <span class="gc-arrows">
+                            <button type="button" class="gc-ibtn" data-action="cal-nav" data-offset="-1" aria-label="Înapoi"><svg class="ico is-flip" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                            <button type="button" class="gc-ibtn" data-action="cal-nav" data-offset="1" aria-label="Înainte"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                        </span>
+                        <button type="button" class="gc-title" id="cal-title-btn" data-action="cal-mini-toggle" aria-expanded="false" aria-controls="gc-mini"><h3 id="cal-title" aria-live="polite">…</h3><svg class="ico gc-title-caret" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                        <span id="cal-caption" class="sr-only"></span>
+                        <div class="gc-viewwrap">
+                            <button type="button" class="gc-viewbtn" id="gc-viewbtn" data-action="cal-viewmenu" aria-haspopup="menu" aria-expanded="false" aria-controls="gc-viewmenu"><span>Săptămână</span><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                            <div class="gc-menu" id="gc-viewmenu" role="menu" aria-label="Mod de afișare" hidden>
+                                <button type="button" role="menuitemradio" data-action="cal-view" data-view="day" aria-checked="false">Zi<kbd>D</kbd></button>
+                                <button type="button" role="menuitemradio" data-action="cal-view" data-view="week" aria-checked="true">Săptămână<kbd>W</kbd></button>
+                                <button type="button" role="menuitemradio" data-action="cal-view" data-view="month" aria-checked="false">Lună<kbd>M</kbd></button>
+                                <button type="button" role="menuitemradio" data-action="cal-view" data-view="schedule" aria-checked="false">Program<kbd>A</kbd></button>
+                                <hr>
+                                <button type="button" role="menuitem" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orarul meu</button>
                             </div>
                         </div>
-                        <div class="cal-seg" role="group" aria-label="Mod de afișare">
-                            <button type="button" data-action="cal-view" data-view="agenda" aria-pressed="true">Agendă</button>
-                            <button type="button" data-action="cal-view" data-view="week" aria-pressed="false">Săptămână</button>
-                            <button type="button" data-action="cal-view" data-view="month" aria-pressed="false">Lună</button>
-                            <button type="button" data-action="cal-view" data-view="table" aria-pressed="false">Tabel</button>
-                            <button type="button" data-action="cal-view" data-view="board" aria-pressed="false">Panou</button>
-                        </div>
                     </div>
-                    <div id="cal-body"></div>
-                    <p class="cal-hint">Apasă pe o zi sau pe „+” ca să adaugi ceva în ziua aceea; atinge o oră din orar pentru un test sau o temă la materia ei. Pe calculator, trage un eveniment pe altă zi ca să-l muți.</p>
+                    <aside class="gcal-side" aria-label="Calendarul mic și calendarele tale">
+                        <button type="button" class="gc-create" data-action="cal-create"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Creează</span></button>
+                        <div class="gc-mini" id="gc-mini"></div>
+                        <div id="cal-overview" class="gc-attn"></div>
+                        <div class="gc-layers" id="gc-layers"></div>
+                        <button type="button" class="gc-sidelink" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orarul meu</button>
+                    </aside>
+                    <div id="cal-body" class="gcal-body"></div>
                 </div>
             </section>
 

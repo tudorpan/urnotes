@@ -70,6 +70,15 @@ Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul răm
 - Fără fonturi descărcate; contrastul trece verificarea WCAG AA în ambele moduri.
 - `style.css` + `ui.css` sunt temelia; `tokens.css` și `styles.css` vin peste ele, iar `app.css` le dă aspectul final.
 
+### Calendarul
+
+Ca Google Calendar (`js/calendar/calendar-view.js`, stilurile din `gcal.css`):
+- Bara de sus: „Azi”, ‹ ›, luna și modul (Zi, Săptămână, Lună, Program). Pe calculator merg și tastele D, W, M, A pentru mod și J / K (sau săgețile) înainte și înapoi.
+- În stânga (pe calculator): „Creează”, calendarul mic, ce a rămas neterminat (teste fără notă, teme nebifate) și „Calendarele mele”, de unde ascunzi testele, temele, proiectele, orele, planul sau vacanțele. Pe telefon, calendarul mic se deschide din titlu.
+- Zi și Săptămână: grila cu orele zilei. Orele din orar sunt blocuri deschise în culoarea materiei (de la 8:00, câte 50 de minute; `state.settings.school.start` le poate muta), evenimentele cu oră sunt blocuri pline, cele fără oră stau în rândul „toată ziua”, iar linia roșie arată ora de acum.
+- Lună: grila cu bare colorate și „încă N”. Program: doar zilele cu ceva, una sub alta.
+- Atingi un eveniment: se deschide fereastra cu detalii (Notă, Făcut, editează, șterge). Atingi un loc gol: adaugi ceva în ziua (și la ora) aceea. Atingi o oră din orar: adaugi un test sau o temă la materia ei. Pe calculator, tragi un eveniment pe altă zi.
+
 ### Mișcarea și gesturile
 
 - Mișcare curată (`motion.css`): lentila de sub fila aleasă alunecă cu un mic arc, iar iconița sare ușor; în segmente (Materii / Progres / Ce-ar fi dacă, ținta din configurare) bucata aleasă alunecă, chiar și de la o pagină la alta (`glideAll()` din `js/ui/fluid.js`); la o filă nouă, cardurile urcă puțin, unul după altul; calendarul, materia următoare și secțiunile vin din partea în care mergi; foile urcă, ferestrele apar din mijloc, butoanele se lasă sub deget, comutatoarele se lungesc când le apeși. Nimic nu se animă la pornire; cu „reducere mișcare” din sistem totul se oprește.

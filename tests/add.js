@@ -44,11 +44,12 @@ const toasts = () => qa(".toast").map(t => t.textContent);
 (async () => {
   await new Promise(r => setTimeout(r, 50));
 /* ==================== Adaugă: întâi ce, apoi formularul ==================== */
-// Calendarul are rândul cu butoane care deschid direct formularul
+// Calendarul are „Creează”, ca Google Calendar: deschide alegerea tipului
 nav("tab-calendar");
-assert(qa("#cal-compose .cc-launch-btn").map(b => b.dataset.type || "").join() === "Test,Temă,Proiect,Notă,", "Calendar shows the add buttons (Test, Temă, Proiect, Notă, Altceva)");
-click(q('#cal-compose .cc-launch-btn[data-type="Proiect"]'));
-assert(!$("cc-overlay").hidden && q("#cc-form").dataset.type === "Proiect" && q("#cc-form").dataset.step === "form", "a Calendar button opens that form directly");
+click(q('#tab-calendar [data-action="cal-create"]'));
+assert(!$("cc-overlay").hidden && q("#cc-form").dataset.step === "type" && qa(".cc-tile").length === 4, "Calendar 'Creează' opens the type step");
+click(q('.cc-mini[data-type="Proiect"], .cc-tile[data-type="Proiect"]'));
+assert(!$("cc-overlay").hidden && q("#cc-form").dataset.type === "Proiect" && q("#cc-form").dataset.step === "form", "picking Proiect opens its form");
 assert(q('.cc-subj.is-none.is-on') && !q('.cc-subj.is-on:not(.is-none)'), "event without subject: 'Fără materie' is chosen");
 click(q('[data-action="cc-overlay-close"]'));
 assert($("cc-overlay").hidden, "× closes");
@@ -81,8 +82,10 @@ click(q(".cc-add"));
 const g = T.state.subjects["Chimie"].grades.at(-1);
 assert(g && g.val === 8 && g.type === "Ascultare" && g.date === "2026-10-08" && $("cc-overlay").hidden, "grade saved: 8, Ascultare, today");
 
-// „+” de pe o zi din calendar: ziua apare sus, iar formularul o păstrează
-click(q('.ag-add[data-date="2026-10-12"]') || q('[data-action="cc-day"][data-date="2026-10-12"]'));
+// un loc gol dintr-o zi a calendarului (ca la Google): ziua apare sus, iar formularul o păstrează
+nav("tab-calendar");
+click(q('[data-action="cal-nav"][data-offset="1"]'));
+click(q('.gc-adcell[data-day="2026-10-12"]'));
 assert(q("#cc-form").dataset.step === "type" && /12 octombrie/.test(q(".cc-ctx").textContent), "a calendar day opens the type step with that day");
 click(q('.cc-tile[data-type="Temă"]'));
 assert(q(".cc-day.is-on")?.dataset.date === "2026-10-12", "the form keeps the day");

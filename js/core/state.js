@@ -25,7 +25,7 @@ let alerts = [];
 
 const ui = {
     activeTab: "tab-dashboard",
-    cal: { view: (() => { try { const v = localStorage.getItem("urn_cal_view_v1"); return ["agenda", "week", "month", "table", "board"].includes(v) ? v : "agenda"; } catch (_) { return "agenda"; } })(), date: getLocalDateKey() }, // ziua în jurul căreia se afișează săptămâna/luna
+    cal: { view: (() => { let v = ""; try { v = localStorage.getItem("urn_cal_view_v1") || ""; } catch (_) { /* fără stocare */ } if (["day", "week", "month", "schedule"].includes(v)) return v; if (v === "week") return v; const phone = typeof matchMedia === "function" && matchMedia("(max-width: 640px)").matches; return v === "month" ? v : phone ? "schedule" : "week"; })(), date: getLocalDateKey() }, // modul și ziua în jurul căreia se desenează calendarul
     examSim: {},     // Examene: notele încercate în „Ce medie ai lua” (nu se salvează)
     ttDay: 1,
     // Catalog: materia deschisă, căutare, sortare, filtru; showDetail = pe telefon, detaliile acoperă lista

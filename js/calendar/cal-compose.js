@@ -59,17 +59,6 @@ function ccSubjects() {
 }
 
 /* ---------- desenarea ---------- */
-/** Rândul din Calendar: patru butoane care deschid direct formularul. */
-function renderCompose() {
-    const box = $("cal-compose");
-    if (!box) return;
-    box.innerHTML = `
-        <div class="cc-launch" role="group" aria-label="Adaugă în calendar">
-            ${["Test", "Temă", "Proiect", CC_GRADE].map(t => `<button type="button" class="cc-launch-btn ${ccTone(t)}" data-action="cc-start" data-type="${t}">${icon(ccIcon(t))}<span>${t === CC_GRADE ? "Notă" : escapeHTML(t)}</span></button>`).join("")}
-            <button type="button" class="cc-launch-btn is-more" data-action="cc-start">${icon("plus")}<span>Altceva</span></button>
-        </div>`;
-}
-
 function ccHead() {
     const form = cc.step === "form";
     const ctx = [];
@@ -230,7 +219,7 @@ function ccTitle() {
 }
 
 /* ---------- deschis / închis ---------- */
-function ccOpenGlobal({ type = "", mat = "", date = "" } = {}) {
+function ccOpenGlobal({ type = "", mat = "", date = "", time = "" } = {}) {
     if (!requireAccount()) return;
     closeQuickAdd?.({ restoreFocus: false });
     if (!cc.open) cc.returnFocus = document.activeElement;
@@ -238,6 +227,7 @@ function ccOpenGlobal({ type = "", mat = "", date = "" } = {}) {
         open: true, step: "type", type: "Test", subject: "", date: ccToday(), time: "", val: 0, gtype: ccSavedGType(), details: "",
         manual: new Set(), ctxDate: DATE_KEY_RE.test(date) ? date : "", ctxMat: state.subjects[mat] ? mat : "", orderDate: DATE_KEY_RE.test(date) ? date : ccToday()
     });
+    if (/^\d{2}:\d{2}$/.test(time)) cc.time = time; // din calendar: ora atinsă în grilă
     $("cc-overlay").hidden = false;
     document.body.classList.add("cc-overlay-open");
     if (CC_TYPES.includes(type)) ccChooseType(type);
@@ -245,8 +235,9 @@ function ccOpenGlobal({ type = "", mat = "", date = "" } = {}) {
 }
 
 /** Din calendar: „+” pe o zi sau pe o oră din orar. */
-function ccPreset({ date = "", mat = "", type = "" } = {}) {
-    ccOpenGlobal({ type, mat, date });
+function ccPreset({ date = "", mat = "", type = "", time = "" } = {}) {
+    if ($("gc-pop")) closeEvPop(false);
+    ccOpenGlobal({ type, mat, date, time });
 }
 
 /** Al doilea pas: formularul tipului ales, cu ce știm deja (ziua, materia). */

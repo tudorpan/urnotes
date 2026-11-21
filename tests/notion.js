@@ -15,7 +15,7 @@ function boot(ls = {}) {
     class FakeDate extends Real { constructor(...a) { if (a.length === 0) super(now); else super(...a); } static now() { return now; } }
     window.Date = FakeDate; })()`);
   for (const [k, v] of Object.entries(ls)) w.localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v));
-  w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,saveState,switchTab,sanitizeNotes,setOccStatus,openSubjectInCatalog,applyAppearanceSettings,subjectEmoji,nbMove,get metrics(){return metrics}};");
+  w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,saveState,switchTab,sanitizeNotes,openSubjectInCatalog,applyAppearanceSettings,subjectEmoji,nbMove,get metrics(){return metrics}};");
   const T = w.__t, $ = id => w.document.getElementById(id), q = s => w.document.querySelector(s), qa = s => [...w.document.querySelectorAll(s)];
   const click = el => { if (!el) throw new Error("no element"); el.dispatchEvent(new w.MouseEvent("click", { bubbles: true })); };
   const press = (el, k) => el.dispatchEvent(new w.KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));
@@ -141,27 +141,28 @@ const DATA = {
   T.nbMove("Fizică", ids[0], undefined);
   assert(T.state.subjects["Fizică"].notes.at(-1).id === ids[0], "blocks can be reordered (drag)");
   assert(T.sanitizeNotes([{ t: "hr", text: "" }, { t: "q", text: "x" }]).map(b => b.t).join() === "hr,q", "quote and divider survive saving");
-  // Calendar: Tabel / Panou
+  // Calendar ca Google: săptămâna cu ore, luna, programul și fereastra cu detalii
   T.ui.cal.view = "week";
   T.switchTab("tab-calendar");
   click(q('[data-action="cal-nav"][data-offset="1"]'));
-  assert(qa(".cal-daystrip .cal-dsd").length === 7 && qa(".cal-daystrip .cal-dsd i.has").length === 2, "week: day strip with event dots (phone)");
-  click(q(".cal-daystrip .cal-dsd"));
-  assert(q(".cal-col.flash"), "tapping a day in the strip jumps to it");
-  assert(q(".cal-upnext .cal-chip") && /Fizică|Biologie/.test(q(".cal-upnext").textContent), "Urmează chips row");
-  click(q('.cal-seg [data-view="month"]'));
-  assert(qa(".cal-month .cal-mcell").length >= 28 && q(".cal-mcell.has-items .cal-mdots i"), "month: clean grid with dots for phone");
-  click(q('.cal-seg [data-view="table"]'));
-  assert(q(".cal-shell").classList.contains("is-db") && qa(".db-table tbody tr").length === 2, "Table view lists upcoming events as rows");
-  assert(/Test fizică/.test(q(".db-table tbody tr").textContent) && q(".db-table .db-status.s-todo"), "rows show title and status 'De făcut'");
-  click(q('.cal-seg [data-view="board"]'));
-  assert(qa(".db-col").length === 3 && qa('.db-col[data-status="todo"] .db-card').length === 2, "Board view has 3 columns, cards under 'De făcut'");
-  T.setOccStatus("e1", "2026-10-20", "doing");
-  assert(qa('.db-col[data-status="doing"] .db-card').length === 1, "moving to 'În lucru' updates the board");
-  T.setOccStatus("e1", "2026-10-20", "done");
+  assert(qa("#cal-body .gc-col").length === 7 && qa("#cal-body .gc-dayhead").length === 7 && qa("#cal-body .gc-hour").length === 23, "week: 7 day columns with the hours of the day");
+  assert(qa("#cal-body .gc-adcell .cal-ev").length === 2, "events without a time sit in the 'toată ziua' row");
+  assert(q("#cal-title").textContent === "Octombrie 2026" && q(".gc-dayhead .gc-wd").textContent === "Lu", "title is the month, days start on Monday");
+  click(q('#gc-viewmenu [data-view="month"]'));
+  assert(qa("#cal-body .gc-mcell").length >= 28 && qa("#cal-body .gc-mcell .cal-ev").length === 2, "month: grid with the events as bars");
+  assert(q('#gc-viewmenu [data-view="month"]').getAttribute("aria-checked") === "true" && /Lună/.test($("gc-viewbtn").textContent), "the view button shows the current view");
+  assert(q("#gc-mini .gc-mini-d.is-today") && q("#gc-mini .gc-mini-d.has-ev"), "mini calendar: today and the days with events");
+  click(q('#gc-viewmenu [data-view="schedule"]'));
+  click(q('[data-action="cal-today"]'));
+  assert(qa("#cal-body .gc-ev-row").length === 2 && q("#cal-body .gc-sday.is-today"), "schedule: only days with something, today first");
+  click(q('#cal-body .gc-ev-row[data-id="e1"] .cal-ev-main'));
+  assert(q("#gc-pop") && /Test fizică/.test(q("#gc-pop h4").textContent) && /Marți, 20 octombrie/.test(q("#gc-pop").textContent), "tapping an event opens its details");
+  click(q('#gc-pop [data-action="event-done"]'));
   const ev = T.state.calendar["2026-10-20"][0];
-  assert(ev.doneDates?.["2026-10-20"] && !ev.doingDates?.["2026-10-20"] && qa('.db-col[data-status="done"] .db-card').length === 1, "'Gata' marks the event done");
-  click(q('.cal-seg [data-view="week"]'));
-  assert(!q(".cal-shell").classList.contains("is-db"), "back to week view");
+  assert(ev.doneDates?.["2026-10-20"] && q('#cal-body .gc-ev-row[data-id="e1"]').classList.contains("is-done"), "'Fără notă' from the details marks it done");
+  click(q('.gc-layer input[data-layer="test"]'));
+  assert(!q('#cal-body .cal-ev[data-id="e1"]') && q('#cal-body .cal-ev[data-id="e2"]'), "hiding 'Teste și examene' hides the test only");
+  click(q('.gc-layer input[data-layer="test"]'));
+  click(q('#gc-viewmenu [data-view="week"]'));
   console.log(process.exitCode ? "" : "ALL PASSED");
 })().catch(e => { console.log("CRASH", e.stack); process.exitCode = 1; });

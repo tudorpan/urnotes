@@ -634,6 +634,7 @@ function bindCalendarEvents() {
     if (!body) return;
     let dragging = null;
 
+    // trage un eveniment pe altă zi (oricare mod: grilă, rândul „toată ziua”, lună, listă)
     body.addEventListener("dragstart", event => {
         const card = event.target.closest?.(".cal-ev");
         if (!card) return;
@@ -641,6 +642,7 @@ function bindCalendarEvents() {
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", card.dataset.id);
         card.classList.add("dragging");
+        closeEvPop(false);
     });
     body.addEventListener("dragend", event => {
         event.target.closest?.(".cal-ev")?.classList.remove("dragging");
@@ -648,20 +650,60 @@ function bindCalendarEvents() {
         dragging = null;
     });
     body.addEventListener("dragover", event => {
-        const col = event.target.closest?.(".cal-col, .ag-day");
+        const col = event.target.closest?.("[data-drop]");
         if (!dragging || !col) return;
         event.preventDefault();
         body.querySelectorAll(".drop-target").forEach(el => el !== col && el.classList.remove("drop-target"));
         col.classList.add("drop-target");
     });
     body.addEventListener("drop", event => {
-        const col = event.target.closest?.(".cal-col, .ag-day");
+        const col = event.target.closest?.("[data-drop]");
         if (!dragging || !col) return;
         event.preventDefault();
         const { id, date } = dragging;
         dragging = null;
-        moveOccurrence(id, date, col.dataset.date);
+        moveOccurrence(id, date, col.dataset.day);
     });
+
+    // un loc gol: în grilă, la ora atinsă (rotunjită la jumătate de oră); în lună, în ziua aceea
+    body.addEventListener("click", event => {
+        if (event.target.closest("button, a, input, .cal-ev")) return;
+        const col = event.target.closest(".gc-col");
+        if (col) {
+            const y = event.clientY - col.getBoundingClientRect().top;
+            const min = Math.max(0, Math.min(23 * 60 + 30, Math.floor(y / HOUR_PX * 2) * 30));
+            ccPreset({ date: col.dataset.day, time: minToHM(min) });
+            return;
+        }
+        const cell = event.target.closest(".gc-mcell, .gc-adcell");
+        if (cell) ccPreset({ date: cell.dataset.day });
+    });
+
+    // fereastra cu detalii și meniul de moduri se închid la un clic în afara lor, la Escape sau după o acțiune
+    document.addEventListener("click", event => {
+        const pop = $("gc-pop");
+        if (pop) {
+            const inPop = pop.contains(event.target);
+            if (inPop && event.target.closest("[data-action]") && !event.target.closest('[data-action="gc-pop-close"]')) requestAnimationFrame(() => closeEvPop(false));
+            else if (!inPop && !event.target.closest(".cal-ev")) closeEvPop(false);
+        }
+        const menu = $("gc-viewmenu");
+        if (menu && !menu.hidden && !event.target.closest(".gc-viewwrap")) closeCalMenu();
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        if ($("gc-pop")) { event.stopPropagation(); closeEvPop(); }
+        const menu = $("gc-viewmenu");
+        if (menu && !menu.hidden) { closeCalMenu(); $("gc-viewbtn")?.focus(); }
+    });
+    $("gc-viewmenu")?.addEventListener("keydown", event => {
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+        event.preventDefault();
+        const items = [...$("gc-viewmenu").querySelectorAll("button")];
+        const i = items.indexOf(document.activeElement);
+        items[(i + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
+    });
+    window.addEventListener("resize", () => closeEvPop(false));
 
     $("action-modal-body").addEventListener("change", handleModalChange);
 }

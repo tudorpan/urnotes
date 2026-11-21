@@ -1,0 +1,300 @@
+/* urNotes · Calendarul, în felul Google Calendar (js/calendar/calendar-view.js).
+   Bara de sus (Azi, ‹ ›, luna, modul), în stânga „Creează”, calendarul mic și „Calendarele mele”, în dreapta grila.
+   Selectorii încep cu #cal-body / .gcal ca să treacă peste regulile vechi ale calendarului. */
+
+/* culorile tipurilor, din paleta Google, puțin mai închise unde textul alb n-ar avea contrast */
+body.style-app {
+    --gc-test: #C5221F; --gc-examen: #8E24AA; --gc-tema: #0B63C1; --gc-proiect: #0B7A3E; --gc-prezentare: #B3470C; --gc-personal: #5F6368;
+    --gc-orar: #7986CB; --gc-plan: #33B679; --gc-vacanta: #F6BF26;
+    --gc-line: var(--rule);
+    --gc-now: #EA4335;
+}
+body.style-app.dark-mode { --gc-personal: #6B6F75; --gc-line: rgba(255, 255, 255, 0.12); }
+.gc-test { --gc: var(--gc-test); } .gc-examen { --gc: var(--gc-examen); } .gc-tema { --gc: var(--gc-tema); }
+.gc-proiect { --gc: var(--gc-proiect); } .gc-prezentare { --gc: var(--gc-prezentare); } .gc-personal { --gc: var(--gc-personal); }
+
+/* ---------- așezarea paginii ---------- */
+body.style-app #tab-calendar.gcal-page { padding-top: 4px; }
+body.style-app .gcal { display: grid; grid-template-columns: 244px minmax(0, 1fr); grid-template-areas: "side bar" "side body"; gap: 0 20px; align-items: start; }
+body.style-app .gcal-bar { grid-area: bar; display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 0 0 10px; }
+body.style-app .gcal-side { grid-area: side; display: flex; flex-direction: column; gap: 18px; position: sticky; top: calc(var(--appbar-h, 64px) + 8px); }
+body.style-app .gcal-body { grid-area: body; min-width: 0; border-radius: 14px; background: var(--sheet); overflow: hidden; }
+
+/* butoanele rotunde și pastilele din bară */
+body.style-app .gc-ibtn { display: inline-grid; place-items: center; width: 36px; height: 36px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-2); cursor: pointer; transition: background-color .15s ease; }
+body.style-app .gc-ibtn:hover { background: var(--fill); color: var(--ink); }
+body.style-app .gc-ibtn .ico { width: 18px; height: 18px; }
+body.style-app .gc-ibtn .ico.is-flip { transform: rotate(180deg); }
+body.style-app .gc-today, body.style-app .gc-viewbtn { display: inline-flex; align-items: center; gap: 6px; height: 36px; margin: 0; padding: 0 16px; border: 1px solid var(--gc-line); border-radius: 18px; background: var(--sheet); color: var(--ink); font: 500 14px var(--font-ui); cursor: pointer; transition: background-color .15s ease; }
+body.style-app .gc-today:hover, body.style-app .gc-viewbtn:hover { background: var(--fill); }
+body.style-app .gc-arrows { display: inline-flex; }
+body.style-app .gc-title { display: inline-flex; align-items: center; gap: 4px; min-width: 0; margin: 0 0 0 6px; padding: 4px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); cursor: default; }
+body.style-app .gc-title h3 { margin: 0; font: 400 22px/1.2 var(--font-ui); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app .gc-title-caret { display: none; width: 14px; height: 14px; transform: rotate(90deg); color: var(--ink-2); transition: transform .2s ease; }
+body.style-app .gc-viewwrap { position: relative; margin-left: auto; }
+body.style-app .gc-viewbtn .ico { width: 14px; height: 14px; transform: rotate(90deg); color: var(--ink-2); }
+body.style-app .gc-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; min-width: 210px; padding: 6px 0; border-radius: 12px; background: var(--sheet); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .08), 0 12px 32px -8px rgba(0, 0, 0, .3); animation: gcPop .16s cubic-bezier(.32, .72, 0, 1) both; transform-origin: top right; }
+body.style-app .gc-menu[hidden] { display: none; }
+body.style-app .gc-menu button { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0; padding: 10px 16px; border: 0; background: transparent; color: var(--ink); font: 400 14px var(--font-ui); text-align: left; cursor: pointer; }
+body.style-app .gc-menu button:hover, body.style-app .gc-menu button:focus-visible { background: var(--fill); outline: none; }
+body.style-app .gc-menu button[aria-checked="true"] { background: var(--tint-soft); color: var(--tint-text); font-weight: 600; }
+body.style-app .gc-menu kbd { margin-left: auto; font: 500 12px var(--font-ui); color: var(--ink-2); }
+body.style-app .gc-menu hr { margin: 6px 0; border: 0; border-top: 1px solid var(--gc-line); }
+body.style-app .gc-menu .ico { width: 16px; height: 16px; color: var(--ink-2); }
+
+/* ---------- stânga: Creează, calendarul mic, calendarele ---------- */
+body.style-app .gc-create { display: inline-flex; align-items: center; gap: 12px; align-self: flex-start; height: 56px; margin: 0; padding: 0 24px 0 18px; border: 0; border-radius: 16px; background: var(--sheet); color: var(--ink); font: 500 15px var(--font-ui); cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 4px 10px -2px rgba(0, 0, 0, .12); transition: box-shadow .2s ease, transform .16s ease; }
+body.style-app .gc-create:hover { box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 10px 20px -6px rgba(0, 0, 0, .2); }
+body.style-app .gc-create .ico { width: 26px; height: 26px; stroke-width: 2.4; color: var(--tint-text); }
+body.style-app.dark-mode .gc-create { background: #2C2C2E; }
+
+body.style-app .gc-mini { padding: 4px 2px; }
+body.style-app .gc-mini-head { display: flex; align-items: center; justify-content: space-between; padding: 0 0 4px 8px; }
+body.style-app .gc-mini-head b { font: 500 14px var(--font-ui); }
+body.style-app .gc-mini-head .gc-ibtn { width: 28px; height: 28px; }
+body.style-app .gc-mini-head .gc-ibtn .ico { width: 14px; height: 14px; }
+body.style-app .gc-mini-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 2px; justify-items: center; }
+body.style-app .gc-mini-wd { font: 500 11px/24px var(--font-ui); color: var(--ink-2); }
+body.style-app .gc-mini-d { position: relative; width: 28px; height: 28px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font: 400 12px var(--font-ui); cursor: pointer; transition: background-color .15s ease; }
+body.style-app .gc-mini-d:hover { background: var(--fill); }
+body.style-app .gc-mini-d.is-out { color: var(--ink-2); }
+body.style-app .gc-mini-d.is-sel { background: var(--tint-soft); color: var(--tint-text); }
+body.style-app .gc-mini-d.is-today { background: var(--tint); color: #fff; font-weight: 600; }
+body.style-app .gc-mini-d.has-ev::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; background: currentColor; opacity: .55; }
+
+body.style-app .gc-side-title { margin: 0 0 6px 8px; font: 500 14px var(--font-ui); color: var(--ink); }
+body.style-app .gc-layer { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 8px; font-size: 14px; color: var(--ink); cursor: pointer; }
+body.style-app .gc-layer:hover { background: var(--fill); }
+body.style-app .gc-layer input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+body.style-app .gc-layer i { display: grid; place-items: center; flex: none; width: 18px; height: 18px; border: 2px solid var(--lc); border-radius: 4px; background: var(--lc); color: #fff; transition: background-color .15s ease; }
+body.style-app .gc-layer i .ico { width: 12px; height: 12px; stroke-width: 3; }
+body.style-app .gc-layer input:not(:checked) + i { background: transparent; }
+body.style-app .gc-layer input:not(:checked) + i .ico { opacity: 0; }
+body.style-app .gc-layer input:focus-visible + i { outline: 2px solid var(--tint); outline-offset: 2px; }
+body.style-app .gc-l-test { --lc: var(--gc-test); } body.style-app .gc-l-tema { --lc: var(--gc-tema); } body.style-app .gc-l-proiect { --lc: var(--gc-proiect); }
+body.style-app .gc-l-personal { --lc: var(--gc-personal); } body.style-app .gc-l-orar { --lc: var(--gc-orar); } body.style-app .gc-l-plan { --lc: var(--gc-plan); }
+body.style-app .gc-l-vacanta { --lc: var(--gc-vacanta); } body.style-app .gc-l-vacanta i { color: #3A2F00; }
+body.style-app .gc-sidelink { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; margin: 0; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--tint-text); font: 500 14px var(--font-ui); cursor: pointer; }
+body.style-app .gc-sidelink:hover { background: var(--fill); }
+body.style-app .gc-sidelink .ico { width: 18px; height: 18px; }
+body.style-app .gc-attn[hidden] { display: none; }
+body.style-app .gc-attn .cal-attn { margin: 0; padding: 12px; border-radius: 12px; background: var(--sheet); }
+body.style-app .gc-attn .cal-attn-title { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--warn); }
+body.style-app .gc-attn .cal-attn-list { margin: 0; padding: 0; list-style: none; }
+body.style-app .gc-attn .cal-att-row { display: grid; gap: 6px; padding: 6px 0; }
+body.style-app .gc-attn .cal-att-row + .cal-att-row { border-top: 1px solid var(--gc-line); }
+body.style-app .gc-attn .cal-att-info { display: grid; grid-template-columns: 10px 1fr; column-gap: 8px; align-items: center; padding: 0; border: 0; background: none; color: var(--ink); text-align: left; cursor: pointer; }
+body.style-app .gc-attn .cal-att-info b { font-size: 13.5px; font-weight: 500; }
+body.style-app .gc-attn .cal-att-info small { grid-column: 2; font-size: 12px; color: var(--ink-2); }
+body.style-app .gc-attn .cal-att-actions { display: flex; gap: 6px; flex-wrap: wrap; padding-left: 18px; }
+body.style-app .gc-attn .cal-tip { margin: 0; padding: 12px; border-radius: 12px; background: var(--sheet); font-size: 13px; color: var(--ink-2); }
+body.style-app .gc-dot { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--gc); }
+
+/* ---------- Zi / Săptămână: grila cu ore ---------- */
+body.style-app #cal-body .gc-grid { display: grid; }
+body.style-app #cal-body :is(.gc-gridhead, .gc-allday, .gc-body) { display: grid; grid-template-columns: 56px repeat(var(--days), minmax(0, 1fr)); }
+body.style-app #cal-body .gc-gridhead { padding-top: 6px; }
+body.style-app #cal-body .gc-dayhead { display: grid; justify-items: center; gap: 2px; padding: 4px 0 6px; }
+body.style-app #cal-body .gc-wd { font: 500 12px var(--font-ui); color: var(--ink-2); }
+body.style-app #cal-body .gc-dnum { display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font: 400 24px/1 var(--font-ui); cursor: pointer; transition: background-color .15s ease; }
+body.style-app #cal-body .gc-dnum:hover { background: var(--fill); }
+body.style-app #cal-body .gc-dayhead.is-past .gc-dnum { color: var(--ink-2); }
+body.style-app #cal-body .gc-dayhead.is-today .gc-wd { color: var(--tint-text); font-weight: 600; }
+body.style-app #cal-body .gc-dayhead.is-today .gc-dnum { background: var(--tint); color: #fff; font-weight: 500; }
+body.style-app #cal-body .gc-allday { border-bottom: 1px solid var(--gc-line); }
+body.style-app #cal-body .gc-allday .gc-gutter { display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+body.style-app #cal-body .gc-allday .gc-gutter small { font-size: 10px; color: var(--ink-2); text-align: right; line-height: 1.1; }
+body.style-app #cal-body .gc-adcell { display: flex; flex-direction: column; gap: 2px; min-width: 0; min-height: 30px; padding: 3px 3px 4px; border-left: 1px solid var(--gc-line); cursor: pointer; }
+body.style-app #cal-body .gc-scroll { position: relative; overflow-y: auto; max-height: max(380px, calc(100dvh - var(--appbar-h, 64px) - 210px)); overscroll-behavior: contain; scrollbar-width: thin; }
+body.style-app #cal-body .gc-body { position: relative; }
+body.style-app #cal-body .gc-hours { position: relative; }
+body.style-app #cal-body .gc-hour { position: absolute; right: 8px; transform: translateY(-50%); font: 400 11px var(--font-ui); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+body.style-app #cal-body .gc-col.cal-col { position: relative; display: block !important; min-height: 0; margin: 0; padding: 0; border: 0; border-left: 1px solid var(--gc-line); border-radius: 0; box-shadow: none; cursor: pointer;
+    background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(48px - 1px), var(--gc-line) calc(48px - 1px), var(--gc-line) 48px) !important; }
+body.style-app #cal-body .gc-col.is-holiday, body.style-app #cal-body .gc-col.is-weekend { background-color: color-mix(in srgb, var(--fill) 35%, transparent) !important; }
+
+/* orele de curs: blocuri deschise, în culoarea materiei */
+body.style-app #cal-body .gc-lesson.cal-lesson { position: absolute; left: 3px; right: 3px; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 0; min-height: 0; margin: 0; padding: 3px 6px; overflow: hidden;
+    border: 0; border-left: 3px solid var(--subj); border-radius: 6px; background: color-mix(in srgb, var(--subj) 14%, var(--sheet)); color: var(--ink); font: 500 11.5px/1.25 var(--font-ui); text-align: left; box-shadow: none; cursor: pointer; transition: background-color .15s ease; }
+body.style-app #cal-body .gc-lesson.cal-lesson:hover { background: color-mix(in srgb, var(--subj) 24%, var(--sheet)); }
+body.style-app #cal-body .gc-lesson .cal-lesson-name { order: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+body.style-app #cal-body .gc-lesson .cal-lesson-n { order: 2; display: inline; width: auto; height: auto; padding: 0; border: 0; background: none; color: var(--ink-2); font-size: 10.5px; font-weight: 400; }
+body.style-app #cal-body .gc-lesson .cal-lesson-n::before { content: "Ora "; }
+body.style-app #cal-body .gc-lesson .gc-lesson-time { order: 3; display: none; }
+
+/* evenimentele cu oră: blocuri pline */
+body.style-app #cal-body .gc-ev-block { position: absolute; z-index: 2; min-width: 0; margin: 0; padding: 0; border-radius: 6px; background: var(--gc); box-shadow: 0 0 0 1px var(--sheet); overflow: hidden; transition: filter .15s ease, box-shadow .15s ease; }
+body.style-app #cal-body .gc-ev-block:hover { box-shadow: 0 0 0 1px var(--sheet), 0 4px 12px -2px rgba(0, 0, 0, .3); z-index: 3; }
+body.style-app #cal-body .gc-ev-block .cal-ev-main { display: flex; flex-direction: column; align-items: flex-start; width: 100%; height: 100%; margin: 0; padding: 3px 7px; border: 0; background: none; color: #fff; font: 400 12px/1.3 var(--font-ui); text-align: left; cursor: pointer; }
+body.style-app #cal-body .gc-ev-title { max-width: 100%; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .gc-ev-time, body.style-app #cal-body .gc-ev-grade { font-size: 11px; opacity: .95; white-space: nowrap; }
+body.style-app #cal-body .gc-ev-block.is-done { background: color-mix(in srgb, var(--gc) 30%, var(--sheet)); }
+body.style-app #cal-body .gc-ev-block.is-done .cal-ev-main { color: var(--ink); }
+body.style-app #cal-body .gc-ev-block.is-done .gc-ev-title { text-decoration: line-through; }
+
+/* linia de acum */
+body.style-app #cal-body .gc-now { position: absolute; left: -1px; right: 0; z-index: 4; height: 2px; margin-top: -1px; background: var(--gc-now); pointer-events: none; }
+body.style-app #cal-body .gc-now::before { content: ""; position: absolute; left: -6px; top: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--gc-now); }
+
+/* evenimentele fără oră: bare colorate (în rândul „toată ziua” și în lună) */
+body.style-app #cal-body .gc-ev-chip { position: relative; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 4px; background: var(--gc); box-shadow: none; }
+body.style-app #cal-body .gc-ev-chip .cal-ev-main { display: flex; align-items: center; gap: 5px; width: 100%; min-width: 0; margin: 0; padding: 2px 6px; border: 0; border-radius: inherit; background: none; color: #fff; font: 500 12px/1.35 var(--font-ui); text-align: left; cursor: pointer; }
+body.style-app #cal-body .gc-ev-chip .cal-ev-main b { min-width: 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .gc-ev-chip.is-done { background: color-mix(in srgb, var(--gc) 30%, var(--sheet)); }
+body.style-app #cal-body .gc-ev-chip.is-done .cal-ev-main { color: var(--ink); }
+body.style-app #cal-body .gc-ev-chip.is-done b { text-decoration: line-through; }
+body.style-app #cal-body .gc-ev-chip.is-timed { background: transparent; }
+body.style-app #cal-body .gc-ev-chip.is-timed .cal-ev-main { color: var(--ink); font-weight: 400; }
+body.style-app #cal-body .gc-ev-chip.is-timed:hover { background: var(--fill); }
+body.style-app #cal-body .gc-chip-time { flex: none; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+body.style-app #cal-body .gc-chip-grade, body.style-app #cal-body .gc-chip-rep { flex: none; margin-left: auto; font-size: 11px; opacity: .95; }
+body.style-app #cal-body .gc-ev-chip:not(.is-timed):hover { filter: brightness(1.08); }
+body.style-app #cal-body .gc-holiday { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; background: color-mix(in srgb, var(--gc-vacanta) 35%, var(--sheet)); color: var(--ink); font: 500 12px/1.35 var(--font-ui); }
+body.style-app #cal-body .gc-holiday .ico { width: 13px; height: 13px; }
+body.style-app #cal-body .cal-plan { display: flex; flex-direction: column; gap: 2px; margin: 0; }
+body.style-app #cal-body .cal-plan-item { display: flex; align-items: center; gap: 4px; min-width: 0; margin: 0; padding: 2px 6px; border: 0; border-radius: 4px; background: color-mix(in srgb, var(--gc-plan) 18%, var(--sheet)); color: var(--ink); font: 400 11.5px var(--font-ui); cursor: pointer; }
+body.style-app #cal-body .cal-plan-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .cal-plan-item .ico { flex: none; width: 12px; height: 12px; }
+body.style-app #cal-body .cal-plan-item.is-done span { text-decoration: line-through; color: var(--ink-2); }
+
+/* ---------- Lună ---------- */
+body.style-app #cal-body .gc-month { display: grid; }
+body.style-app #cal-body .gc-mhead { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--gc-line); }
+body.style-app #cal-body .gc-mhead span { padding: 10px 0 6px; font: 500 12px var(--font-ui); color: var(--ink-2); text-align: center; }
+body.style-app #cal-body .gc-mgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(118px, auto); }
+body.style-app #cal-body .gc-mcell { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 4px 4px 6px; border-right: 1px solid var(--gc-line); border-bottom: 1px solid var(--gc-line); cursor: pointer; transition: background-color .15s ease; }
+body.style-app #cal-body .gc-mcell:nth-child(7n) { border-right: 0; }
+body.style-app #cal-body .gc-mcell:hover { background: color-mix(in srgb, var(--fill) 40%, transparent); }
+body.style-app #cal-body .gc-mnum { align-self: center; min-width: 26px; height: 26px; margin: 0; padding: 0 6px; border: 0; border-radius: 13px; background: transparent; color: var(--ink); font: 500 12px var(--font-ui); cursor: pointer; }
+body.style-app #cal-body .gc-mnum:hover { background: var(--fill); }
+body.style-app #cal-body .gc-mcell.is-out .gc-mnum { color: var(--ink-2); font-weight: 400; }
+body.style-app #cal-body .gc-mcell.is-today .gc-mnum { background: var(--tint); color: #fff; }
+body.style-app #cal-body .gc-mevs { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body.style-app #cal-body .gc-more { align-self: flex-start; margin: 0; padding: 1px 6px; border: 0; border-radius: 4px; background: none; color: var(--ink); font: 500 12px var(--font-ui); cursor: pointer; }
+body.style-app #cal-body .gc-more:hover { background: var(--fill); }
+
+/* ---------- Program ---------- */
+body.style-app #cal-body .gc-schedule { padding: 6px 0 14px; }
+body.style-app #cal-body .gc-smonth { margin: 14px 20px 6px 76px; font: 500 15px var(--font-ui); color: var(--ink); }
+body.style-app #cal-body .gc-smonth:first-child { margin-top: 8px; }
+body.style-app #cal-body .gc-sday { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: start; gap: 8px; margin: 0; padding: 4px 16px 4px 8px; border: 0; border-radius: 0; background: none; transition: background-color .4s ease; }
+body.style-app #cal-body .gc-sdate { display: grid; justify-items: center; gap: 0; margin: 0; padding: 4px 0; border: 0; background: none; color: var(--ink); cursor: pointer; }
+body.style-app #cal-body .gc-sdate b { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; font: 400 20px/1 var(--font-ui); transition: background-color .15s ease; }
+body.style-app #cal-body .gc-sdate:hover b { background: var(--fill); }
+body.style-app #cal-body .gc-sdate span { font: 500 11px var(--font-ui); color: var(--ink-2); }
+body.style-app #cal-body .gc-sday.is-today .gc-sdate b { background: var(--tint); color: #fff; }
+body.style-app #cal-body .gc-sday.is-today .gc-sdate span { color: var(--tint-text); }
+body.style-app #cal-body .gc-sitems { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; min-width: 0; }
+body.style-app #cal-body .gc-ev-row { margin: 0; padding: 0; border: 0; border-radius: 8px; background: none; box-shadow: none; }
+body.style-app #cal-body .gc-ev-row .cal-ev-main { display: grid; grid-template-columns: 10px 128px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; width: 100%; margin: 0; padding: 9px 12px; border: 0; border-radius: inherit; background: none; color: var(--ink); font: 400 14px var(--font-ui); text-align: left; cursor: pointer; transition: background-color .15s ease; }
+body.style-app #cal-body .gc-ev-row .cal-ev-main:hover { background: var(--fill); }
+body.style-app #cal-body .gc-row-time { color: var(--ink-2); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+body.style-app #cal-body .gc-row-text { display: flex; flex-direction: column; min-width: 0; }
+body.style-app #cal-body .gc-row-text b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .gc-row-text small { font-size: 12.5px; color: var(--ink-2); }
+body.style-app #cal-body .gc-ev-row.is-done .gc-row-text b { text-decoration: line-through; color: var(--ink-2); }
+body.style-app #cal-body :is(.gc-row-grade, .gc-row-done) { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; background: var(--fill); font-size: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+body.style-app #cal-body .gc-row-done .ico { width: 12px; height: 12px; }
+body.style-app #cal-body .gc-row-rep { color: var(--ink-2); }
+body.style-app #cal-body .gc-srow-holiday { display: flex; align-items: center; gap: 8px; padding: 9px 12px; font-size: 14px; color: var(--ink); }
+body.style-app #cal-body .gc-srow-holiday .ico { width: 16px; height: 16px; color: #B88600; }
+body.style-app #cal-body .gc-sempty { align-self: flex-start; margin: 0; padding: 9px 12px; border: 0; border-radius: 8px; background: none; color: var(--ink-2); font: 400 14px var(--font-ui); cursor: pointer; }
+body.style-app #cal-body .gc-sempty:hover { background: var(--fill); color: var(--ink); }
+body.style-app #cal-body .gc-snone { margin: 24px; color: var(--ink-2); text-align: center; }
+
+/* trasul unui eveniment, ziua căutată, ziua în care adaugi */
+body.style-app #cal-body .drop-target { outline: 2px dashed var(--tint); outline-offset: -2px; background-color: var(--tint-soft) !important; }
+body.style-app #cal-body .flash, body.style-app #cal-body .is-target { background-color: var(--tint-soft) !important; }
+body.style-app #cal-body .cal-ev.dragging { opacity: .5; }
+
+/* ---------- fereastra cu detalii ---------- */
+body.style-app .gc-pop { position: fixed; z-index: 1400; width: min(380px, calc(100vw - 24px)); padding: 8px 8px 16px; border-radius: 16px; background: var(--sheet); color: var(--ink);
+    box-shadow: 0 0 0 .5px rgba(0, 0, 0, .08), 0 24px 48px -12px rgba(0, 0, 0, .35); animation: gcPop .18s cubic-bezier(.32, .72, 0, 1) both; transform-origin: top left; }
+body.style-app.dark-mode .gc-pop { background: #2C2C2E; box-shadow: 0 0 0 .5px rgba(255, 255, 255, .1), 0 24px 48px -12px rgba(0, 0, 0, .7); }
+body.style-app .gc-pop.is-sheet { left: 0; right: 0; bottom: 0; top: auto; width: auto; padding-bottom: calc(18px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; animation: gcUp .26s cubic-bezier(.32, .72, 0, 1) both; }
+body.style-app .gc-pop-tools { display: flex; justify-content: flex-end; gap: 2px; }
+body.style-app .gc-pop-row { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: start; gap: 16px; padding: 6px 16px; font-size: 14px; line-height: 1.45; }
+body.style-app .gc-pop-row > .ico { width: 18px; height: 18px; margin: 1px auto 0; color: var(--ink-2); }
+body.style-app .gc-pop-head { padding-top: 0; }
+body.style-app .gc-pop-head h4 { margin: 0 0 2px; font: 400 22px/1.25 var(--font-ui); letter-spacing: -0.01em; }
+body.style-app .gc-pop-head h4.is-done { text-decoration: line-through; color: var(--ink-2); }
+body.style-app .gc-pop-head p { margin: 0; font-size: 14px; color: var(--ink-2); }
+body.style-app .gc-sq { display: block; width: 16px; height: 16px; margin: 7px auto 0; border-radius: 4px; background: var(--gc); }
+body.style-app .gc-pop-notes { white-space: pre-wrap; }
+body.style-app .gc-pop-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px 0 56px; }
+body.style-app .gc-pop-actions:empty { display: none; }
+@keyframes gcPop { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes gcUp { from { transform: translateY(100%); } to { transform: none; } }
+
+/* ---------- ecrane mijlocii și telefon: o singură coloană, calendarul mic sub titlu ---------- */
+@media (max-width: 1000px) {
+    body.style-app .gcal { grid-template-columns: minmax(0, 1fr); grid-template-areas: "bar" "side" "body"; }
+    body.style-app .gcal-side { position: static; gap: 10px; }
+    body.style-app .gcal-side > :is(.gc-create, .gc-layers, .gc-sidelink) { display: none; }
+    body.style-app .gc-mini { display: none; max-width: 340px; margin: 0 auto 4px; padding: 10px 8px; border-radius: 14px; background: var(--sheet); }
+    body.style-app .gcal.is-mini-open .gc-mini { display: block; animation: gcPop .18s cubic-bezier(.32, .72, 0, 1) both; transform-origin: top center; }
+    body.style-app .gc-mini-d { width: 36px; height: 36px; font-size: 14px; }
+    body.style-app .gc-attn:not([hidden]) { margin-bottom: 10px; }
+    body.style-app .gc-title { cursor: pointer; }
+    body.style-app .gc-title:hover { background: var(--fill); }
+    body.style-app .gc-title-caret { display: block; }
+    body.style-app .gcal.is-mini-open .gc-title-caret { transform: rotate(-90deg); }
+}
+@media (max-width: 640px) {
+    body.style-app .gcal-bar { flex-wrap: nowrap; gap: 2px; min-height: 48px; padding-bottom: 6px; }
+    body.style-app .gc-today { height: 32px; padding: 0 12px; font-size: 13px; }
+    body.style-app .gc-arrows .gc-ibtn { width: 32px; height: 32px; }
+    body.style-app .gc-title { margin-left: 0; padding: 4px 6px; }
+    body.style-app .gc-title h3 { font-size: 18px; font-weight: 500; }
+    body.style-app .gc-viewbtn { height: 32px; padding: 0 10px; font-size: 13px; }
+    body.style-app .gcal-body { border-radius: 12px; }
+    body.style-app #cal-body :is(.gc-gridhead, .gc-allday, .gc-body) { grid-template-columns: 40px repeat(var(--days), minmax(0, 1fr)); }
+    body.style-app #cal-body .gc-dnum { width: 32px; height: 32px; font-size: 16px; }
+    body.style-app #cal-body .gc-wd { font-size: 11px; }
+    body.style-app #cal-body .gc-hour { right: 5px; font-size: 10px; }
+    body.style-app #cal-body .gc-scroll { max-height: max(340px, calc(100dvh - var(--appbar-h, 56px) - 250px)); }
+    body.style-app #cal-body .gc-adcell { padding: 2px 1px 3px; }
+    body.style-app #tab-calendar[data-view="week"] #cal-body .gc-lesson .cal-lesson-n { display: none; }
+    body.style-app #tab-calendar[data-view="week"] #cal-body .gc-lesson.cal-lesson { left: 1px; right: 1px; padding: 2px 3px; font-size: 10px; border-left-width: 2px; }
+    body.style-app #tab-calendar[data-view="week"] #cal-body .gc-ev-block .cal-ev-main { padding: 2px 3px; font-size: 10px; }
+    body.style-app #tab-calendar[data-view="week"] #cal-body .gc-ev-time { display: none; }
+    body.style-app #tab-calendar[data-view="week"] #cal-body .gc-ev-chip .cal-ev-main { padding: 1px 3px; font-size: 10px; }
+    body.style-app #cal-body .gc-mgrid { grid-auto-rows: minmax(76px, auto); }
+    body.style-app #cal-body .gc-mcell { padding: 2px 1px 4px; gap: 2px; }
+    body.style-app #cal-body .gc-mnum { min-width: 22px; height: 22px; font-size: 11px; }
+    body.style-app #cal-body .gc-mevs .gc-ev-chip .cal-ev-main { padding: 0 3px; gap: 2px; font-size: 10px; }
+    body.style-app #cal-body .gc-mevs .gc-chip-time, body.style-app #cal-body .gc-mevs .gc-chip-grade, body.style-app #cal-body .gc-mevs .gc-chip-rep, body.style-app #cal-body .gc-mevs .gc-dot { display: none; }
+    body.style-app #cal-body .gc-mevs .gc-ev-chip.is-timed { background: color-mix(in srgb, var(--gc) 20%, var(--sheet)); }
+    body.style-app #cal-body .gc-more { font-size: 10px; padding: 0 3px; }
+    body.style-app #cal-body .gc-holiday { font-size: 10px; padding: 0 3px; }
+    body.style-app #cal-body .gc-smonth { margin-left: 64px; }
+    body.style-app #cal-body .gc-sday { grid-template-columns: 52px minmax(0, 1fr); padding: 2px 8px 2px 4px; gap: 4px; }
+    body.style-app #cal-body .gc-ev-row .cal-ev-main { grid-template-columns: 8px minmax(0, 1fr) auto; grid-template-areas: "dot text badge" "dot time badge"; column-gap: 10px; row-gap: 0; padding: 8px 10px; }
+    body.style-app #cal-body .gc-ev-row .gc-dot { grid-area: dot; width: 8px; height: 8px; align-self: start; margin-top: 6px; }
+    body.style-app #cal-body .gc-ev-row .gc-row-text { grid-area: text; }
+    body.style-app #cal-body .gc-ev-row .gc-row-time { grid-area: time; font-size: 12.5px; }
+    body.style-app #cal-body .gc-ev-row :is(.gc-row-grade, .gc-row-done) { grid-area: badge; }
+    body.style-app #cal-body .gc-ev-row .gc-row-rep { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .gc-pop, .gc-menu, .gc-mini { animation: none !important; } }
+body.style-app #cal-body .gc-ev-chip { overflow: hidden; }
+body.style-app #cal-body :is(.gc-ev-chip, .gc-ev-block, .gc-ev-row) .cal-ev-main { justify-content: flex-start; }
+body.style-app .gc-layer span { font-weight: 400; }
+/* barele: text pe un rând, tăiat la dreapta (un buton flex centra textul prea lung) */
+body.style-app #cal-body .gc-ev-chip .cal-ev-main { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .gc-ev-chip .cal-ev-main > * { display: inline; vertical-align: middle; }
+body.style-app #cal-body .gc-ev-chip .cal-ev-main > .gc-dot { display: inline-block; width: 8px; height: 8px; margin-right: 5px; vertical-align: 0; }
+body.style-app #cal-body .gc-ev-chip .cal-ev-main > .gc-chip-time { margin-right: 5px; }
+body.style-app #cal-body .gc-ev-chip .cal-ev-main > :is(.gc-chip-grade, .gc-chip-rep) { margin-left: 5px; }
+body.style-app #cal-body .gc-ev-block .cal-ev-main > * { max-width: 100%; }
+@media (max-width: 640px) {
+    body.style-app .gc-attn .cal-attn { padding: 10px 12px; }
+    body.style-app .gc-attn .cal-attn-title { font-size: 12.5px; margin-bottom: 2px; }
+    body.style-app .gc-attn .cal-att-row { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+    body.style-app .gc-attn .cal-att-actions { padding-left: 0; flex-wrap: nowrap; }
+    body.style-app .gc-attn .cal-att-actions .btn { height: 32px; padding: 0 10px; font-size: 12.5px; }
+    body.style-app .gc-attn .cal-att-info b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+body.style-app.dark-mode .gc-pop .btn-glass { color: var(--ink); }
+body.style-app #cal-body .gc-scroll:focus-visible { outline: 2px solid var(--tint); outline-offset: -2px; }

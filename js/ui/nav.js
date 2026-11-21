@@ -308,6 +308,13 @@ function bindShellEvents() {
         // Ctrl/⌘+K: caută (materii, pagini, evenimente, comenzi), de oriunde
         if ((event.ctrlKey || event.metaKey) && !event.altKey && k.toLowerCase() === "k" && typeof openPalette === "function") { event.preventDefault(); openPalette(); return; }
         if (modalOpen || cc?.open || document.body.classList.contains("tt-open") || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+        // în Calendar, ca la Google: D / W / M / A schimbă modul, J / K (sau săgețile) merg înainte și înapoi
+        if (ui.activeTab === "tab-calendar" && typeof setCalView === "function") {
+            const view = { d: "day", w: "week", m: "month", a: "schedule" }[k.toLowerCase()];
+            if (view) { event.preventDefault(); setCalView(view); return; }
+            const step = { j: 1, k: -1, ArrowRight: 1, ArrowLeft: -1 }[k.length === 1 ? k.toLowerCase() : k];
+            if (step) { event.preventDefault(); calNavigate(step); return; }
+        }
         // tastele scurte deschid bara de adăugat: N = notă, T = test, H = temă
         const quick = { n: "Notă", t: "Test", h: "Temă" }[k.toLowerCase()];
         if (quick) { event.preventDefault(); ccOpenGlobal({ type: quick }); }

@@ -35,7 +35,9 @@ const DATA = {
 (async () => {
   const { w, T, $, q, qa, click } = boot(DATA); await new Promise(r => setTimeout(r, 30));
   const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
-  for (const tab of ["tab-plan", "tab-calendar", "tab-catalog", "tab-statistici", "tab-simulator", "tab-setari"]) {
+  nav("tab-calendar");
+  assert(!q("#tab-calendar .page-pal") && !q("#tab-calendar .buddy"), "tab-calendar: Google-style toolbar, no mascot");
+  for (const tab of ["tab-plan", "tab-catalog", "tab-statistici", "tab-simulator", "tab-setari"]) {
     nav(tab);
     const pal = q(`#${tab} .page-pal`);
     assert(pal && pal.hidden && !pal.innerHTML && q(`#${tab} .page-intro h2 .page-ico`), `${tab}: header has a line icon and no mascot (brand: Tiți only on Azi, empty states, good news)`);

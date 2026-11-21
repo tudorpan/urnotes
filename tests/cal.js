@@ -46,11 +46,14 @@ const set = (id, v) => { $(id).value = v; };
   assert(qa(".cal-col").length === 7 && col(today).classList.contains("is-today"), "week: 7 days, today marked");
   assert($("cal-caption").textContent === "Săptămâna aceasta", "caption this week");
   assert(qa(`.cal-col[data-date="${today}"] .cal-lesson`).map(b => b.querySelector(".cal-lesson-n").textContent + " " + b.querySelector(".cal-lesson-name").textContent).join("|") === "1 Română|2 Matematică", "today's lessons from timetable");
-  assert(qa(`.cal-col[data-date="${today}"] .cal-ev`).some(e => /Temă Română/.test(e.textContent) && /↻/.test(e.textContent)), "weekly homework shows today with ↻");
+  assert(qa(`#cal-body [data-day="${today}"] .cal-ev`).some(e => /Temă Română/.test(e.textContent) && /↻/.test(e.textContent)), "weekly homework shows today with ↻ (in the 'toată ziua' row)");
+  assert(qa(".gc-dayhead").length === 7 && q(".gc-dayhead.is-today .gc-dnum").textContent === "8" && q(`.cal-col[data-date="${today}"] .gc-now`), "Google-style head: today's number in a circle, red 'now' line in today's column");
 
   // overview
   const ov = $("cal-overview").textContent.replace(/\s+/g, " ");
-  assert(/Teză Mate/.test(q(".cal-upnext .cal-chip").title) && /în 2 zile/.test(q(".cal-upnext .cal-chip").textContent) && q(".cal-upnext .cal-chip").classList.contains("is-near"), "Urmează: next exam as a chip, in 2 days");
+  const exBlock = q(`.cal-col[data-date="${plus(2)}"] .cal-ev[data-id="ex"]`);
+  assert(exBlock && exBlock.classList.contains("gc-ev-block") && /09:00 – 09:50/.test(exBlock.textContent) && /top:\s*432px/.test(exBlock.getAttribute("style")), "timed exam is a block at 09:00 in its day's column");
+  assert(/top:\s*384px/.test(q(`.cal-col[data-date="${today}"] .cal-lesson`).getAttribute("style")), "first lesson sits at 08:00");
   assert(/așteaptă/.test(ov) && /Test Fizică/.test(ov), "attention lists ungraded past test");
   assert(/Temă Română/.test(ov), "attention lists unchecked past homework");
   assert(T.alerts.some(a => a.id === "ungraded:past"), "alert for ungraded test");
@@ -68,7 +71,11 @@ const set = (id, v) => { $(id).value = v; };
   T.ui.cal.date = plus(-3); w.eval; click(q('[data-action="cal-today"]')); // back to today
   T.ui.cal.date = plus(-3); T.refresh();
   const pastCard = q(`.cal-ev[data-id="past"]`);
-  assert(pastCard && /Nota 9/.test(pastCard.textContent) && pastCard.classList.contains("is-done") && q(`.cal-ev[data-id="past"] .cal-ev-check`).disabled, "event card shows linked grade, done, check disabled");
+  assert(pastCard && /Nota 9/.test(pastCard.textContent) && pastCard.classList.contains("is-done"), "event shows linked grade, done");
+  click(pastCard.querySelector(".cal-ev-main"));
+  assert(q("#gc-pop") && /Ai primit nota 9/.test(q("#gc-pop").textContent) && !q('#gc-pop [data-action="event-done"]') && q('#gc-pop [data-action="edit-grade"]'), "details: the grade, no 'done' toggle (graded = finished)");
+  click(q('#gc-pop [data-action="gc-pop-close"]'));
+  assert(!q("#gc-pop"), "× closes the details");
   // delete grade in catalog → event reverts
   const idx = T.state.subjects["Fizică"].grades.length - 1;
   T.state.subjects["Fizică"].grades.splice(idx, 1); T.refresh();
@@ -76,11 +83,12 @@ const set = (id, v) => { $(id).value = v; };
   click(q('[data-action="cal-today"]'));
 
   // done toggle on homework today
-  const hwCheck = q(`.cal-col[data-date="${today}"] .cal-ev[data-id="hw"] .cal-ev-check`);
-  click(hwCheck);
+  const hwOpen = () => click(q(`#cal-body [data-day="${today}"] .cal-ev[data-id="hw"] .cal-ev-main`));
+  hwOpen(); click(q('#gc-pop [data-action="event-done"]'));
   assert(T.state.calendar[plus(-14)][0].doneDates?.[today] === true, "toggle done on repeat occurrence");
-  assert(q(`.cal-col[data-date="${today}"] .cal-ev[data-id="hw"]`).classList.contains("is-done"), "done style");
-  click(q(`.cal-col[data-date="${today}"] .cal-ev[data-id="hw"] .cal-ev-check`));
+  assert(q(`#cal-body [data-day="${today}"] .cal-ev[data-id="hw"]`).classList.contains("is-done"), "done style");
+  hwOpen(); assert(/Marchează ca nefăcut/.test(q('#gc-pop [data-action="event-done"]').textContent), "details offer to undo");
+  click(q('#gc-pop [data-action="event-done"]'));
   assert(!T.state.calendar[plus(-14)][0].doneDates, "toggle back removes doneDates");
 
   // quick add from lesson chip
@@ -133,7 +141,7 @@ const set = (id, v) => { $(id).value = v; };
 
   // edit: rename + move single exam
   T.ui.cal.date = today; T.refresh();
-  click(q(`.cal-ev[data-id="ex"] .cal-ev-main`));
+  click(q(`.cal-ev[data-id="ex"] .cal-ev-main`)); click(q('#gc-pop [data-action="event-open"]'));
   assert($("ev-title").value === "Teză Mate" && $("ev-date").value === plus(2) && $("ev-time").value === "09:00", "edit modal prefilled");
   set("ev-title", "Teză Matematică"); set("ev-date", plus(5)); click($("action-modal-confirm"));
   assert(!T.state.calendar[plus(2)] && T.state.calendar[plus(5)].find(e => e.id === "ex")?.title === "Teză Matematică", "edit moved exam to new date (a school day)");
@@ -164,9 +172,12 @@ const set = (id, v) => { $(id).value = v; };
   click(q('[data-action="cal-nav"][data-offset="1"]')); assert($("cal-caption").textContent === "Săptămâna viitoare", "next week");
   click(q('[data-action="cal-today"]')); assert($("cal-caption").textContent === "Săptămâna aceasta", "Azi returns");
   click(q('[data-action="cal-view"][data-view="month"]'));
-  assert(qa(".cal-mcell").length % 7 === 0 && q(".cal-mcell.is-today") && q('[data-view="month"]').getAttribute("aria-pressed") === "true", "month view");
-  click(q(`.cal-mcell[data-date="${plus(3)}"]`));
-  assert(T.ui.cal.view === "agenda" && q(`.ag-day[data-date="${plus(3)}"]`), "month cell → agenda around that day");
+  assert(qa(".gc-mcell").length % 7 === 0 && q(".gc-mcell.is-today") && q('#gc-viewmenu [data-view="month"]').getAttribute("aria-checked") === "true", "month view");
+  click(q(`.gc-mcell[data-day="${plus(3)}"] .gc-mnum`));
+  assert(T.ui.cal.view === "day" && qa(".cal-col").length === 1 && q(`.cal-col[data-date="${plus(3)}"]`), "a day's number → that day");
+  click(q('[data-action="cal-nav"][data-offset="1"]'));
+  assert(q(`.cal-col[data-date="${plus(4)}"]`), "day view: › goes to the next day");
+  click(q('[data-action="cal-view"][data-view="week"]'));
 
   // orarul: săptămâna colorată (js/calendar/timetable.js)
   const ttOpen = () => !$("tt-overlay").hidden;

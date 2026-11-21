@@ -18,17 +18,26 @@ const ACTIONS = {
     "cal-nav": el => calNavigate(Number(el.dataset.offset)),
     "cal-today": () => {
         ui.cal.date = getLocalDateKey();
+        ui.cal.mini = null;
         renderCalendar();
     },
-    "cal-view": el => {
-        ui.cal.view = ["agenda", "week", "month", "table", "board"].includes(el.dataset.view) ? el.dataset.view : "agenda";
-        try { localStorage.setItem("urn_cal_view_v1", ui.cal.view); } catch (_) { /* fără stocare */ }
+    "cal-view": el => setCalView(el.dataset.view),
+    "cal-viewmenu": () => toggleCalMenu(),
+    "cal-day": el => calJump(el.dataset.date),
+    "cal-ev": el => openEvPop(el.dataset.id, el.dataset.date, el),
+    "gc-pop-close": () => closeEvPop(),
+    "cal-create": () => calCreate(),
+    "cal-mini": el => { const b = parseDateKey(ui.cal.mini || ui.cal.date); ui.cal.mini = getLocalDateKey(new Date(b.getFullYear(), b.getMonth() + Number(el.dataset.offset), 1)); renderMiniMonth(); },
+    "cal-mini-day": el => { ui.cal.date = el.dataset.date; ui.cal.mini = el.dataset.date; ui.cal.miniOpen = false; renderCalendar(); },
+    "cal-mini-toggle": () => { ui.cal.miniOpen = !ui.cal.miniOpen; ui.cal.mini = null; renderCalendar(); },
+    "cal-layer": el => {
+        const h = calHidden();
+        if (el.checked) h.delete(el.dataset.layer); else h.add(el.dataset.layer);
+        try { localStorage.setItem(CAL_HIDDEN_KEY, JSON.stringify([...h])); } catch (_) { /* fără stocare */ }
         renderCalendar();
     },
     "cal-goto": el => calGoto(el.dataset.date),
-    "occ-status": el => setOccStatus(el.dataset.id, el.dataset.date, el.dataset.status),
     "cal-jump": el => calJump(el.dataset.date),
-    "db-past": el => { ui.cal.dbPast = el.checked; renderCalendar(); },
     "event-open": el => openEventModal({ id: el.dataset.id, date: el.dataset.date }),
     "event-done": el => toggleEventDone(el.dataset.id, el.dataset.date),
     "event-grade": el => openGradeForEvent(el.dataset.id, el.dataset.date),
