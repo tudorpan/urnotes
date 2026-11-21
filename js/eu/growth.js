@@ -228,7 +228,6 @@ Object.assign(ACTIONS, {
         if (!PAL_KINDS[el.dataset.kind]) return;
         state.pal.look.kind = el.dataset.kind;
         saveState();
-        if ($("setup-buddy")) $("setup-buddy").innerHTML = setupBuddyHTML();
         document.querySelectorAll(".pal-kinds").forEach(box => { box.outerHTML = palKindPickHTML("setup-kind"); });
     },
     "wardrobe-color": el => { const c = PAL_COLORS[el.dataset.id]; if (c && palUnlockedLevel() >= c.level) setPalLook({ color: el.dataset.id }); },

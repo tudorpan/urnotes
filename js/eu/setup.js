@@ -4,14 +4,21 @@
 
 /* ==================== CONFIGURARE LA PRIMA PORNIRE ==================== */
 /*
- * Un asistent în 4 pași (profil → materii → ținte → orar) care apare când caietul e gol.
+ * Un asistent pas cu pas (clasa → profil → materii → țintă → județ) care apare când caietul e gol.
  * Materiile propuse urmează planurile-cadru (liceu: clasa a IX-a, OMEC nr. 4350/2025; gimnaziu: planul în vigoare).
  * Orele sunt orientative: școlile pot redistribui orele, iar elevul le poate corecta în pasul 2.
  */
 const SETUP_DONE_KEY = "pro_setup_done_v4";
-const SETUP_STEPS = ["Profil", "Materii", "Ținte", "Orar"];
-// Pornirea rapidă (cont nou): trei pași, sub un minut. Restul (ținte, an școlar) are valori bune și se schimbă din Setări.
-const SETUP_QUICK_STEPS = ["Clasa ta", "Prima notă", "Gata"];
+/* Un singur drum, câte o întrebare pe ecran: clasa → profilul (doar la liceu) → materiile → ținta → județul → gata. */
+const WZ_LABELS = { class: "Clasa", profile: "Profilul", subjects: "Materiile", goal: "Ținta", county: "Județul", done: "Gata" };
+const WZ_TARGETS = [7, 8, 8.5, 9, 9.5, 10];
+/* Avertizarea are sens doar sub țintă: „sub 9” cu ținta 8 nu se poate alege. */
+const WZ_RISKS = [
+    { v: 5, title: "Doar când risc corigența", sub: "când media unei materii scade sub 5" },
+    { v: 6, title: "Din timp", sub: "când media unei materii scade sub 6" },
+    { v: 7, title: "Mai devreme", sub: "când media unei materii scade sub 7" },
+    { v: 8, title: "Cât mai devreme", sub: "când media unei materii scade sub 8" }
+];
 /*
  * Materiile propuse urmează planurile-cadru oficiale, după profil ȘI clasă (verificate în octombrie 2026):
  *   – clasa a IX-a: planul-cadru nou, OMEC 4350/2025 (modificat prin OMEC 4152/2026; intensiv informatică: OMEC 6873/2025),
@@ -375,26 +382,27 @@ function openSetup(step = 0) {
     if (!requireAccount()) return;
     const s = state.settings;
     ui.setup = {
-        step,
+        step: step === 0 ? "welcome" : "class",
         profile: "",
-        cls: 9,
+        cls: 0,
         variant: "",
-        lm2: s.school.lm2,
-        county: s.school.county,
+        lm2: s.school.lm2 || LM2_CHOICES[0],
+        county: s.school.county || "",
         rows: [],
         target: s.goals.targetGPA,
         risk: s.calc.riskThreshold,
-        method: Object.keys(state.subjects).length ? s.calc.method : "arithmetic",
-        // Datele de module modificate de mână rămân neatinse dacă elevul nu alege altă structură.
-        preset: matchingModulePreset(s.modules) === "custom" ? "keep" : matchingModulePreset(s.modules),
+        // Datele de module modificate de mână rămân neatinse.
+        preset: matchingModulePreset(s.modules) === "custom" ? "keep" : (countyPreset(s.school.county) || matchingModulePreset(s.modules)),
         returnFocus: document.activeElement
     };
     // Programa aleasă înainte rămâne selectată (de ex. când elevul trece în clasa următoare)
     const mine = myProgramme();
     if (mine) {
-        Object.assign(ui.setup, { profile: mine.profile, cls: mine.cls || ui.setup.cls, variant: mine.variant });
-        ui.setup.rows = setupRowsFor(mine.profile, ui.setup.cls, mine.variant, ui.setup.lm2);
+        const cls = SETUP_PROFILES[mine.profile].classes ? mine.cls : 9;
+        Object.assign(ui.setup, { profile: mine.profile, cls, variant: mine.variant });
+        ui.setup.rows = setupRowsFor(mine.profile, cls, mine.variant, ui.setup.lm2);
     }
+    wzFixRisk();
     closeQuickAdd({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     closeActionModal();
@@ -504,27 +512,60 @@ function findSubjectName(name) {
     return Object.keys(state.subjects).find(m => m.toLocaleLowerCase("ro") === low) || null;
 }
 
+/* ---------- asistentul: pașii ---------- */
+function wzSteps(st = ui.setup) {
+    return ["welcome", "class", ...(st.cls >= 9 || !st.cls ? ["profile"] : []), "subjects", "goal", "county", "done"];
+}
+
+/** Avertizarea rămâne mereu sub țintă. */
+function wzRisks(target) {
+    return WZ_RISKS.filter(r => r.v < target);
+}
+function wzFixRisk() {
+    const st = ui.setup;
+    const ok = wzRisks(st.target);
+    if (!ok.length) { st.risk = 5; return; }
+    if (!ok.some(r => r.v === st.risk)) st.risk = st.risk >= st.target ? ok[ok.length - 1].v : ok[0].v;
+}
+
+function wzCanContinue() {
+    const st = ui.setup;
+    if (st.step === "class") return Boolean(st.cls);
+    if (st.step === "profile") return Boolean(SETUP_PROFILES[st.profile]) && st.profile !== "gimnaziu";
+    return true;
+}
+
+function wzGo(step) {
+    if (!wzSteps().includes(step)) return;
+    ui.setup.step = step;
+    renderSetup();
+}
+
 function renderSetup() {
     const st = ui.setup;
     if (!st) return;
-    const steps = $("setup-steps");
-    steps.innerHTML = (st.quick ? SETUP_QUICK_STEPS : SETUP_STEPS).map((label, i) => {
-        const n = i + 1;
-        const state_ = st.step === n ? "is-current" : st.step > n ? "is-done" : "";
-        return `<li class="${state_}" ${st.step === n ? 'aria-current="step"' : ""}><span>${st.step > n ? icon("check") : n}</span>${label}</li>`;
-    }).join("");
-    steps.classList.toggle("is-hidden", st.step === 0);
-    // pornirea rapidă: după clasă, „Sari peste” e chiar în pas (sau nu mai e nevoie de el)
+    const steps = wzSteps();
+    const counted = steps.slice(1, -1); // fără bun venit și fără „gata”
+    const n = st.step === "done" ? counted.length : counted.indexOf(st.step) + 1;
+    const head = $("setup-steps");
+    head.classList.toggle("is-hidden", st.step === "welcome");
+    head.setAttribute("aria-hidden", String(st.step === "welcome"));
+    head.innerHTML = st.step === "welcome" ? "" : `
+        <button type="button" class="wz-back" data-action="setup-back" aria-label="Înapoi">${icon("chevron")}</button>
+        <div class="wz-progress">
+            <span class="wz-progress-text">${st.step === "done" ? "Gata" : `Pasul ${n} din ${counted.length}<span class="sr-only">: ${WZ_LABELS[st.step]}</span>`}</span>
+            <span class="wz-bar" aria-hidden="true"><i style="width:${Math.round(n / counted.length * 100)}%"></i></span>
+        </div>`;
     const skip = document.querySelector("#setup .setup-skip");
-    if (skip) skip.hidden = Boolean(st.quick && st.step >= 2);
-    steps.setAttribute("aria-hidden", String(st.step === 0));
+    if (skip) skip.hidden = st.step === "done";
     const keep = st.renderedStep === st.step ? $("setup-body").scrollTop : 0;
-    $("setup-body").innerHTML = (st.quick
-        ? [setupWelcomeHTML, setupProfileHTML, setupQuickGradeHTML, setupQuickDoneHTML]
-        : [setupWelcomeHTML, setupProfileHTML, setupSubjectsHTML, setupTargetsHTML, setupTimetableHTML])[st.step]();
+    $("setup-body").innerHTML = ({
+        welcome: setupWelcomeHTML, class: setupClassHTML, profile: setupProfileHTML,
+        subjects: setupSubjectsHTML, goal: setupGoalHTML, county: setupCountyHTML, done: setupDoneHTML
+    })[st.step]();
     $("setup-foot").innerHTML = setupFootHTML();
     $("setup-body").scrollTop = keep;
-    // Pas nou: de sus, cu focus pe titlu. Același pas (ex. ai ales un profil): rămâne unde erai.
+    // Pas nou: de sus, cu focus pe titlu. Același pas: rămâne unde erai.
     if (st.renderedStep !== st.step) {
         st.renderedStep = st.step;
         $("setup-body").scrollTop = 0;
@@ -534,260 +575,182 @@ function renderSetup() {
 }
 
 function setupFootHTML() {
-    const { step, profile, quick } = ui.setup;
-    if (step === 0) return "";
-    if (quick) {
-        if (step === 1) return `<button type="button" class="btn btn-text" data-action="setup-back">${icon("undo")} Înapoi</button><button type="button" class="btn btn-primary" data-action="setup-quick-next" ${profile ? "" : "disabled"}>Continuă</button>`;
-        if (step === 2) return `<button type="button" class="btn btn-text" data-action="setup-quick-skip">Sari peste</button><button type="button" class="btn btn-primary" data-action="setup-quick-grade" ${ui.setup.qMat && ui.setup.qVal ? "" : "disabled"}>${icon("check")} Adaug nota</button>`;
-        return "";
-    }
-    const back = `<button type="button" class="btn btn-text" data-action="setup-back">${icon("undo")} Înapoi</button>`;
-    if (step === 1) return `${back}<button type="button" class="btn btn-primary" data-action="setup-next" ${profile ? "" : "disabled"}>Continuă</button>`;
-    if (step === 2 || step === 3) return `${back}<button type="button" class="btn btn-primary" data-action="setup-next">Continuă</button>`;
-    return `${back}<span></span>`;
+    const { step } = ui.setup;
+    if (step === "welcome") return `<button type="button" class="btn btn-primary wz-main" data-action="setup-next" data-autofocus>Începem</button>`;
+    if (step === "done") return `
+        <button type="button" class="btn btn-primary wz-main" data-action="setup-finish">Intră în aplicație</button>
+        <button type="button" class="btn btn-text wz-alt" data-action="setup-finish" data-timetable="1">${icon("calendar-days")} Completez și orarul</button>`;
+    return `<button type="button" class="btn btn-primary wz-main" data-action="setup-next" ${wzCanContinue() ? "" : "disabled"}>Continuă</button>`;
 }
 
 function setupWelcomeHTML() {
     const has = Object.keys(state.subjects).length > 0;
     return `
-        <div class="setup-hero">
-            <h2 id="setup-title" tabindex="-1">${has ? "Configurare rapidă" : "Bun venit în urNotes!"}</h2>
+        <div class="wz-hero">
+            <span class="wz-logo" aria-hidden="true"><svg class="brand-logo" viewBox="0 0 64 64"><use href="#i-logo"/></svg></span>
+            <h2 id="setup-title" tabindex="-1">${has ? "Schimbă clasa sau profilul" : "Bun venit în urNotes"}</h2>
             <p>${has
-                ? "Adaugă dintr-o dată materiile unui profil și stabilește ținta și anul școlar. Materiile și notele pe care le ai rămân neatinse."
-                : "Trei pași scurți: clasa ta, prima notă și ești gata. Durează mai puțin de un minut."}</p>
+                ? "Îți pun materiile noii clase. Notele și materiile pe care le ai rămân neatinse."
+                : "Îmi spui în ce clasă ești și îți pregătesc catalogul cu materiile tale. Durează un minut."}</p>
         </div>
-        <div class="setup-me">
-            <div class="setup-me-buddy" id="setup-buddy" aria-hidden="true">${setupBuddyHTML()}</div>
-            <div class="setup-me-fields">
-                <div class="form-group">
-                    <label for="setup-me-name">Cum te cheamă?</label>
-                    <input type="text" id="setup-me-name" class="glass-input" maxlength="40" autocomplete="given-name" placeholder="ex: Tudor" value="${escapeHTML(state.settings.profile.name)}">
-                </div>
-                ${MASCOT_ON ? `<div class="form-group">
-                    <span class="form-label">Cine îți ține companie?</span>
-                    ${palKindPickHTML("setup-kind")}
-                </div>` : ""}
-            </div>
+        <div class="wz-list">
+            <label class="wz-row wz-input-row" for="setup-me-name">
+                <span class="wz-row-title">Prenumele tău</span>
+                <input type="text" id="setup-me-name" class="wz-input" maxlength="40" autocomplete="given-name" placeholder="ex: Ana" value="${escapeHTML(state.settings.profile.name)}">
+            </label>
         </div>
-        <div class="setup-choices">
-            ${has ? "" : `<button type="button" class="setup-choice is-primary" data-action="setup-quick" data-autofocus>
-                ${icon("sparkles")}<span><b>Începem</b><small>Îmi alegi clasa și materiile se completează singure.</small></span>${icon("chevron", "setup-arrow")}
-            </button>`}
-            <button type="button" class="setup-choice" data-action="setup-next" ${has ? "data-autofocus" : ""}>
-                ${icon(has ? "sparkles" : "notebook")}<span><b>${has ? "Alege un profil" : "Aleg eu fiecare materie"}</b><small>${has ? "Aleg profilul, iar materiile se completează singure." : "Văd lista cu ore, ținta și anul școlar, pas cu pas."}</small></span>${icon("chevron", "setup-arrow")}
-            </button>
-            <button type="button" class="setup-choice" data-action="setup-import">
-                ${icon("upload")}<span><b>Am deja un backup</b><small>Încarc fișierul .json exportat din această aplicație.</small></span>${icon("chevron", "setup-arrow")}
-            </button>
-        </div>`;
+        <p class="wz-hint">Apare doar pe pagina Azi și pe raport.</p>
+        <button type="button" class="wz-link" data-action="setup-import">${icon("upload")} Am deja un backup (.json)</button>`;
 }
 
-function setupBuddyHTML() {
-    const who = firstName();
-    return `${buddySVG("happy")}<b class="buddy-name pal-name-tag">${escapeHTML(buddyName())}</b>`;
+function setupClassHTML() {
+    const { cls } = ui.setup;
+    const cell = c => `<button type="button" class="wz-cell" data-action="setup-class" data-cls="${c}" aria-pressed="${cls === c}">${ROMAN[c]}</button>`;
+    return `
+        <h2 id="setup-title" tabindex="-1">În ce clasă ești?</h2>
+        <p class="wz-lead">Materiile și orele diferă de la o clasă la alta.</p>
+        <h3 class="wz-group" id="wz-g-gim">Gimnaziu</h3>
+        <div class="wz-cells" role="group" aria-labelledby="wz-g-gim">${[5, 6, 7, 8].map(cell).join("")}</div>
+        <h3 class="wz-group" id="wz-g-lic">Liceu</h3>
+        <div class="wz-cells" role="group" aria-labelledby="wz-g-lic">${LICEU.map(cell).join("")}</div>`;
 }
 
 function setupProfileHTML() {
-    const { profile } = ui.setup;
+    const { profile, variant } = ui.setup;
+    const p = SETUP_PROFILES[profile];
     return `
         <h2 id="setup-title" tabindex="-1">Ce profil ai?</h2>
-        <p class="setup-lead">Îți propun materiile din planul-cadru. În pasul următor le poți bifa, redenumi și ajusta.</p>
+        <p class="wz-lead">Scrie pe carnet sau pe orar (ex: Matematică-informatică).</p>
         <div role="radiogroup" aria-labelledby="setup-title">
-            ${SETUP_GROUPS.map(g => `
-                <h3 class="setup-group" id="setup-g-${g.id}">${escapeHTML(g.label)}</h3>
-                <div class="setup-profiles" role="group" aria-labelledby="setup-g-${g.id}">
-                    ${Object.entries(SETUP_PROFILES).filter(([, p]) => p.group === g.id).map(([id, p]) => `
-                        <button type="button" class="setup-profile" role="radio" aria-checked="${profile === id}" data-action="setup-profile" data-id="${id}">
-                            <b>${escapeHTML(p.label)}</b><small>${escapeHTML(p.hint)}</small>
-                        </button>`).join("")}
-                </div>
-                ${SETUP_PROFILES[profile]?.group === g.id ? setupProfileExtraHTML() : ""}`).join("")}
+            ${SETUP_GROUPS.filter(g => g.id !== "alte").map(g => `
+                <h3 class="wz-group" id="setup-g-${g.id}">${escapeHTML(g.label.replace("Liceu ", "").replace(/^./, c => c.toUpperCase()))}</h3>
+                <div class="wz-list" role="group" aria-labelledby="setup-g-${g.id}">
+                    ${Object.entries(SETUP_PROFILES).filter(([, x]) => x.group === g.id).map(([id, x]) => `
+                        <button type="button" class="wz-row wz-pick" role="radio" aria-checked="${profile === id}" data-action="setup-profile" data-id="${id}">
+                            <span class="wz-row-text"><b>${escapeHTML(x.label)}</b><small>${escapeHTML(x.hint)}</small></span>
+                            <span class="wz-tick" aria-hidden="true">${icon("check")}</span>
+                        </button>
+                        ${profile === id && x.variants ? `
+                            <div class="wz-sub">
+                                <span class="wz-sub-label" id="setup-var-label">${escapeHTML(x.variantLabel || "Specializarea")}</span>
+                                <div class="azi-seg wz-seg" role="group" aria-labelledby="setup-var-label">
+                                    ${x.variants.map(v => `<button type="button" data-action="setup-variant" data-variant="${v.id}" aria-pressed="${variant === v.id}">${escapeHTML(v.label)}</button>`).join("")}
+                                </div>
+                            </div>` : ""}`).join("")}
+                </div>`).join("")}
         </div>
-`;
-}
-
-/** Sub profilul ales: clasa (gimnaziu) sau specializarea (ex. Arte vizuale), chiar în grupul lui. */
-function setupProfileExtraHTML() {
-    const { profile, cls, variant } = ui.setup;
-    const p = SETUP_PROFILES[profile];
-    if (!p || (!p.classes && !p.variants)) return "";
-    const note = p.classes ? setupPlanNote(profile, cls) : "";
-    return `
-        <div class="setup-extra">
-            ${p.classes ? `
-                <div class="setup-field">
-                    <span class="setup-label" id="setup-cls-label">În ce clasă ești?</span>
-                    <div class="azi-seg setup-seg" role="group" aria-labelledby="setup-cls-label">
-                        ${p.classes.map(c => `<button type="button" data-action="setup-class" data-cls="${c}" aria-pressed="${cls === c}">a ${ROMAN[c]}-a</button>`).join("")}
-                    </div>
-                </div>` : ""}
-            ${p.variants ? `
-                <div class="setup-field">
-                    <span class="setup-label" id="setup-var-label">${escapeHTML(p.variantLabel || "Specializarea")}</span>
-                    <div class="azi-seg setup-seg" role="group" aria-labelledby="setup-var-label">
-                        ${p.variants.map(v => `<button type="button" data-action="setup-variant" data-variant="${v.id}" aria-pressed="${variant === v.id}">${escapeHTML(v.label)}</button>`).join("")}
-                    </div>
-                </div>` : ""}
-            ${note ? `<p class="setup-note">${icon("info")} ${escapeHTML(note)}</p>` : ""}
-        </div>`;
+        ${p && p.group !== "teoretic" ? `<p class="wz-hint">${icon("info")} La vocațional și tehnologic, orele de specialitate diferă de la o școală la alta. Le poți potrivi după orar.</p>` : ""}`;
 }
 
 function setupSubjectsHTML() {
-    const { rows } = ui.setup;
-    const on = rows.filter(r => r.on && !r.exists);
-    const hours = on.reduce((s, r) => s + r.ore, 0);
-    return `
-        <h2 id="setup-title" tabindex="-1">Materiile tale${SETUP_PROFILES[ui.setup.profile]?.classes ? ` · clasa a ${ROMAN[ui.setup.cls]}-a` : ""}</h2>
-        <p class="setup-lead">Materiile și orele vin din planul-cadru al clasei tale. Alege-ți limba modernă 2, debifează religia dacă nu o faci și, dacă ai un opțional, scrie ce e.</p>
-        <ul class="setup-rows">
-            ${rows.map((r, i) => `
-                <li class="setup-row ${r.on ? "" : "is-off"} ${r.exists ? "is-existing" : ""}" data-name="${escapeHTML(r.exists ? r.shown : r.name)}" data-kind="${r.kind}">
-                    <input type="checkbox" class="setup-check" data-i="${i}" ${r.on ? "checked" : ""} ${r.exists || !r.choice ? "disabled" : ""} aria-label="${escapeHTML(r.choice ? `Include ${r.name}` : `${r.name} (obligatorie)`)}">
-                    <span class="setup-name-cell">
-                        ${r.exists ? `<b class="setup-name-text">${escapeHTML(r.shown)}</b>`
-                            : r.kind === "lm2" ? `<select class="glass-select setup-lm2" data-i="${i}" aria-label="Limba modernă 2">${LM2_CHOICES.map(l => `<option ${l === r.name ? "selected" : ""}>${escapeHTML(l)}</option>`).join("")}</select>`
-                            : r.kind === "opt" ? `<span class="setup-opt"><b class="setup-name-text">${OPT}</b><input type="text" class="glass-input setup-opt-topic" data-i="${i}" value="${escapeHTML(r.topic)}" maxlength="40" placeholder="ce opțional? (ex: Educație financiară)" aria-label="Tema opționalului"></span>`
-                            : `<b class="setup-name-text">${escapeHTML(r.name)}</b>`}
-                        ${r.hint && !r.exists ? `<small class="setup-row-hint">${escapeHTML(r.hint)}</small>` : ""}
-                    </span>
-                    ${r.exists ? `<span class="setup-exists">există deja</span>` : `<span class="setup-hours-fixed">${r.ore} ${r.ore === 1 ? "oră" : "ore"}</span>`}
-                </li>`).join("")}
-        </ul>
-        <p class="setup-note">${icon("info")} ${helpDot("programme")} Lista și orele vin din planul-cadru al clasei tale și nu se pot schimba. Alte materii nu se pot adăuga.</p>
-        <p class="setup-count">${plural(on.length, "materie nouă", "materii noi")} · ${plural(hours, "oră", "ore")} pe săptămână · Purtarea e deja în catalog</p>`;
-}
-
-function setupTargetsHTML() {
-    const { target, risk, method, preset } = ui.setup;
-    const chips = (action, values, current, fmt) => values.map(v => `
-        <button type="button" data-action="${action}" data-v="${v}" aria-pressed="${current === v}">${fmt(v)}</button>`).join("");
-    return `
-        <h2 id="setup-title" tabindex="-1">Ținta și anul școlar</h2>
-        <p class="setup-lead">Le folosesc pe pagina Azi, în Statistici și în Simulator.</p>
-        <div class="setup-field">
-            <span class="setup-label" id="setup-target-l">Ce medie generală îți dorești?</span>
-            <div class="azi-seg setup-seg" role="group" aria-labelledby="setup-target-l">${chips("setup-target", [8, 8.5, 9, 9.5, 10], target, v => v.toFixed(2))}</div>
-        </div>
-        <div class="setup-field">
-            <span class="setup-label" id="setup-risk-l">De la ce medie a unei materii să te avertizez?</span>
-            <div class="azi-seg setup-seg" role="group" aria-labelledby="setup-risk-l">${chips("setup-risk", [5, 6, 7, 8, 9], risk, v => `sub ${v}`)}</div>
-        </div>
-        <div class="setup-field">
-            <span class="setup-label" id="setup-method-l">Cum se calculează media generală?</span>
-            <div class="setup-options" role="radiogroup" aria-labelledby="setup-method-l">
-                <button type="button" class="setup-option" role="radio" aria-checked="${method === "arithmetic"}" data-action="setup-method" data-v="arithmetic">
-                    <b>Ca în catalog</b><small>media aritmetică a mediilor pe materii (recomandat)</small>
-                </button>
-                <button type="button" class="setup-option" role="radio" aria-checked="${method === "weighted"}" data-action="setup-method" data-v="weighted">
-                    <b>Ponderată</b><small>materiile cu mai multe ore contează mai mult</small>
-                </button>
-            </div>
-        </div>
-        <div class="setup-field">
-            <label class="setup-label" for="setup-county">Din ce județ ești?</label>
-            <select id="setup-county" class="glass-select">${countyOptions(ui.setup.county)}</select>
-            <small class="setup-field-hint">Din el aflu săptămâna vacanței de schi (o stabilește inspectoratul școlar).</small>
-        </div>
-        <div class="setup-field">
-            <label class="setup-label" for="setup-preset">Vacanța mobilă (de ea depind modulele 3 și 4)</label>
-            <select id="setup-preset" class="glass-select">
-                ${matchingModulePreset(state.settings.modules) === "custom" ? `<option value="keep" ${preset === "keep" ? "selected" : ""}>Păstrez datele mele (din „Eu”)</option>` : ""}
-                ${Object.entries(modulePresetsFor(currentSchoolYear())).map(([id, p]) => `<option value="${id}" ${id === preset ? "selected" : ""}>${escapeHTML(p.label)}</option>`).join("")}
-            </select>
-        </div>`;
-}
-
-function setupTimetableHTML() {
-    const { rows, target } = ui.setup;
-    const n = rows.filter(r => r.on && !r.exists && r.name.trim()).length;
-    return `
-        <div class="setup-hero">
-            <h2 id="setup-title" tabindex="-1">Aproape gata!</h2>
-            <p>Adaug ${plural(n, "materie", "materii")}, cu ținta ${target.toFixed(2)}. Ultimul pas: orarul. Cu el, pagina Azi îți arată orele fiecărei zile, iar testele se adaugă dintr-o atingere.</p>
-        </div>
-        <div class="setup-choices">
-            <button type="button" class="setup-choice is-primary" data-action="setup-finish" data-timetable="1" data-autofocus>
-                ${icon("calendar-days")}<span><b>Completez orarul acum</b><small>durează cam două minute</small></span>${icon("chevron", "setup-arrow")}
-            </button>
-            <button type="button" class="setup-choice" data-action="setup-finish">
-                ${icon("clock")}<span><b>Mai târziu</b><small>îl găsești pe pagina Azi și în Calendar</small></span>${icon("chevron", "setup-arrow")}
-            </button>
-        </div>`;
-}
-
-/* ---------- pornirea rapidă: pasul 2 (prima notă) și pasul 3 (gata) ---------- */
-function setupQuickGradeHTML() {
-    const { qMat, qVal } = ui.setup;
-    const mats = Object.keys(state.subjects).filter(m => !state.subjects[m].excludeFromGPA).sort((a, b) => a.localeCompare(b, "ro"));
-    return `
-        <h2 id="setup-title" tabindex="-1">Ai deja o notă?</h2>
-        <p class="setup-lead">Alege materia și nota. Media se calculează singură. Dacă n-ai încă note, sari peste.</p>
-        <div class="setup-field">
-            <span class="setup-label" id="setup-qm-l">Materia</span>
-            <div class="setup-qchips" role="group" aria-labelledby="setup-qm-l">
-                ${mats.map(m => `<button type="button" class="setup-qchip" data-action="setup-qmat" data-mat="${escapeHTML(m)}" aria-pressed="${qMat === m}" style="${subjectStyle(m)}"><i aria-hidden="true"></i>${escapeHTML(shortSubjectName(m))}</button>`).join("")}
-            </div>
-        </div>
-        <div class="setup-field">
-            <span class="setup-label" id="setup-qv-l">Nota</span>
-            <div class="setup-qvals" role="group" aria-labelledby="setup-qv-l">
-                ${Array.from({ length: 10 }, (_, i) => 10 - i).map(v => `<button type="button" class="setup-qval tone-${gradeTone(v)}" data-action="setup-qval" data-v="${v}" aria-pressed="${qVal === v}">${v}</button>`).join("")}
-            </div>
-        </div>`;
-}
-
-function setupQuickDoneHTML() {
-    const n = Object.keys(state.subjects).length;
-    const first = firstName();
-    const g = ui.setup.qAdded;
-    return `
-        <div class="setup-hero setup-done">
-            <div class="setup-done-pal" aria-hidden="true">${buddySVG(g && g.val >= 9 ? "love" : "happy", "setup-done-buddy")}</div>
-            <h2 id="setup-title" tabindex="-1">${first ? `Gata, ${escapeHTML(first)}!` : "Gata!"}</h2>
-            <p class="pal-say">${g ? `Am pus ${g.val} la ${escapeHTML(shortSubjectName(g.mat))}. ` : ""}Ai ${plural(n, "materie", "materii")} în catalog. Eu sunt ${escapeHTML(buddyName())} și te anunț când ai un test sau o materie are nevoie de tine.</p>
-        </div>
-        <div class="setup-choices">
-            <button type="button" class="setup-choice is-primary" data-action="setup-quick-finish" data-autofocus>
-                ${icon("home")}<span><b>Hai la pagina Azi</b><small>ce ai de făcut azi și cum stai</small></span>${icon("chevron", "setup-arrow")}
-            </button>
-            <button type="button" class="setup-choice" data-action="setup-quick-finish" data-timetable="1">
-                ${icon("calendar-days")}<span><b>Completez și orarul</b><small>atingi materiile în ordinea orelor, cam un minut</small></span>${icon("chevron", "setup-arrow")}
-            </button>
-        </div>
-        <p class="setup-note">${icon("info")} Ținta (${state.settings.goals.targetGPA.toFixed(2)}), pragul de risc și anul școlar au valori obișnuite; le schimbi oricând din „Eu”.</p>`;
-}
-
-/** Pasul 1 → 2: pune materiile clasei alese, cu valorile obișnuite. */
-function setupQuickApply() {
     const st = ui.setup;
-    if (!SETUP_PROFILES[st.profile]) return false;
-    const added = [];
-    st.rows.forEach(r => {
-        const name = (r.kind === "opt" ? optionalName(r.topic) : r.name).trim().replace(/\s+/g, " ");
-        if (!r.on || r.exists || r.kind === "opt" || !name || findSubjectName(name)) return;
-        state.subjects[name] = { ore: r.ore, target: st.target, grades: [], priority: false, excludeFromGPA: r.kind === "dirig" && st.cls >= 9 };
-        added.push(name);
-    });
-    const s = state.settings;
-    s.school = { profile: st.profile, cls: SETUP_PROFILES[st.profile].classes ? st.cls : 0, variant: st.variant || "", lm2: st.lm2 || LM2_CHOICES[0], county: st.county || s.school.county || "" };
-    if (MODULE_PRESETS[st.preset]) s.modules = presetModules(st.preset, SETUP_PROFILES[st.profile].classes ? st.cls : 0);
-    if (SETUP_PROFILES[st.profile].classes && !s.report.cls) s.report.cls = `a ${ROMAN[st.cls]}-a`;
-    addActivity(`Configurare: ai adăugat ${plural(added.length, "materie", "materii")}.`);
-    markSetupDone();
-    refresh();
-    return true;
+    const p = SETUP_PROFILES[st.profile];
+    const variant = p.variants?.find(v => v.id === st.variant);
+    const who = [`Clasa a ${ROMAN[st.cls]}-a`, p.group !== "alte" ? p.label : "", variant && variant.id !== p.variants[0].id ? variant.label : ""].filter(Boolean).join(", ");
+    const rows = st.rows.map((r, i) => ({ ...r, i }));
+    const choices = rows.filter(r => !r.exists && (r.choice || r.kind === "lm2"));
+    const fixed = rows.filter(r => !choices.includes(r));
+    const on = rows.filter(r => r.on && !r.exists);
+    const hours = rows.filter(r => r.on).reduce((a, r) => a + r.ore, 0);
+    const toggle = r => `<span class="wz-switch"><input type="checkbox" class="setup-check" data-i="${r.i}" ${r.on ? "checked" : ""} aria-label="${escapeHTML(r.kind === "opt" ? "Am un opțional" : `Fac ${r.name}`)}"><i aria-hidden="true"></i></span>`;
+    const choiceRow = r => {
+        if (r.kind === "lm2") return `
+            <li class="wz-row setup-row" data-name="${escapeHTML(r.name)}" data-kind="lm2">
+                <span class="wz-row-text"><b>A doua limbă străină</b><small>${r.ore} ${r.ore === 1 ? "oră" : "ore"} pe săptămână</small></span>
+                <select class="wz-select setup-lm2" data-i="${r.i}" aria-label="A doua limbă străină">${LM2_CHOICES.map(l => `<option value="${escapeHTML(l)}" ${l === r.name ? "selected" : ""}>${escapeHTML(l.replace("Limba ", ""))}</option>`).join("")}</select>
+            </li>`;
+        if (r.kind === "opt") return `
+            <li class="wz-row setup-row ${r.on ? "" : "is-off"}" data-name="${OPT}" data-kind="opt">
+                <span class="wz-row-text"><b>Am un opțional</b><small>ora aleasă de școală</small></span>${toggle(r)}
+            </li>
+            ${r.on ? `<li class="wz-row wz-input-row"><input type="text" class="wz-input setup-opt-topic" data-i="${r.i}" value="${escapeHTML(r.topic)}" maxlength="40" placeholder="Cum se numește? (ex: Educație financiară)" aria-label="Numele opționalului" data-autofocus></li>` : ""}`;
+        return `
+            <li class="wz-row setup-row ${r.on ? "" : "is-off"}" data-name="${escapeHTML(r.name)}" data-kind="${r.kind}">
+                <span class="wz-row-text"><b>${escapeHTML(r.name)}</b><small>${r.name === "Religie" ? "poți renunța la ea printr-o cerere" : escapeHTML(r.hint || "la alegere")}</small></span>${toggle(r)}
+            </li>`;
+    };
+    return `
+        <h2 id="setup-title" tabindex="-1">Materiile tale</h2>
+        <p class="wz-lead">${escapeHTML(who)}. Le-am pus din planul-cadru. Mai ai de ales doar ce e mai jos.</p>
+        ${choices.length ? `<ul class="wz-list">${choices.map(choiceRow).join("")}</ul>` : ""}
+        <details class="wz-more">
+            <summary><span>Celelalte ${fixed.length} materii</span><small>${plural(hours, "oră", "ore")} pe săpt.</small></summary>
+            <ul class="wz-list wz-plain">
+                ${fixed.map(r => `
+                    <li class="wz-row setup-row ${r.exists ? "is-existing" : ""}" data-name="${escapeHTML(r.exists ? r.shown : r.name)}" data-kind="${r.kind}">
+                        <span class="wz-row-text"><b>${escapeHTML(r.exists ? r.shown : r.name)}</b>${r.exists ? `<small>e deja în catalog</small>` : r.kind === "dirig" && st.cls >= 9 ? `<small>nu intră în medie</small>` : ""}</span>
+                        <span class="wz-hours">${r.ore} ${r.ore === 1 ? "oră" : "ore"}</span>
+                    </li>`).join("")}
+            </ul>
+        </details>
+        <p class="wz-hint">Pun ${plural(on.length, "materie nouă", "materii noi")} în catalog. Purtarea e deja acolo.</p>`;
 }
 
-function finishQuickSetup(withTimetable) {
-    const g = ui.setup?.qAdded;
-    closeSetup();
-    ui.home.day = null;
-    switchTab("tab-dashboard");
-    refresh();
-    if (withTimetable && Object.keys(state.subjects).length) {
-        ui.tourAfterModal = true; // turul vine după ce închide orarul
-        openTimetable();
-    } else setTimeout(maybeStartTour, 400);
+function setupGoalHTML() {
+    const { target, risk } = ui.setup;
+    const targets = [...new Set([...WZ_TARGETS, target])].sort((a, b) => a - b);
+    const risks = wzRisks(target);
+    return `
+        <h2 id="setup-title" tabindex="-1">Ce medie vrei la sfârșitul anului?</h2>
+        <p class="wz-lead">La fiecare materie îți arăt ce note îți mai trebuie ca s-o atingi.</p>
+        <div class="azi-seg wz-seg wz-targets" role="group" aria-label="Media generală dorită">
+            ${targets.map(v => `<button type="button" data-action="setup-target" data-v="${v}" aria-pressed="${target === v}">${v.toFixed(2)}</button>`).join("")}
+        </div>
+        <h3 class="wz-q" id="wz-risk-l">Când să te anunț că o materie are nevoie de tine?</h3>
+        ${risks.length ? `
+            <div class="wz-list" role="radiogroup" aria-labelledby="wz-risk-l">
+                ${risks.map(r => `
+                    <button type="button" class="wz-row wz-pick" role="radio" aria-checked="${risk === r.v}" data-action="setup-risk" data-v="${r.v}">
+                        <span class="wz-row-text"><b>${r.title}</b><small>${r.sub}</small></span>
+                        <span class="wz-tick" aria-hidden="true">${icon("check")}</span>
+                    </button>`).join("")}
+            </div>
+            <p class="wz-hint">Pragul e mereu sub ținta ta (${target.toFixed(2)}).</p>`
+            : `<p class="wz-hint">Te anunț când media unei materii scade sub 5.</p>`}`;
+}
+
+function setupCountyHTML() {
+    const custom = matchingModulePreset(state.settings.modules) === "custom";
+    return `
+        <h2 id="setup-title" tabindex="-1">Din ce județ ești?</h2>
+        <p class="wz-lead">Vacanța de schi e în altă săptămână în fiecare județ. Din ea aflu când încep și se termină modulele tale.</p>
+        <div class="wz-list">
+            <label class="wz-row" for="setup-county">
+                <span class="wz-row-title">Județul</span>
+                <select id="setup-county" class="wz-select">${countyOptions(ui.setup.county)}</select>
+            </label>
+        </div>
+        <p class="wz-hint">${custom ? "Datele modulelor scrise de tine în „Eu” rămân cum sunt." : "Dacă nu știi acum, mergi mai departe: pun calendarul obișnuit și îl schimbi din „Eu”."}</p>`;
+}
+
+function setupDoneHTML() {
+    const st = ui.setup;
+    const p = SETUP_PROFILES[st.profile];
+    const fresh = st.rows.filter(r => r.on && !r.exists && (r.kind !== "opt" || !firstOptional())).length;
+    const kept = st.rows.filter(r => r.exists).length;
+    const first = firstName();
+    const risk = WZ_RISKS.find(r => r.v === st.risk);
+    const row = (label, value, step) => `
+        <li class="wz-row">
+            <span class="wz-row-title">${label}</span>
+            <span class="wz-row-value">${value}</span>
+            ${step ? `<button type="button" class="wz-edit" data-action="setup-goto" data-step="${step}" aria-label="Schimbă: ${label}">Schimbă</button>` : ""}
+        </li>`;
+    return `
+        <div class="wz-hero">
+            <span class="wz-done" aria-hidden="true">${icon("check")}</span>
+            <h2 id="setup-title" tabindex="-1">${first ? `Totul e pregătit, ${escapeHTML(first)}` : "Totul e pregătit"}</h2>
+            <p>Verifică pe scurt. Orice schimbi și mai târziu, din „Eu”.</p>
+        </div>
+        <ul class="wz-list wz-summary">
+            ${row("Clasa", `a ${ROMAN[st.cls]}-a`, "class")}
+            ${p.group !== "alte" ? row("Profilul", escapeHTML(p.label), "profile") : ""}
+            ${row("Materii", `${plural(fresh, "materie nouă", "materii noi")}${kept ? ` + ${kept} existente` : ""}`, "subjects")}
+            ${row("Ținta", st.target.toFixed(2), "goal")}
+            ${row("Te anunț", risk ? `sub ${risk.v}` : `sub ${st.risk}`, "goal")}
+            ${row("Județul", st.county ? escapeHTML(st.county) : "necompletat", "county")}
+        </ul>
+        <p class="wz-hint">Cu orarul completat, pagina Azi îți arată orele fiecărei zile și adaugi testele dintr-o atingere.</p>`;
 }
 
 function validSetupPreset(value, fallback) {
@@ -801,7 +764,7 @@ function setupRowsError() {
         if (!r.on || r.exists) continue;
         const name = (r.kind === "opt" ? optionalName(r.topic) : r.name).trim().replace(/\s+/g, " ");
         if (!name) return "O materie bifată nu are nume.";
-        if (r.kind === "opt" && (r.topic || "").trim() && (URN_RULES.looksLikeJunk(r.topic) || /\p{Extended_Pictographic}/u.test(r.topic))) return "Scrie tema opționalului (ex: Educație financiară).";
+        if (r.kind === "opt" && (r.topic || "").trim() && (URN_RULES.looksLikeJunk(r.topic) || /\p{Extended_Pictographic}/u.test(r.topic))) return "Scrie numele opționalului (ex: Educație financiară).";
         if (name === "__proto__" || name === PURTARE_KEY || isLegacyPurtareName(name)) return "Purtarea e deja în catalog; nu o adăuga ca materie.";
         const low = name.toLocaleLowerCase("ro");
         if (seen.has(low)) return `„${name}” apare de două ori.`;
@@ -813,22 +776,23 @@ function setupRowsError() {
 
 function setupNext() {
     const st = ui.setup;
-    if (st.step === 1 && !st.profile) return;
-    if (st.step === 2) {
+    if (!wzCanContinue()) return;
+    if (st.step === "subjects") {
         const err = setupRowsError();
-        if (err) {
-            showToast(`⚠️ ${err}`);
-            return;
-        }
+        if (err) { showToast(`⚠️ ${err}`); return; }
     }
-    if (st.step === 3) st.preset = validSetupPreset(field("setup-preset"), st.preset);
-    st.step = Math.min(4, st.step + 1);
-    renderSetup();
+    const steps = wzSteps();
+    wzGo(steps[Math.min(steps.length - 1, steps.indexOf(st.step) + 1)]);
+}
+
+function setupBack() {
+    const steps = wzSteps();
+    wzGo(steps[Math.max(0, steps.indexOf(ui.setup.step) - 1)]);
 }
 
 function finishSetup(withTimetable) {
     const st = ui.setup;
-    if (!st) return;
+    if (!st || !SETUP_PROFILES[st.profile]) return;
     const added = [];
     st.rows.forEach(r => {
         const name = (r.kind === "opt" ? optionalName(r.topic) : r.name).trim().replace(/\s+/g, " ");
@@ -839,15 +803,14 @@ function finishSetup(withTimetable) {
         added.push(name);
     });
     const s = state.settings;
-    if (SETUP_PROFILES[st.profile]) s.school = { profile: st.profile, cls: SETUP_PROFILES[st.profile].classes ? st.cls : 0, variant: st.variant || "", lm2: st.lm2 || LM2_CHOICES[0], county: st.county || s.school.county || "" };
-    else if (st.county) s.school.county = st.county;
+    const prof = SETUP_PROFILES[st.profile];
+    s.school = { profile: st.profile, cls: prof.classes ? st.cls : 0, variant: st.variant || "", lm2: st.lm2 || LM2_CHOICES[0], county: st.county || "" };
     s.goals.targetGPA = st.target;
     s.goals.minGPA = Math.min(s.goals.minGPA, st.target);
     s.calc.riskThreshold = st.risk;
-    s.calc.method = st.method;
-    if (MODULE_PRESETS[st.preset]) s.modules = presetModules(st.preset, SETUP_PROFILES[st.profile]?.classes ? st.cls : 0);
+    if (MODULE_PRESETS[st.preset]) s.modules = presetModules(st.preset, prof.classes ? st.cls : 0);
     // Clasa aleasă ajunge și pe antetul raportului (dacă elevul nu a scris deja alta).
-    if (SETUP_PROFILES[st.profile]?.classes && !s.report.cls) s.report.cls = `a ${ROMAN[st.cls]}-a`;
+    if (prof.classes && !s.report.cls) s.report.cls = `a ${ROMAN[st.cls]}-a`;
     addActivity(added.length ? `Configurare: ai adăugat ${plural(added.length, "materie", "materii")}.` : "Configurare: ținte și an școlar actualizate.");
     markSetupDone();
     closeSetup();
@@ -858,7 +821,7 @@ function finishSetup(withTimetable) {
         ui.tourAfterModal = true; // turul vine după ce închide orarul
         openTimetableModal();
     } else {
-        showToast(`✅ Gata! ${added.length ? `Ai ${plural(Object.keys(state.subjects).length, "materie", "materii")} în catalog.` : "Setările au fost salvate."}`);
+        showToast(`✅ Gata! Ai ${plural(Object.keys(state.subjects).length, "materie", "materii")} în catalog.`);
         setTimeout(maybeStartTour, 400);
     }
 }

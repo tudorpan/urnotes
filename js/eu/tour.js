@@ -168,27 +168,35 @@ const SETUP_ACTIONS = {
         showToast("Poți porni configurarea oricând din „Eu” sau din căutare (Ctrl+K).");
     },
     "setup-next": () => setupNext(),
-    "setup-back": () => {
-        ui.setup.step = Math.max(0, ui.setup.step - 1);
-        renderSetup();
-    },
+    "setup-back": () => setupBack(),
+    "setup-goto": el => wzGo(el.dataset.step),
     "setup-import": () => {
         markSetupDone();
         closeSetup();
         $("backup-file-input")?.click();
     },
+    "setup-class": el => {
+        const st = ui.setup;
+        const c = Number(el.dataset.cls);
+        if (!ROMAN[c]) return;
+        st.cls = c;
+        if (c <= 8) { st.profile = "gimnaziu"; st.variant = ""; }
+        else if (st.profile === "gimnaziu") { st.profile = ""; st.variant = ""; }
+        st.rows = SETUP_PROFILES[st.profile] ? setupRowsFor(st.profile, st.cls, st.variant, st.lm2) : [];
+        setupNext(); // o singură alegere: mergem direct mai departe
+    },
     "setup-profile": el => {
         const st = ui.setup;
-        if (!SETUP_PROFILES[el.dataset.id]) return;
+        const prof = SETUP_PROFILES[el.dataset.id];
+        if (!prof || el.dataset.id === "gimnaziu") return;
         st.profile = el.dataset.id;
-        const prof = SETUP_PROFILES[st.profile];
-        // Clasa rămâne aleasă când treci de la un profil la altul, dacă există și la noul profil.
-        if (prof.classes && !prof.classes.includes(st.cls)) st.cls = prof.classes[0];
         if (prof.variants && !prof.variants.some(v => v.id === st.variant)) st.variant = prof.variants[0].id;
+        if (!prof.variants) st.variant = "";
         st.rows = setupRowsFor(st.profile, st.cls, st.variant, st.lm2);
-        renderSetup();
+        if (!prof.variants) { setupNext(); return; }
+        renderSetup(); // mai are de ales specializarea
         $("setup-body").querySelector(`[data-id="${st.profile}"]`)?.focus({ preventScroll: true });
-        $("setup-body").querySelector(".setup-extra")?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+        $("setup-body").querySelector(".wz-sub")?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
     },
     "setup-variant": el => {
         const st = ui.setup;
@@ -199,57 +207,19 @@ const SETUP_ACTIONS = {
         renderSetup();
         $("setup-body").querySelector(`[data-variant="${st.variant}"]`)?.focus();
     },
-    "setup-class": el => {
-        const st = ui.setup;
-        const classes = SETUP_PROFILES[st.profile]?.classes || [];
-        const c = Number(el.dataset.cls);
-        if (!classes.includes(c)) return;
-        st.cls = c;
-        st.rows = setupRowsFor(st.profile, st.cls, st.variant, st.lm2);
-        renderSetup();
-        $("setup-body").querySelector(`[data-cls="${st.cls}"]`)?.focus();
+    "setup-target": el => { ui.setup.target = clampNumber(el.dataset.v, 5, 10, 10); wzFixRisk(); rerenderSetupKeepFocus(el); },
+    "setup-risk": el => {
+        const v = Number(el.dataset.v);
+        if (!wzRisks(ui.setup.target).some(r => r.v === v)) return;
+        ui.setup.risk = v;
+        rerenderSetupKeepFocus(el);
     },
-    "setup-hours": el => {
-        const r = ui.setup.rows[Number(el.dataset.i)];
-        if (!r) return;
-        r.ore = Math.min(10, Math.max(1, r.ore + Number(el.dataset.d)));
-        renderSetup();
-        $("setup-body").querySelector(`[data-action="setup-hours"][data-i="${el.dataset.i}"][data-d="${el.dataset.d}"]:not(:disabled)`)?.focus();
-    },
-    "setup-target": el => { ui.setup.target = clampNumber(el.dataset.v, 5, 10, 10); rerenderSetupKeepFocus(el); },
-    "setup-risk": el => { ui.setup.risk = clampNumber(el.dataset.v, 1, 10, 8); rerenderSetupKeepFocus(el); },
-    "setup-method": el => { ui.setup.method = el.dataset.v === "weighted" ? "weighted" : "arithmetic"; rerenderSetupKeepFocus(el); },
-    "setup-finish": el => finishSetup(el.dataset.timetable === "1"),
-    // pornirea rapidă (cont nou): clasa → prima notă → gata
-    "setup-quick": () => { ui.setup.quick = true; ui.setup.step = 1; renderSetup(); },
-    "setup-quick-next": () => {
-        if (!ui.setup.profile || !setupQuickApply()) return;
-        ui.setup.step = 2;
-        renderSetup();
-    },
-    "setup-qmat": el => { ui.setup.qMat = state.subjects[el.dataset.mat] ? el.dataset.mat : ""; renderSetup(); $("setup-body").querySelector(`[data-action="setup-qmat"][data-mat="${CSS.escape(el.dataset.mat)}"]`)?.focus({ preventScroll: true }); },
-    "setup-qval": el => { ui.setup.qVal = clampNumber(el.dataset.v, 1, 10, 0); renderSetup(); $("setup-body").querySelector(`[data-action="setup-qval"][data-v="${el.dataset.v}"]`)?.focus({ preventScroll: true }); },
-    "setup-quick-grade": () => {
-        const st = ui.setup;
-        if (!state.subjects[st.qMat] || !st.qVal) return;
-        const grade = { id: uid(), val: st.qVal, type: "Test", date: lastSchoolDay() };
-        if (!allowGrade(st.qMat, grade)) return;
-        state.subjects[st.qMat].grades.push(grade);
-        addActivity(`Ai adăugat nota ${grade.val} (${grade.type}) la ${st.qMat}.`);
-        refresh();
-        st.qAdded = { mat: st.qMat, val: st.qVal };
-        celebrateGrade(st.qVal);
-        st.step = 3;
-        renderSetup();
-    },
-    "setup-quick-skip": () => { ui.setup.step = 3; renderSetup(); },
-    "setup-quick-finish": el => finishQuickSetup(el.dataset.timetable === "1")
+    "setup-finish": el => finishSetup(el.dataset.timetable === "1")
 };
 
 /** Redesenează pasul curent și pune focusul înapoi pe butonul echivalent (pentru tastatură). */
 function rerenderSetupKeepFocus(el) {
     const sel = `[data-action="${el.dataset.action}"][data-v="${el.dataset.v}"]`;
-    ui.setup.preset = validSetupPreset(field("setup-preset"), ui.setup.preset);
     renderSetup();
     $("setup-body").querySelector(sel)?.focus();
 }
@@ -262,14 +232,10 @@ function bindSetupEvents() {
         if (t.classList.contains("setup-check")) {
             const r = ui.setup?.rows[Number(t.dataset.i)];
             if (r) { r.on = t.checked; renderSetup(); $("setup-body").querySelector(`.setup-check[data-i="${t.dataset.i}"]`)?.focus(); }
-        } else if (t.id === "setup-preset" && ui.setup) {
-            ui.setup.preset = validSetupPreset(t.value, ui.setup.preset);
         } else if (t.id === "setup-county" && ui.setup) {
             ui.setup.county = COUNTY_WEEK[t.value] ? t.value : "";
-            if (COUNTY_WEEK[t.value]) {
-                ui.setup.preset = countyPreset(t.value);
-                if ($("setup-preset")) $("setup-preset").value = ui.setup.preset;
-            }
+            // modulele urmează județul, afară de cazul în care elevul și-a scris singur datele
+            if (COUNTY_WEEK[t.value] && ui.setup.preset !== "keep") ui.setup.preset = countyPreset(t.value);
         }
     });
     box.addEventListener("input", event => {
@@ -278,20 +244,12 @@ function bindSetupEvents() {
             // Se salvează pe loc: numele rămâne chiar dacă elevul sare peste restul configurării.
             state.settings.profile.name = cleanName(t.value, 40);
             saveState();
-            $("setup-buddy").innerHTML = setupBuddyHTML();
             return;
         }
         if (t.classList.contains("setup-opt-topic")) {
             const r = ui.setup?.rows[Number(t.dataset.i)];
             if (r) {
                 r.topic = t.value;
-                // a scris tema: opționalul se bifează singur
-                if (t.value.trim() && !r.on) {
-                    r.on = true;
-                    t.closest(".setup-row")?.classList.remove("is-off");
-                    const chk = t.closest(".setup-row")?.querySelector(".setup-check");
-                    if (chk) chk.checked = true;
-                }
             }
         }
     });

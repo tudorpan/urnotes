@@ -127,10 +127,7 @@ async function onCloudUser(user) {
         loadSettingsIntoUI();
         // Configurarea deschisă deja: numele apare și acolo
         const input = $("setup-me-name");
-        if (input && !input.value) {
-            input.value = state.settings.profile.name;
-            $("setup-buddy").innerHTML = setupBuddyHTML();
-        }
+        if (input && !input.value) input.value = state.settings.profile.name;
     }
     if (!api.enabled && cloud.user?.uid === user.uid) cloud.unwatch = cloud.api.watch(onRemoteChange);
 }

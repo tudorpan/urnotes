@@ -79,6 +79,14 @@ Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul răm
 
 Sunt oprite: `MASCOT_ON = false` în `js/core/config.js` ascunde colegul peste tot (Azi, Eu, configurarea, turul, notificările de nivel). Codul a rămas: `PAL_KINDS` (`js/eu/growth.js`) are patru mascote (Bufi, Cotorel, Gumi, Tiți), iar corpurile sunt în `buddyBodySVG()` (`js/azi/azi.js`). Ca să revină, pui `MASCOT_ON = true` și scoți regula care le ascunde din `app.css`.
 
+### Configurarea de la început
+
+Un singur drum, câte o întrebare pe ecran (`js/eu/setup.js`, stilurile `wz-*` din `app.css`): prenumele → clasa (V–XII, opt butoane mari) → profilul (doar la liceu; specializarea apare sub profil, dacă are) → materiile → ținta → județul → rezumatul.
+- La materii alegi doar ce chiar e la alegere (a doua limbă străină, religia, opționalul); celelalte vin din planul-cadru și stau strânse sub „Celelalte materii”.
+- Avertizarea pentru o materie e mereu sub țintă: cu ținta 8 poți alege „sub 5”, „sub 6” sau „sub 7”, nu „sub 9”. Dacă scazi ținta, pragul coboară singur.
+- Județul alege săptămâna vacanței de schi și, din ea, datele modulelor (datele scrise de mână în „Eu” rămân).
+- Rezumatul are „Schimbă” lângă fiecare alegere. Nimic nu se salvează până la „Intră în aplicație” (în afară de prenume).
+
 ### Cum adaugi ceva
 
 - **O pagină nouă:** adaugi o `<section id="tab-…" class="tab-content">` în `index.html` și un fișier în secțiunea lui din `js/` care apelează `registerTab("tab-…", { render, title, icon, group, pal })`. Scriptul îl treci în `index.html` (înainte de `state.js`) și în lista `APP_JS` din `sw.js`.
