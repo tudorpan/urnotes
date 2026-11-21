@@ -387,3 +387,30 @@ body.style-blocuri .sim-result.neutral { background: var(--b-paper); color: var(
 body.style-blocuri .cal-attn .btn-glass { background: #fff; }
 body.style-blocuri .ag-day.is-today .ag-date :is(b, span, small) { color: #17123A; }
 body.style-blocuri .ag-day.is-today .cal-ev, body.style-blocuri .ag-day.is-today .ag-free { color: var(--ink); }
+
+/* ==================== TELEFON, A DOUA TREIME ====================
+   Bara de sus devine o fâșie lila cu contur; materiile sunt un șir de borcane pe care-l tragi cu degetul;
+   în bara de jos, fiecare filă are pătrățelul ei colorat, ca în bara laterală de pe calculator. */
+@media (max-width: 900px) {
+    body.style-blocuri .app-bar.is-scrolled { background: var(--b-bg); border-bottom: var(--b-line); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    body.style-blocuri .topbar-title { font: 800 22px/1.1 var(--font-hand); color: var(--ink); }
+
+    body.style-blocuri .as-row {
+        display: flex; flex-wrap: nowrap; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+        margin: 10px -6px 0; padding: 6px 10px 12px 6px; scroll-padding-left: 6px; scrollbar-width: none;
+    }
+    body.style-blocuri .as-row::-webkit-scrollbar { display: none; }
+    body.style-blocuri .as-item { flex: 0 0 98px; height: 128px; scroll-snap-align: start; }
+    body.style-blocuri .as-add { flex-basis: 84px; }
+
+    body.style-blocuri .mobile-nav-btn .ico { width: 30px; height: 30px; padding: 5px; border: 2px solid #17123A; border-radius: 10px; color: #17123A; background: var(--b-paper); }
+    body.style-blocuri .mobile-nav-btn[data-tab="tab-dashboard"] .ico { background: var(--b-sun); }
+    body.style-blocuri .mobile-nav-btn[data-tab="tab-catalog"] .ico { background: var(--b-pink); }
+    body.style-blocuri .mobile-nav-btn[data-tab="tab-calendar"] .ico { background: var(--b-sky); }
+    body.style-blocuri .mobile-nav-btn[data-tab="tab-plan"] .ico { background: var(--b-grape); }
+    body.style-blocuri .mobile-nav-btn.active .ico { border-color: #fff; }
+    body.style-blocuri.dark-mode .mobile-nav-btn.active .ico { border-color: #17123A; }
+    body.style-blocuri.dark-mode .mobile-nav-btn:not(.active) { color: var(--ink); }
+
+    body.style-blocuri .subnav { padding-bottom: 6px; }
+}

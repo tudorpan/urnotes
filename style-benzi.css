@@ -387,3 +387,22 @@ body.style-benzi.dark-mode .brand-name .brand-ur { -webkit-text-stroke: 0; }
 body.style-benzi.dark-mode { --accent-soft: color-mix(in srgb, var(--k-y) 20%, var(--k-panel)); }
 body.style-benzi .sim-result.neutral { background: #fff; color: #111; }
 body.style-benzi .ag-day.is-today .cal-ev, body.style-benzi .ag-day.is-today .ag-free { color: var(--ink); }
+
+/* ==================== TELEFON, A DOUA TREIME ====================
+   Bara de sus devine fâșia galbenă de titlu a benzii; materiile, patru căsuțe pe rând. */
+@media (max-width: 900px) {
+    body.style-benzi .app-bar.is-scrolled { background: var(--k-y); border-bottom: var(--k-line); }
+    body.style-benzi .topbar-title { font: 400 27px/1 var(--font-hand); letter-spacing: 1.2px; color: #111; }
+    body.style-benzi.title-docked .app-bar .brand-name { opacity: 0; }
+    body.style-benzi .app-bar.is-scrolled :is(.notification-btn, .me-btn) { background: #fff; }
+
+    body.style-benzi .as-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    body.style-benzi .as-item { min-height: 76px; padding: 6px 7px; }
+    body.style-benzi .as-avg { font-size: 25px; }
+    body.style-benzi .as-name { font-size: 11.5px; -webkit-line-clamp: 1; }
+    body.style-benzi .as-flag { transform: rotate(8deg) scale(0.82); transform-origin: top right; }
+    body.style-benzi .as-add .as-name { font-size: 15px; -webkit-line-clamp: 2; }
+
+    body.style-benzi .home-tile.is-hero { padding-top: 30px; padding-bottom: 14px; }
+    body.style-benzi #cal-title { font-size: clamp(19px, 6vw, 26px); letter-spacing: 0.6px; overflow-wrap: anywhere; }
+}
