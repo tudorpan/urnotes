@@ -70,6 +70,13 @@ Hârtie cald-cenușie, cerneală și o singură culoare de accent (galbenul de p
 - Fonturile sunt găzduite cu aplicația (`fonts/`, `fonts.css`): Fraunces (titluri, cifre), Lexend (text), Kalam (notițe), toate cu ă, â, î, ș, ț.
 - `style.css` + `ui.css` sunt temelia; `styles.css` are „Materiile tale”, alegerea mascotei și pagina întreagă a materiei.
 
+### Mișcarea și gesturile
+
+- `motion.css` + `js/ui/scena.js`: când intră o pagină, `scenaPlay()` îi pune clasa `scena-play` (și `--i` pe elementele din liste), iar animațiile pornesc de acolo: cărțile cad pe raft, teancul din Note se așază, ștampilele se apasă pe fișă, filele de calendar se rup, ziua de azi se încercuiește, markerul se trage sub titlu, cifrele numără.
+- Deschiderea unei materii (din raft sau din Note) și schimbarea temei folosesc View Transitions acolo unde browserul le are: cartea se face copertă, tema se schimbă dintr-un cerc.
+- Gesturi: pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
+- Mișcarea vechi din `fluid.js` / `motion.js` (colegul care reacționează, nota care zboară spre Note, pastila din meniu, cardurile pe rând) rămâne. Toată mișcarea se oprește cu „reducere mișcare” din sistem; gesturile merg și atunci.
+
 ### Mascotele
 
 Colegul de bancă se alege, nu se botează: `PAL_KINDS` (`js/eu/growth.js`) are patru mascote, fiecare cu numele, descrierea și culoarea ei: **Bufi** (bufnița, implicită), **Cotorel** (cartea), **Gumi** (guma de șters) și **Tiți** (post-it-ul). Alegerea e în `state.pal.look.kind` și se face din Eu › Colegul tău, din garderobă sau din configurarea de la început.

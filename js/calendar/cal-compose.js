@@ -179,9 +179,13 @@ function ccRender({ focus = "" } = {}) {
     if (!DATE_KEY_RE.test(cc.date)) cc.date = ccToday();
     const key = focus ? null : ccFocusKey();
     const scroller = host.querySelector(".cc-scroll");
-    const top = scroller && host.querySelector(".cc-sheet")?.dataset.step === cc.step ? scroller.scrollTop : 0;
+    const prevStep = host.querySelector(".cc-sheet")?.dataset.step;
+    const top = scroller && prevStep === cc.step ? scroller.scrollTop : 0;
+    // pasul nou alunecă din partea în care mergi: formularul din dreapta, tipurile (înapoi) din stânga
+    const move = prevStep && prevStep !== cc.step ? (cc.step === "form" ? "is-fwd" : "is-back") : "";
     host.innerHTML = `
-        <form class="cc-sheet" id="cc-form" data-step="${cc.step}" data-type="${escapeHTML(cc.type)}" autocomplete="off" aria-labelledby="cc-title">
+        <form class="cc-sheet ${move}" id="cc-form" data-step="${cc.step}" data-type="${escapeHTML(cc.type)}" autocomplete="off" aria-labelledby="cc-title">
+            <span class="cc-grab" aria-hidden="true"></span>
             ${ccHead()}
             ${cc.step === "form" ? ccFormStep() : ccTypeStep()}
         </form>`;

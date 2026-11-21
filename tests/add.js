@@ -31,7 +31,7 @@ w.localStorage.setItem("pro_calendar_db_v4", JSON.stringify({
 w.localStorage.setItem("pro_simulator_db_v4", JSON.stringify({ active: "s1", selected: "Fizica", scenarios: [{ id: "s1", name: "Scenariul 1", hypo: { Fizica: [{ id: "h1", val: 9, type: "Test" }] } }, { id: "s2", name: "Plan B", hypo: {} }] }));
 w.localStorage.setItem("pro_settings_db_v4", JSON.stringify({ appearance: { accent: "blue" } }));
 w.localStorage.setItem("pro_purtare_db_v4", JSON.stringify({ grades: {}, lastModule: "2026-1" }));
-w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,get metrics(){return metrics},get sim(){return sim},get alerts(){return alerts},ccOpenGlobal,switchTab};");
+w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,get metrics(){return metrics},get sim(){return sim},get alerts(){return alerts},ccOpenGlobal,switchTab,showToast};");
 const T = w.__t, $ = id => w.document.getElementById(id), q = s => w.document.querySelector(s), qa = s => [...w.document.querySelectorAll(s)];
 const click = el => { if (!el) throw new Error("no element"); el.dispatchEvent(new w.MouseEvent("click", { bubbles: true })); };
 const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.exitCode = 1; };
@@ -87,5 +87,12 @@ assert(q("#cc-form").dataset.step === "type" && /12 octombrie/.test(q(".cc-ctx")
 click(q('.cc-tile[data-type="Temă"]'));
 assert(q(".cc-day.is-on")?.dataset.date === "2026-10-12", "the form keeps the day");
 click(q('[data-action="cc-overlay-close"]'));
+  // „Anulează” arată cât timp mai ai; clic dreapta pe o carte de pe raft deschide nota rapidă
+  const t = T.showToast("Am șters ceva.", { action: "Anulează", onAction: () => {}, duration: 6000 });
+  assert(t && t.querySelector(".toast-timer"), "undo toast has a countdown bar");
+  nav("tab-dashboard");
+  const book = q('.as-item[data-mat="Chimie"]');
+  book.dispatchEvent(new w.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  assert(T.ui.activeTab === "tab-dashboard" && w.document.querySelector(".qg-pop, .qg, #qg, [class*=quick-grade]"), "right-click on a book opens the quick grade, not the subject");
   console.log(process.exitCode ? "SOME FAILED" : "ALL PASSED");
 })();
