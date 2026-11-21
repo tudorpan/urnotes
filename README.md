@@ -4,7 +4,7 @@ Aplicație web pentru evidența notelor școlare, personalizată pentru fiecare 
 
 Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu media, notele și notițele tale), meniul lateral arată toate paginile, iar testele și temele le vezi ca săptămână, lună, tabel sau panou.
 
-**Deschide aplicația:** https://gold3n11.github.io/urnotes/ (numele proiectului Firebase rămâne `zece-2f182`: Google nu permite redenumirea lui)
+**Deschide aplicația:** https://tudorpan.github.io/urnotes/ (numele proiectului Firebase rămâne `zece-2f182`: Google nu permite redenumirea lui)
 
 - Funcționează direct în browser (HTML, CSS și JavaScript, fără instalare).
 - Datele se salvează în browser (localStorage) și merg și offline; din Setări poți exporta și importa un backup.
@@ -12,7 +12,7 @@ Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu med
 
 ## Serverul (repository-ul urnotes-api)
 
-Acest repository e doar aplicația (interfața), publicată pe GitHub Pages. Serverul e în [GOLD3N11/urnotes-api](https://github.com/GOLD3N11/urnotes-api), cu istoria lui, și se publică separat. Cele două vorbesc doar prin API-ul serverului (`/v1/...`), la adresa din `api-config.js`; pentru încercări pe un singur dispozitiv, `?api=http://localhost:8080` în adresa aplicației.
+Acest repository e doar aplicația (interfața), publicată pe GitHub Pages. Serverul e în [tudorpan/urnotes-api](https://github.com/tudorpan/urnotes-api), cu istoria lui, și se publică separat. Cele două vorbesc doar prin API-ul serverului (`/v1/...`), la adresa din `api-config.js`; pentru încercări pe un singur dispozitiv, `?api=http://localhost:8080` în adresa aplicației.
 
 Aplicația merge și fără server. Când `api-config.js` are adresa serverului urNotes, ea:
 - ia datele școlare (anii, județele, examenele) de pe server, așa că un ordin nou al ministrului nu mai cere o versiune nouă;

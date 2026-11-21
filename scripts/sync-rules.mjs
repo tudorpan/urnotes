@@ -1,4 +1,4 @@
-/* shared/rules.js (regulile de calcul și de realism) își are locul în repository-ul serverului, GOLD3N11/urnotes-api.
+/* shared/rules.js (regulile de calcul și de realism) își are locul în repository-ul serverului, tudorpan/urnotes-api.
    Aplicația ține o copie, ca să meargă și fără internet. Scriptul ăsta o aduce la zi sau verifică dacă e la zi:
      node scripts/sync-rules.mjs            → copiază shared/rules.js de pe ramura main a serverului
      node scripts/sync-rules.mjs --check    → doar verifică (îl rulează testele de pe GitHub)
@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const REPO = process.env.URNOTES_API_REPO || "GOLD3N11/urnotes-api";
+const REPO = process.env.URNOTES_API_REPO || "tudorpan/urnotes-api";
 const REF = process.env.URNOTES_API_REF || "main";
 const url = `https://raw.githubusercontent.com/${REPO}/${REF}/shared/rules.js`;
 const file = join(dirname(fileURLToPath(import.meta.url)), "..", "shared", "rules.js");
