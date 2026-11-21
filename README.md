@@ -72,7 +72,7 @@ Hârtie cald-cenușie, cerneală și o singură culoare de accent (galbenul de p
 
 ### Mișcarea și gesturile
 
-- Singura animație e tranziția dintre file: pagina nouă alunecă puțin din partea în care mergi (`animateTabEnter`, ui.css), iar markerul din meniul lateral și pastila din bara de jos alunecă la fila nouă (`motion.css`). Nimic nu se animă când se deschide aplicația sau o pagină: fără carduri care intră pe rând, cifre care numără sau bare care cresc.
+- Singura animație e tranziția dintre file (`js/ui/pagefx.js`, stilurile `pt-*` din `motion.css`): când atingi o filă, un desen mare acoperă tot ecranul, pagina se schimbă dedesubt și desenul pleacă (sub o secundă). Fiecare filă are desenul ei: Azi = un post-it uriaș, Note = cotoare de cărți, Progres = bare care urcă, Ce-ar fi dacă = o foaie de matematică cu un semn de întrebare, Calendar = o filă care se rupe, Plan = o fișă liniată cu o bifă, Examene = o foaie cu ștampila, Eu = permisul de cititor care se întoarce. Nimic nu se animă când se deschide aplicația sau o pagină; căutarea și butonul Înapoi schimbă pagina direct.
 - Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
 - Colegul își păstrează fețele și reacțiile. Cu „reducere mișcare” din sistem se oprește și tranziția dintre file.
 
