@@ -30,6 +30,8 @@ function switchTab(tabId) {
 
     // Patru secțiuni (Azi, Note, Calendar, Plan) + Eu; paginile cu file (Progres, Ce-ar fi dacă, Examene) aprind secțiunea lor
     const group = TABS[tabId]?.group;
+    // o estompare scurtă la schimbarea filei, dar nu la prima pagină de la pornire
+    if (changed && document.body.dataset.page) document.body.classList.add("nav-fade");
     document.body.dataset.page = tabId;
     document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));
     document.querySelectorAll("[data-action='nav'], [data-action='side-note']").forEach(btn => {

@@ -430,3 +430,95 @@ body.style-app #setup .wz-alt { display: flex; width: 100%; }
 body.style-app .wz-summary .wz-row-title { flex: 0 0 auto; }
 body.style-app .wz-summary .wz-row-value { text-align: right; }
 body.style-app #setup .setup-foot { grid-template-columns: minmax(0, 1fr); justify-content: stretch; }
+
+/* ==================== Sticlă (liquid glass) ==================== */
+/* Doar pe ce plutește deasupra conținutului: bara de file, bara de sus, foile, notificările, butoanele configurării.
+   Cardurile cu date rămân albe și opace, ca să se citească bine. */
+body.style-app {
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-tint: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 55%);
+    --glass-edge: rgba(255, 255, 255, 0.75);
+    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -0.5px 0 rgba(0, 0, 0, 0.06);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+    --glass-blur: blur(22px) saturate(190%);
+}
+body.style-app.dark-mode {
+    --glass-bg: rgba(44, 44, 48, 0.58);
+    --glass-tint: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 55%);
+    --glass-edge: rgba(255, 255, 255, 0.14);
+    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -0.5px 0 rgba(0, 0, 0, 0.3);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+body.style-app .glass-ui {
+    background: var(--glass-tint), var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--glass-edge);
+    box-shadow: var(--glass-shine), var(--glass-shadow);
+}
+
+/* telefon: bara de file plutește, ca o capsulă de sticlă */
+@media (max-width: 900px) {
+    body.style-app .mobile-bottom-nav, body.style-app.dark-mode .mobile-bottom-nav {
+        left: 12px; right: 12px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); width: auto; transform: none;
+        padding: 6px; border-radius: 30px;
+        background: var(--glass-tint), var(--glass-bg);
+        -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+        border: 0.5px solid var(--glass-edge); border-top: 0.5px solid var(--glass-edge);
+        box-shadow: var(--glass-shine), var(--glass-shadow);
+    }
+    body.style-app .mobile-nav-btn { border-radius: 22px !important; padding-top: 6px; padding-bottom: 5px; }
+    /* fila activă: o lentilă ușoară sub iconiță */
+    body.style-app .mobile-nav-btn.active { background: color-mix(in srgb, var(--tint) 12%, transparent) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+    body.style-app.dark-mode .mobile-nav-btn.active { background: rgba(255, 255, 255, 0.1) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
+    body.style-app .mobile-add { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px color-mix(in srgb, var(--tint) 35%, transparent); }
+    body.style-app { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+    body.style-app .app-bar, body.style-app .app-bar.is-scrolled { background: color-mix(in srgb, var(--paper) 70%, transparent); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+    body.style-app .toast-container { bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+
+/* butoanele rotunde din colț (notificări, profil) */
+body.style-app :is(.notification-btn, .me-btn) {
+    background: var(--glass-tint), var(--glass-bg); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--glass-edge); box-shadow: var(--glass-shine), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* toast-urile: sticlă */
+body.style-app .toast, body.style-app.dark-mode .toast {
+    background: var(--glass-tint), var(--glass-bg); color: var(--ink);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--glass-edge); box-shadow: var(--glass-shine), var(--glass-shadow);
+}
+body.style-app .toast { background: var(--glass-tint), rgba(255, 255, 255, 0.82); }
+body.style-app.dark-mode .toast { background: var(--glass-tint), rgba(44, 44, 48, 0.82); }
+body.style-app .toast :is(.btn, button) { color: var(--tint-text); }
+body.style-app .toast .toast-text { color: var(--ink); }
+
+/* fundalul de sub foi: conținutul se încețoșează puțin */
+body.style-app :is(.cc-overlay-backdrop, .modal-overlay:not(.is-modeless), #setup) { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+body.style-app #setup { background: rgba(0, 0, 0, 0.28); }
+
+/* panoul de notificări: sticlă pe margine */
+body.style-app .drawer .drawer-card { background: var(--glass-tint), color-mix(in srgb, var(--sheet) 80%, transparent); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-left: 0.5px solid var(--glass-edge); }
+
+/* segmentele: butonul ales e o bucată de sticlă */
+body.style-app :is(.wz-seg, .azi-seg) button[aria-pressed="true"], body.style-app .subnav-btn.active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04); }
+body.style-app.dark-mode :is(.wz-seg, .azi-seg) button[aria-pressed="true"], body.style-app.dark-mode .subnav-btn.active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 3px rgba(0, 0, 0, 0.4); }
+
+/* configurarea: bara de sus și cea de jos sunt de sticlă, iar pașii curg pe sub ele */
+body.style-app #setup .setup-card { position: relative; }
+body.style-app #setup .setup-head { position: absolute; top: 0; left: 0; right: 0; z-index: 2; pointer-events: none; }
+body.style-app #setup .setup-head > * { pointer-events: auto; }
+body.style-app #setup .setup-body { padding-top: 64px; padding-bottom: 140px; }
+body.style-app #setup .setup-foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--paper) 70%, transparent) 40%); -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.style-app .wz-back, body.style-app #setup .setup-skip {
+    background: var(--glass-tint), var(--glass-bg); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--glass-edge); box-shadow: var(--glass-shine), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+body.style-app #setup .setup-skip { height: 36px; padding: 0 14px; border-radius: 18px; }
+body.style-app .wz-progress { padding: 6px 12px; border-radius: 18px; background: var(--glass-tint), var(--glass-bg); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 0.5px solid var(--glass-edge); box-shadow: var(--glass-shine); }
+body.style-app .wz-main { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 16px color-mix(in srgb, var(--tint) 30%, transparent); }
+body.style-app .wz-main:disabled { box-shadow: none; }
+body.style-app .wz-alt { width: auto !important; justify-self: center; margin-top: 4px; padding: 0 16px; border-radius: 22px; background: var(--glass-tint), var(--glass-bg) !important; -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 0.5px solid var(--glass-edge); box-shadow: var(--glass-shine), 0 2px 8px rgba(0, 0, 0, 0.06); }
+body.style-app .wz-cell[aria-pressed="true"], body.style-app .mobile-add, body.style-app .btn-primary { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28); }
+body.style-app #setup .setup-foot { background: linear-gradient(180deg, color-mix(in srgb, var(--paper) 0%, transparent) 0%, var(--paper) 34%); padding-top: 28px; }
+body.style-app .wz-progress { max-width: 220px; padding: 7px 12px 8px; }

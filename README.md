@@ -72,7 +72,8 @@ Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul răm
 
 ### Mișcarea și gesturile
 
-- Fără animații: filele se schimbă pe loc, iar nimic nu se animă când se deschide aplicația sau o pagină. Rămâne doar bara cu timpul rămas de la „Anulează”.
+- Mișcare puțină și curată (`motion.css`): butoanele se lasă puțin sub deget, foile și ferestrele apar scurt (sub 0,3 s), pașii configurării vin din dreapta (sau din stânga la „Înapoi”), iar între file e doar o estompare de 0,18 s. Nimic nu se animă la pornire; cu „reducere mișcare” din sistem totul se oprește.
+- Sticlă (liquid glass, variabilele `--glass-*` din `app.css`) doar pe ce plutește: bara de file de pe telefon (o capsulă), butoanele rotunde din colț, toast-urile, panoul de notificări și butoanele configurării. Cardurile cu note rămân opace, ca să se citească bine.
 - Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
 
 ### Mascotele

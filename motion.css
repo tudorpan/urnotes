@@ -1,14 +1,59 @@
-/* urNotes · Mișcarea: nicio animație de pagină; filele se schimbă pe loc. Rămân doar bara de timp de la „Anulează” și mânerul foii pe telefon. */
+/* urNotes · Mișcarea: puțină și curată. Doar răspunsuri la ce atingi (apăsare, foi care se deschid, pașii configurării)
+   și o estompare scurtă între file. Nimic nu se animă la pornire. Totul se oprește cu „reducere mișcare”. */
 
 /* nimic nu sare și nu intră pe rând */
 .stg, .np-pop, .is-catch, .home-tile-value, .mobile-nav-btn.is-pop .ico, .mobile-nav-btn.is-pop,
-.side-nav.has-pill .tab-btn.side-link.active .ico, .cc-overlay:not([hidden]) .cc-overlay-host, body .cc-overlay:not([hidden]) .cc-overlay-host,
-.cc-overlay-backdrop, .slide-from-l, .slide-from-r, .slide-up, .anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
+.side-nav.has-pill .tab-btn.side-link.active .ico, .slide-from-l, .slide-from-r, .slide-up, .anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
 .confetti, .tick-pop, .grade-fly, .ripple-host, .toast.is-celebrate::after { display: none !important; }
 .toast .toast-ico { animation: none !important; }
 
-/* schimbarea filei e instantanee */
+/* schimbarea filei: doar o estompare scurtă */
 .tab-content.active, .tab-content.active.enter-fwd, .tab-content.active.enter-back { animation: none !important; }
+body.nav-fade .tab-content.active { animation: mFade .18s ease-out both !important; }
+@keyframes mFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* apăsare: butonul se lasă puțin sub deget */
+:is(.btn, .wz-cell, .wz-main, .wz-back, .mobile-nav-btn, .mobile-add, .side-add, .home-tile, .qg-btn, .cc-tile, .notification-btn, .me-btn, .chip, .cat-quick) { transition: transform .16s cubic-bezier(.3, .7, .4, 1), background-color .16s ease, color .16s ease, box-shadow .16s ease; }
+:is(.btn, .wz-cell, .wz-main, .wz-back, .mobile-add, .side-add, .qg-btn, .cc-tile, .notification-btn, .me-btn, .chip, .cat-quick):active:not(:disabled) { transform: scale(.96) !important; }
+:is(.mobile-nav-btn, .home-tile):active { transform: scale(.94) !important; }
+:is(.wz-row, .cat-row, .as-item, .azi-subj-row, .notif-item) { transition: background-color .15s ease; }
+.wz-tick { transition: opacity .15s ease, transform .2s cubic-bezier(.3, .7, .4, 1); opacity: 0; transform: scale(.6); }
+.wz-pick[aria-checked="true"] .wz-tick { opacity: 1; transform: none; }
+.wz-seg button, .azi-seg button, .subnav-btn { transition: background-color .2s ease, box-shadow .2s ease, color .2s ease; }
+
+/* foi și ferestre: urcă sau apar din mijloc, scurt */
+.cc-overlay:not([hidden]) .cc-overlay-host { animation: mPop .24s cubic-bezier(.32, .72, 0, 1) both !important; }
+.cc-overlay:not([hidden]) .cc-overlay-backdrop, .modal-overlay:not([hidden]):not(.is-modeless), #setup:not([hidden]) { animation: mFade .2s ease-out both !important; }
+.modal-overlay:not([hidden]) .modal-card { animation: mPop .24s cubic-bezier(.32, .72, 0, 1) both !important; }
+#setup:not([hidden]) .setup-card { animation: mPop .28s cubic-bezier(.32, .72, 0, 1) both !important; }
+.drawer:not([hidden]) .drawer-card { animation: mSlideL .26s cubic-bezier(.32, .72, 0, 1) both !important; }
+@media (max-width: 640px) {
+    .cc-overlay:not([hidden]) .cc-overlay-host { animation-name: mUp !important; animation-duration: .32s !important; }
+    #setup:not([hidden]) .setup-card { animation: mFade .2s ease-out both !important; }
+}
+@keyframes mPop { from { opacity: 0; transform: scale(.97) translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes mUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes mSlideL { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+
+/* toast: se ridică ușor */
+.toast:not(.leaving) { animation: mToast .26s cubic-bezier(.32, .72, 0, 1) both !important; }
+.toast.leaving { animation: mToastOut .2s ease-in both !important; }
+@keyframes mToastOut { to { opacity: 0; transform: translateY(6px) scale(.98); } }
+@keyframes mToast { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* configurarea: pasul nou vine din dreapta, cel de dinainte din stânga */
+.setup-body.wz-enter > * { animation: mStepIn .24s cubic-bezier(.32, .72, 0, 1) both !important; }
+.setup-body.wz-enter-back > * { animation: mStepBack .24s cubic-bezier(.32, .72, 0, 1) both !important; }
+.setup-body.wz-enter > :nth-child(2), .setup-body.wz-enter-back > :nth-child(2) { animation-delay: .03s !important; }
+.setup-body.wz-enter > :nth-child(n+3), .setup-body.wz-enter-back > :nth-child(n+3) { animation-delay: .06s !important; }
+@keyframes mStepIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes mStepBack { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.wz-more .wz-plain { animation: none; }
+.wz-more[open] .wz-plain { animation: mFade .2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
+}
 
 /* „Anulează”: bara care arată cât timp mai ai */
 .toast { position: relative; overflow: hidden; }

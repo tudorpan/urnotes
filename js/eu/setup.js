@@ -537,6 +537,8 @@ function wzCanContinue() {
 
 function wzGo(step) {
     if (!wzSteps().includes(step)) return;
+    const steps = wzSteps();
+    if (steps.indexOf(step) < steps.indexOf(ui.setup.step)) ui.setup.goingBack = true;
     ui.setup.step = step;
     renderSetup();
 }
@@ -567,8 +569,14 @@ function renderSetup() {
     $("setup-body").scrollTop = keep;
     // Pas nou: de sus, cu focus pe titlu. Același pas: rămâne unde erai.
     if (st.renderedStep !== st.step) {
+        const firstPaint = !st.renderedStep;
         st.renderedStep = st.step;
         $("setup-body").scrollTop = 0;
+        // pas nou: conținutul intră ușor (nu și la deschidere, nici la o bifă pe același pas)
+        const body = $("setup-body");
+        body.classList.remove("wz-enter", "wz-enter-back");
+        if (!firstPaint) { void body.offsetWidth; body.classList.add(st.goingBack ? "wz-enter-back" : "wz-enter"); }
+        st.goingBack = false;
         const focus = $("setup-body").querySelector("[data-autofocus]") || $("setup-body").querySelector("h2");
         focus?.focus({ preventScroll: true });
     }
@@ -786,6 +794,7 @@ function setupNext() {
 }
 
 function setupBack() {
+    ui.setup.goingBack = true;
     const steps = wzSteps();
     wzGo(steps[Math.max(0, steps.indexOf(ui.setup.step) - 1)]);
 }
