@@ -257,9 +257,6 @@ body.style-raft .cal-ev { border-radius: 8px; }
 body.style-raft .ag-day { border-radius: 12px; }
 body.style-raft .ag-day.is-today { background: var(--r-tag); }
 body.style-raft .ag-date b { font: 800 26px/1 var(--font-hand); }
-body.style-raft .cal-compose, body.style-raft .cc-bar { border: 0; border-radius: 16px; background: var(--r-paper); box-shadow: var(--shadow-card); }
-body.style-raft .cc-chip { border-radius: 99px; font-weight: 600; }
-body.style-raft .cc-chip[aria-pressed="true"], body.style-raft .cc-chip.is-on { background: var(--r-ink); color: var(--r-paper); }
 body.style-raft .stats-nav-link { border-radius: 99px; font-weight: 600; }
 body.style-raft .stats-nav-link.active, body.style-raft .stats-nav-link[aria-current] { background: var(--r-ink); color: var(--r-paper); }
 body.style-raft .sim-chip { border-radius: 12px; font-weight: 600; }
@@ -345,3 +342,41 @@ body.style-raft:not(.dark-mode) .sim-result.danger { color: #8F2418; }
 }
 body.style-raft .azi-count small { background: #2F5BC0; color: #fff !important; }
 body.style-raft .azi-count:is(.is-near, .is-late) small { background: #A8261B; }
+
+/* ==================== ADAUGĂ ====================
+   Foaia stă pe o scândură; plăcile sunt foi de calendar de birou cu banda colorată sus; materiile sunt cotoare de carte. */
+body.style-raft .cc-sheet { border: 0; border-radius: 18px; box-shadow: 0 -8px 0 var(--r-wood) inset, 0 3px 0 var(--r-wall-2), 0 30px 60px -30px rgba(29, 43, 51, 0.6); padding-top: 8px; background: var(--r-paper); }
+body.style-raft .cc-title { font-size: 27px; letter-spacing: -0.3px; }
+body.style-raft .cc-round { background: var(--r-wall); }
+body.style-raft .cc-tile { overflow: hidden; padding-top: 28px; border: 0; border-radius: 12px; background: #fff; box-shadow: 0 3px 0 var(--r-wall-2), 0 0 0 1px var(--rule); }
+body.style-raft .cc-tile::before { content: ""; position: absolute; inset: 0 0 auto; height: 14px; background: var(--ev, var(--r-gold)); }
+body.style-raft .cc-tile::after { content: ""; position: absolute; top: 4px; left: 50%; width: 46px; height: 6px; margin-left: -23px; border-radius: 99px; background: radial-gradient(circle, var(--r-paper) 2.4px, transparent 2.6px) 0 0 / 11.5px 6px repeat-x; }
+body.style-raft .cc-tile.is-grade::before { background: var(--r-gold); }
+body.style-raft .cc-tile-ico { background: var(--r-wall); color: var(--r-ink) !important; }
+body.style-raft .cc-tile b { font-family: var(--font-hand); font-size: 22px; }
+body.style-raft .cc-tile:hover { box-shadow: 0 3px 0 var(--r-wall-2), 0 0 0 2px var(--ev, var(--r-gold)); transform: translateY(-2px); }
+body.style-raft .cc-ico.is-grade { background: var(--r-tag); }
+body.style-raft :is(.cc-mini, .cc-launch-btn) { border: 0; background: var(--r-paper); box-shadow: 0 2px 0 var(--r-wall-2), 0 0 0 1px var(--rule); }
+body.style-raft .cc-launch-btn { border-radius: 12px; }
+body.style-raft .cc-q { font-family: var(--font-hand); font-size: 17px; font-weight: 700; }
+body.style-raft .cc-subj { border: 0; border-left: 7px solid var(--subj, var(--r-muted)); border-radius: 4px 12px 12px 4px; background: #fff; box-shadow: 0 2px 0 var(--r-wall-2), 0 0 0 1px var(--rule); }
+body.style-raft .cc-subj i { display: none; }
+body.style-raft .cc-subj small { background: var(--r-tag); border-color: transparent; color: var(--r-tag-ink); }
+body.style-raft .cc-subj.is-on { background: color-mix(in srgb, var(--subj) 16%, #fff); box-shadow: 0 2px 0 var(--r-wall-2), 0 0 0 2px var(--subj); }
+body.style-raft .cc-subj.is-none { border-left-width: 1px; border: 1px dashed var(--r-muted); border-radius: 12px; box-shadow: none; background: transparent; }
+body.style-raft :is(.cc-val, .cc-day, .cc-chip) { border: 0; background: #fff; box-shadow: 0 3px 0 var(--r-wall-2), 0 0 0 1px var(--rule); }
+body.style-raft .cc-val { border-radius: 12px; font-size: 25px; }
+body.style-raft .cc-chip { border-radius: 99px; }
+body.style-raft :is(.cc-val, .cc-day, .cc-chip).is-on { background: var(--r-ink); color: var(--r-paper); box-shadow: 0 3px 0 var(--r-gold); }
+body.style-raft .cc-val.tone-fail:not(.is-on) { color: var(--r-red); }
+body.style-raft .cc-day.is-on small { color: var(--r-gold); }
+body.style-raft .cc-input { border: 0; border-bottom: 2px solid var(--r-ink); border-radius: 8px 8px 0 0; background: var(--r-wall); }
+body.style-raft .cc-foot { border-top: 0; background: var(--r-wall); box-shadow: inset 0 3px 0 var(--r-wall-2); padding-bottom: 22px; }
+body.style-raft.dark-mode :is(.cc-tile, .cc-subj, .cc-val, .cc-day, .cc-chip) { background: color-mix(in srgb, var(--r-paper) 92%, #fff); }
+body.style-raft.dark-mode :is(.cc-val, .cc-day, .cc-chip).is-on { background: var(--r-gold); color: #1D2B33; box-shadow: 0 3px 0 #000; }
+body.style-raft.dark-mode .cc-day.is-on small { color: #1D2B33; }
+body.style-raft.dark-mode .cc-tile::after { background-image: radial-gradient(circle, #1D2B33 2.4px, transparent 2.6px); }
+@media (max-width: 640px) {
+    body.style-raft .cc-sheet { border-radius: 18px 18px 0 0; box-shadow: 0 -8px 0 var(--r-wood), 0 -12px 0 var(--r-wood-dk); padding-top: 4px; }
+    body.style-raft .cc-foot { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}

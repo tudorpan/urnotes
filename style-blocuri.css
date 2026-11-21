@@ -306,9 +306,6 @@ body.style-blocuri .ag-day { border: 2px solid var(--b-ink); border-radius: 16px
 body.style-blocuri .ag-day.is-today { background: var(--b-sun); color: #17123A; box-shadow: var(--b-pop); }
 body.style-blocuri .ag-date b { font: 800 26px/1 var(--font-hand); }
 body.style-blocuri .ag-add, body.style-blocuri .cal-arrow { border: 2px solid var(--b-ink); border-radius: 10px; }
-body.style-blocuri .cal-compose, body.style-blocuri .cc-bar { border: var(--b-line); border-radius: 18px; box-shadow: var(--b-pop); background: var(--b-paper); }
-body.style-blocuri .cc-chip { border: 2px solid var(--b-ink); border-radius: 99px; font-weight: 800; }
-body.style-blocuri .cc-chip[aria-pressed="true"], body.style-blocuri .cc-chip.is-on { background: #17123A; color: #fff; }
 body.style-blocuri .cal-col.is-today .cal-col-date, body.style-blocuri .cal-day.is-today { background: var(--b-sun); color: #17123A; }
 
 body.style-blocuri .stats-nav-link { border: 2px solid var(--b-ink); border-radius: 99px; font-weight: 800; }
@@ -414,3 +411,53 @@ body.style-blocuri .ag-day.is-today .cal-ev, body.style-blocuri .ag-day.is-today
 
     body.style-blocuri .subnav { padding-bottom: 6px; }
 }
+
+/* ==================== ADAUGĂ ====================
+   Foaia e un bloc cu contur gros; cele patru plăci sunt blocuri colorate cu umbră tare, ca butoanele din bara laterală. */
+body.style-blocuri .cc-sheet { border: var(--b-line); border-radius: 26px; box-shadow: 8px 8px 0 var(--b-ink); }
+body.style-blocuri .cc-head { border-bottom: 0; }
+body.style-blocuri .cc-title { font-size: 27px; }
+body.style-blocuri .cc-round { border: 2px solid var(--b-ink); background: var(--b-paper); color: #17123A; }
+body.style-blocuri .cc-ico { border: 2px solid var(--b-ink); color: #17123A; }
+body.style-blocuri .cc-tile { border: var(--b-line); border-radius: 20px; box-shadow: 4px 4px 0 var(--b-ink); color: #17123A; transition: transform .14s ease, box-shadow .14s ease; }
+body.style-blocuri .cc-tile small { color: #17123A; }
+body.style-blocuri .cc-tile-ico { border: 2px solid var(--b-ink); background: #fff; color: #17123A !important; }
+body.style-blocuri .cc-tile:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--b-ink); border-color: var(--b-ink); }
+body.style-blocuri .cc-tile:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--b-ink); }
+body.style-blocuri :is(.cc-tile, .cc-ico).is-grade { background: var(--b-sun); }
+body.style-blocuri :is(.cc-tile, .cc-ico).ev-test { background: var(--b-sky); }
+body.style-blocuri :is(.cc-tile, .cc-ico).ev-tema { background: var(--b-mint); }
+body.style-blocuri :is(.cc-tile, .cc-ico).ev-proiect { background: var(--b-grape); }
+body.style-blocuri :is(.cc-tile, .cc-ico).ev-examen { background: var(--b-pink); }
+body.style-blocuri :is(.cc-tile, .cc-ico).ev-prezentare { background: var(--b-lime); }
+body.style-blocuri :is(.cc-tile, .cc-ico).ev-personal { background: #fff; }
+body.style-blocuri :is(.cc-mini, .cc-launch-btn) { border: 2px solid var(--b-ink); border-radius: 99px; font-weight: 800; box-shadow: 2px 2px 0 var(--b-ink); }
+body.style-blocuri .cc-mini.is-subject, body.style-blocuri .cc-launch-btn.is-more { border-style: dashed; box-shadow: none; }
+body.style-blocuri .cc-q { font-family: var(--font-hand); font-size: 17px; font-weight: 800; }
+body.style-blocuri :is(.cc-subj, .cc-chip, .cc-day, .cc-val) { border: 2px solid var(--b-ink); font-weight: 800; }
+body.style-blocuri .cc-subj { border-radius: 14px; }
+body.style-blocuri .cc-subj i { width: 12px; height: 12px; border: 2px solid var(--b-ink); }
+body.style-blocuri .cc-subj small { border: 2px solid var(--b-ink); background: var(--b-sun); color: #17123A; }
+body.style-blocuri .cc-subj.is-on { background: color-mix(in srgb, var(--subj) 32%, #fff); border-color: var(--b-ink); box-shadow: 3px 3px 0 var(--b-ink); color: #17123A; }
+body.style-blocuri .cc-subj.is-none { border-style: dashed; }
+body.style-blocuri .cc-val { border-radius: 16px; font-size: 24px; }
+body.style-blocuri :is(.cc-val, .cc-chip, .cc-day).is-on { background: #17123A; border-color: var(--b-ink); color: #fff; box-shadow: 3px 3px 0 var(--b-sun); }
+body.style-blocuri .cc-chip { border-radius: 99px; }
+body.style-blocuri .cc-day { border-radius: 12px; }
+body.style-blocuri .cc-day small { color: #0F6B47; }
+body.style-blocuri .cc-input { border: 2px solid var(--b-ink); border-radius: 14px; background: #fff; font-weight: 600; }
+body.style-blocuri .cc-foot { border-top: var(--b-line); }
+body.style-blocuri .cc-add { border-radius: 14px; }
+body.style-blocuri.dark-mode .cc-sheet { box-shadow: 8px 8px 0 #000; }
+body.style-blocuri.dark-mode :is(.cc-subj, .cc-chip, .cc-day, .cc-val, .cc-mini, .cc-launch-btn, .cc-round, .cc-input) { border-color: #A79FD9; }
+body.style-blocuri.dark-mode .cc-subj.is-on { background: color-mix(in srgb, var(--subj) 45%, #17123A); color: #fff; }
+body.style-blocuri.dark-mode .cc-day small { color: #7EF0BC; }
+body.style-blocuri.dark-mode .cc-input { background: #221C4F; color: #fff; }
+body.style-blocuri.dark-mode :is(.cc-val, .cc-chip, .cc-day).is-on { background: var(--b-sun); color: #17123A; box-shadow: 3px 3px 0 #000; }
+@media (max-width: 640px) {
+    body.style-blocuri .cc-sheet { border-radius: 26px 26px 0 0; border-bottom: 0; box-shadow: 0 -6px 0 var(--b-ink); }
+}
+body.style-blocuri .cc-day.is-on small { color: var(--b-sun); }
+body.style-blocuri.dark-mode .cc-day.is-on small { color: #17123A; }
+body.style-blocuri.dark-mode .cc-round { background: #221C4F; color: #fff; }
+@media (max-width: 640px) { body.style-blocuri .cc-launch-btn { border-radius: 16px; } }

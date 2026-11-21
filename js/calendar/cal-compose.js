@@ -1,39 +1,35 @@
-/* urNotes · Bara de adăugat: singurul fel de a adăuga ceva (faza 3 din planul de design).
-   Scrii pe un rând („test la mate vineri la 8”, „9 la mate azi”) sau alegi din etichete; Enter și gata.
-   Ce înțelege din text completează etichetele pe care nu le-ai ales tu; ce alegi tu nu mai e schimbat de text.
-   În Calendar stă deasupra calendarului; în rest se deschide peste pagină (butonul „Adaugă”, „+” de pe telefon, tasta N).
+/* urNotes · Adaugă: întâi alegi ce adaugi (plăci mari: Notă, Test, Temă, Proiect), apoi un formular scurt făcut pentru acel lucru.
+   Se deschide peste pagină: pe calculator ca o fereastră în mijloc, pe telefon ca o foaie care urcă de jos.
+   Intrări: „+” (telefon și bara laterală), tastele N/T/H, „+” de pe o zi sau o oră din calendar, „+” de lângă o materie,
+   rândul „Adaugă” din Calendar. Cu tipul deja ales (N, T, H, „+” la o materie) sare direct la formular.
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
 
 const CC_GRADE = "Notă";
 const CC_TYPES = [CC_GRADE, "Test", "Temă", "Proiect", "Examen", "Prezentare", "Personal"];
-const CC_TYPE_LABEL = { Personal: "Altceva" };
 const CC_GTYPE_KEY = "urn_quick_grade_type_v1"; // același tip ținut minte ca la „+” de pe rândul materiei
-const cc = { open: false, overlay: false, type: "Test", subject: "", date: "", time: "", val: 0, gtype: "Test", manual: new Set(), moreSubjects: false };
+/** Ce scrie pe fiecare tip: placa din primul pas, titlul formularului, butonul de adăugat. */
+const CC_INFO = {
+    Notă: { tile: "Ai primit o notă", title: "Notă nouă", add: "Adaugă nota", icon: "check-circle" },
+    Test: { tile: "Urmează un test sau o lucrare", title: "Test nou", add: "Adaugă testul" },
+    Temă: { tile: "Ai ceva de făcut acasă", title: "Temă nouă", add: "Adaugă tema" },
+    Proiect: { tile: "Un proiect sau un referat", title: "Proiect nou", add: "Adaugă proiectul" },
+    Examen: { label: "Examen", title: "Examen nou", add: "Adaugă examenul" },
+    Prezentare: { label: "Prezentare", title: "Prezentare nouă", add: "Adaugă prezentarea" },
+    Personal: { label: "Altceva", title: "Altceva", add: "Adaugă" }
+};
+const CC_BIG = [CC_GRADE, "Test", "Temă", "Proiect"];
+const CC_SMALL = ["Examen", "Prezentare", "Personal"];
+
+const cc = { open: false, step: "type", type: "Test", subject: "", date: "", time: "", val: 0, gtype: "Test", details: "", manual: new Set(), ctxDate: "", ctxMat: "", orderDate: "", returnFocus: null };
 
 const ccToday = () => getLocalDateKey();
 const ccIsGrade = () => cc.type === CC_GRADE;
+const ccIcon = type => (type === CC_GRADE ? CC_INFO[CC_GRADE].icon : EVENT_TYPE_ICON[type] || "pin");
+const ccTone = type => (type === CC_GRADE ? "is-grade" : `ev-${EVENT_TYPE_CLASS[type] || "personal"}`);
 function ccSavedGType() { try { const t = localStorage.getItem(CC_GTYPE_KEY); return GRADE_TYPES.includes(t) ? t : "Test"; } catch (_) { return "Test"; } }
-function ccReset({ keepOpen = false, type = "Test" } = {}) {
-    Object.assign(cc, { open: keepOpen, type, subject: "", date: ccToday(), time: "", val: 0, gtype: ccSavedGType(), manual: new Set(), moreSubjects: false });
-}
-ccReset();
 
-/** Unde stă bara acum: peste pagină sau în Calendar. */
-const ccHost = () => (cc.overlay ? $("cc-overlay-host") : $("cal-compose"));
-
-/** Materiile, cu orele zilei alese întâi (de acolo vin de obicei testele, temele și notele). */
-function ccSubjects() {
-    const all = Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro"));
-    const wd = parseDateKey(cc.date).getDay();
-    const lessons = isSchoolDay(cc.date) ? [...new Set(state.timetable[wd] || [])].filter(m => state.subjects[m]) : [];
-    return { lessons, rest: all.filter(m => !lessons.includes(m)) };
-}
-
-/** Zilele propuse: pentru un eveniment azi și următoarele 6; pentru o notă azi și cele 6 dinainte. */
-function ccDays() {
-    return Array.from({ length: 7 }, (_, i) => addDays(ccToday(), ccIsGrade() ? -i : i));
-}
+/* ---------- zile ---------- */
 function ccDayLabel(d) {
     const n = daysBetween(ccToday(), d);
     if (n === 0) return "Azi";
@@ -42,205 +38,238 @@ function ccDayLabel(d) {
     const dt = parseDateKey(d);
     return `${WEEKDAY_SHORT[dt.getDay()]} ${dt.getDate()}`;
 }
+/** Pentru o notă: azi și cele 7 zile dinainte; pentru un eveniment: azi și următoarele 7 (sau de la ziua aleasă din calendar). */
+function ccDays() {
+    if (ccIsGrade()) return Array.from({ length: 8 }, (_, i) => addDays(ccToday(), -i));
+    const start = cc.ctxDate && cc.ctxDate > ccToday() ? cc.ctxDate : ccToday();
+    return Array.from({ length: 8 }, (_, i) => addDays(start, i));
+}
+const ccHasLesson = (mat, d) => Boolean(mat) && (lessonsOn(d) || []).includes(mat);
+function ccLongDay(d) {
+    const dt = parseDateKey(d);
+    return `${WEEKDAY_LONG[dt.getDay()].toLowerCase()}, ${dt.getDate()} ${MONTHS[dt.getMonth()].toLowerCase()}`;
+}
 
-/* ---------- textul unei note: „9 la mate”, „am luat 10 la fizică ieri”, „nota 7 la test la chimie” ---------- */
-const CC_GRADE_TYPE_WORDS = { test: "Test", lucrare: "Test", ascultare: "Ascultare", oral: "Ascultare", teza: "Teză", proiect: "Proiect", tema: "Temă" };
-function parseGradeText(text, today = ccToday()) {
-    const words = String(text).trim().split(/\s+/).filter(Boolean);
-    const f = words.map(w => foldText(w).replace(/[.,;!?]+$/, ""));
-    let val = 0, gtype = null, date = null;
-    f.forEach((w, i) => {
-        const n = /^(10|[1-9])$/.test(w) ? Number(w) : 0;
-        if (n && !val && (i === 0 || ["nota", "luat", "un", "o", "de"].includes(f[i - 1])) && !["la", "ora"].includes(f[i - 1])) val = n;
-        if (!gtype && CC_GRADE_TYPE_WORDS[w]) gtype = CC_GRADE_TYPE_WORDS[w];
-        if (!date) {
-            if (w === "azi" || w === "astazi") date = today;
-            else if (w === "ieri") date = addDays(today, -1);
-            else if (w === "alaltaieri") date = addDays(today, -2);
-            else if (w in NP_WEEKDAYS) { for (let k = 0; k <= 6; k++) { const d = addDays(today, -k); if (parseDateKey(d).getDay() === NP_WEEKDAYS[w]) { date = d; break; } } }
-        }
-    });
-    const looksLikeGrade = Boolean(val) && (f[0] === String(val) || f.some(w => ["nota", "luat"].includes(w)));
-    return { val, gtype, date, looksLikeGrade };
+/** Materiile: cele cu oră în ziua de referință întâi (de acolo vin de obicei notele și testele), apoi restul. Ordinea nu se schimbă cât e deschis. */
+function ccSubjects() {
+    const all = Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro"));
+    const d = cc.orderDate || ccToday();
+    const lessons = isSchoolDay(d) ? [...new Set(lessonsOn(d) || [])].filter(m => state.subjects[m]) : [];
+    return { lessons, rest: all.filter(m => !lessons.includes(m)) };
 }
 
 /* ---------- desenarea ---------- */
+/** Rândul din Calendar: patru butoane care deschid direct formularul. */
 function renderCompose() {
-    const box = ccHost();
-    const inline = $("cal-compose");
-    if (cc.overlay && inline) { inline.innerHTML = ""; inline.classList.remove("is-open"); } // un singur câmp cu aceleași id-uri
+    const box = $("cal-compose");
     if (!box) return;
-    if (!DATE_KEY_RE.test(cc.date)) cc.date = ccToday();
-    const had = $("cc-text");
-    const text = had ? had.value : "";
-    const focused = document.activeElement === had;
-    const sel = had && focused ? [had.selectionStart, had.selectionEnd] : null;
-    const grade = ccIsGrade();
-
-    const { lessons, rest } = ccSubjects();
-    const subjChip = m => `<button type="button" class="cc-chip cc-subj ${cc.subject === m ? "is-on" : ""}" data-action="cc-subject" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" aria-pressed="${cc.subject === m}"><i aria-hidden="true"></i>${escapeHTML(shortSubjectName(m))}</button>`;
-    const shownRest = cc.moreSubjects ? rest : rest.slice(0, Math.max(0, 6 - lessons.length));
-    const hiddenCount = rest.length - shownRest.length;
-    const days = ccDays();
-    const otherDay = !days.includes(cc.date);
-    const lessonsLabel = cc.date === ccToday() ? "orele de azi" : ccDayLabel(cc.date) === "Ieri" ? "orele de ieri" : ccDayLabel(cc.date) === "Mâine" ? "orele de mâine" : `orele de ${WEEKDAY_LONG[parseDateKey(cc.date).getDay()].toLowerCase()}`;
-    const phone = matchMedia("(max-width: 640px)").matches;
-
-    box.classList.toggle("is-open", cc.open);
     box.innerHTML = `
-        <form class="cc" id="cc-form" autocomplete="off">
-            <div class="cc-bar">
-                <span class="cc-ico" aria-hidden="true"></span>
-                <input type="text" id="cc-text" class="cc-text" maxlength="100" spellcheck="false" enterkeyhint="done"
-                    placeholder="${phone ? "Adaugă o notă, un test…" : "Adaugă ceva… ex: 9 la mate azi · test la fizică vineri"}" aria-label="Ce adaugi" value="${escapeHTML(text)}">
-                <button type="submit" class="btn btn-primary cc-add" aria-label="Adaugă">${icon("plus")} <span>Adaugă</span></button>
-            </div>
-            <div class="cc-body" ${cc.open ? "" : "hidden"}>
-                <div class="cc-row" role="group" aria-label="Ce este">
-                    <span class="cc-lab">Ce</span>
-                    <div class="cc-chips">${CC_TYPES.map(t => `<button type="button" class="cc-chip cc-type ${t === CC_GRADE ? "is-grade" : `ev-${EVENT_TYPE_CLASS[t] || "personal"}`} ${cc.type === t ? "is-on" : ""}" data-action="cc-type" data-type="${escapeHTML(t)}" aria-pressed="${cc.type === t}">${icon(t === CC_GRADE ? "check-circle" : EVENT_TYPE_ICON[t] || "pin")} ${escapeHTML(CC_TYPE_LABEL[t] || t)}</button>`).join("")}</div>
-                </div>
-                ${grade ? `
-                <div class="cc-row" role="group" aria-label="Nota">
-                    <span class="cc-lab">Nota</span>
-                    <div class="cc-chips cc-vals">${Array.from({ length: 10 }, (_, i) => 10 - i).map(n => `<button type="button" class="cc-chip cc-val tone-${gradeTone(n)} ${cc.val === n ? "is-on" : ""}" data-action="cc-val" data-val="${n}" aria-pressed="${cc.val === n}">${n}</button>`).join("")}</div>
-                </div>` : ""}
-                <div class="cc-row" role="group" aria-label="Materia">
-                    <span class="cc-lab">Materia</span>
-                    <div class="cc-chips">
-                        ${lessons.length ? `<span class="cc-sub-lab">${escapeHTML(lessonsLabel)}</span>` : ""}
-                        ${lessons.map(subjChip).join("")}
-                        ${lessons.length && shownRest.length ? `<span class="cc-sep" aria-hidden="true"></span>` : ""}
-                        ${shownRest.map(subjChip).join("")}
-                        ${hiddenCount > 0 ? `<button type="button" class="cc-chip cc-ghost" data-action="cc-more-subjects">+ încă ${hiddenCount}</button>` : ""}
-                        ${grade ? "" : `<button type="button" class="cc-chip cc-ghost ${cc.subject ? "" : "is-on"}" data-action="cc-subject" data-mat="" aria-pressed="${!cc.subject}">Fără materie</button>`}
-                    </div>
-                </div>
-                ${grade ? `
-                <div class="cc-row" role="group" aria-label="Tipul notei">
-                    <span class="cc-lab">Tip</span>
-                    <div class="cc-chips">${GRADE_TYPES.map(t => `<button type="button" class="cc-chip ${cc.gtype === t ? "is-on" : ""}" data-action="cc-gtype" data-type="${escapeHTML(t)}" aria-pressed="${cc.gtype === t}">${escapeHTML(t)}</button>`).join("")}</div>
-                </div>` : ""}
-                <div class="cc-row" role="group" aria-label="Când">
-                    <span class="cc-lab">Când</span>
-                    <div class="cc-chips">
-                        ${days.map(d => `<button type="button" class="cc-chip cc-day ${cc.date === d ? "is-on" : ""}" data-action="cc-day" data-date="${d}" aria-pressed="${cc.date === d}">${escapeHTML(ccDayLabel(d))}</button>`).join("")}
-                        <label class="cc-chip cc-pick ${otherDay ? "is-on" : ""}">${icon("calendar")}<span>${otherDay ? escapeHTML(shortDayLabel(cc.date)) : "Altă zi"}</span><input type="date" id="cc-date" value="${escapeHTML(cc.date)}" ${grade ? `max="${ccToday()}"` : ""} aria-label="Altă zi"></label>
-                        ${grade ? "" : `<label class="cc-chip cc-pick ${cc.time ? "is-on" : ""}">${icon("clock")}<span>${cc.time ? escapeHTML(cc.time) : "Oră"}</span><input type="time" id="cc-time" value="${escapeHTML(cc.time)}" aria-label="Ora"></label>`}
-                        ${!grade && cc.time ? `<button type="button" class="cc-chip cc-ghost" data-action="cc-time-clear" aria-label="Fără oră">×</button>` : ""}
-                    </div>
-                </div>
-                <div class="cc-foot">
-                    <p class="cc-preview" id="cc-preview" aria-live="polite"></p>
-                    <span class="cc-foot-btns">
-                        ${grade ? "" : `<button type="button" class="btn btn-text btn-sm" data-action="cc-more">Repetă, notițe…</button>`}
-                        ${cc.overlay ? `<button type="button" class="btn btn-text btn-sm" data-action="cc-subject-new">Materie nouă</button>` : ""}
-                        <button type="button" class="btn btn-text btn-sm" data-action="cc-close">Închide</button>
-                    </span>
-                </div>
-            </div>
-        </form>`;
-    ccPreview();
-    // ziua aleasă se vede și în agendă
-    document.querySelectorAll(".ag-day.is-target").forEach(el => el.classList.remove("is-target"));
-    if (cc.open && !grade) document.querySelector(`.ag-day[data-date="${cc.date}"]`)?.classList.add("is-target");
-    const input = $("cc-text");
-    if (focused && input) {
-        input.focus();
-        if (sel) input.setSelectionRange(sel[0], sel[1]);
-    }
+        <div class="cc-launch" role="group" aria-label="Adaugă în calendar">
+            ${["Test", "Temă", "Proiect", CC_GRADE].map(t => `<button type="button" class="cc-launch-btn ${ccTone(t)}" data-action="cc-start" data-type="${t}">${icon(ccIcon(t))}<span>${t === CC_GRADE ? "Notă" : escapeHTML(t)}</span></button>`).join("")}
+            <button type="button" class="cc-launch-btn is-more" data-action="cc-start">${icon("plus")}<span>Altceva</span></button>
+        </div>`;
 }
 
-/** Ce se va adăuga, într-o propoziție (și pictograma barei după tip). */
+function ccHead() {
+    const form = cc.step === "form";
+    const ctx = [];
+    if (!form) {
+        if (cc.ctxDate) ctx.push(ccLongDay(cc.ctxDate));
+        if (cc.ctxMat) ctx.push(shortSubjectName(cc.ctxMat));
+    }
+    return `
+        <header class="cc-head">
+            ${form ? `<button type="button" class="cc-round cc-back" data-action="cc-back" aria-label="Înapoi la tipuri">${icon("chevron")}</button>` : ""}
+            ${form ? `<span class="cc-ico ${ccTone(cc.type)}" aria-hidden="true">${icon(ccIcon(cc.type))}</span>` : ""}
+            <div class="cc-head-txt">
+                <h2 class="cc-title" id="cc-title">${form ? escapeHTML(CC_INFO[cc.type].title) : "Ce adaugi?"}</h2>
+                ${ctx.length ? `<p class="cc-ctx">${escapeHTML(ctx.join(", "))}</p>` : ""}
+            </div>
+            <button type="button" class="cc-round cc-x" data-action="cc-overlay-close" aria-label="Închide">${icon("x")}</button>
+        </header>`;
+}
+
+function ccTypeStep() {
+    return `
+        <div class="cc-scroll">
+            <div class="cc-tiles">
+                ${CC_BIG.map(t => `
+                <button type="button" class="cc-tile cc-type ${ccTone(t)}" data-action="cc-type" data-type="${t}">
+                    <span class="cc-tile-ico" aria-hidden="true">${icon(ccIcon(t))}</span>
+                    <b>${escapeHTML(t)}</b>
+                    <small>${escapeHTML(CC_INFO[t].tile)}</small>
+                </button>`).join("")}
+            </div>
+            <div class="cc-minor" role="group" aria-label="Alte lucruri">
+                ${CC_SMALL.map(t => `<button type="button" class="cc-mini cc-type ${ccTone(t)}" data-action="cc-type" data-type="${t}">${icon(ccIcon(t))}<span>${escapeHTML(CC_INFO[t].label)}</span></button>`).join("")}
+                <button type="button" class="cc-mini is-subject" data-action="cc-subject-new">${icon("plus")}<span>Materie nouă</span></button>
+            </div>
+        </div>`;
+}
+
+function ccFormStep() {
+    const grade = ccIsGrade();
+    const { lessons, rest } = ccSubjects();
+    const lessonsWord = (cc.orderDate || ccToday()) === ccToday() ? "azi" : ccDayLabel(cc.orderDate).toLowerCase();
+    const subj = m => `<button type="button" class="cc-subj ${cc.subject === m ? "is-on" : ""}" data-action="cc-subject" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" aria-pressed="${cc.subject === m}"><i aria-hidden="true"></i><span>${escapeHTML(shortSubjectName(m))}</span>${lessons.includes(m) ? `<small>oră ${escapeHTML(lessonsWord)}</small>` : ""}</button>`;
+    const days = ccDays();
+    const otherDay = !days.includes(cc.date);
+    const dayBtn = d => {
+        const lesson = !grade && ccHasLesson(cc.subject, d);
+        return `<button type="button" class="cc-day ${cc.date === d ? "is-on" : ""} ${lesson ? "has-lesson" : ""}" data-action="cc-day" data-date="${d}" aria-pressed="${cc.date === d}">${escapeHTML(ccDayLabel(d))}${lesson ? `<small>are oră</small>` : ""}</button>`;
+    };
+    const personal = cc.type === "Personal";
+    return `
+        <div class="cc-scroll">
+            <section class="cc-sec" role="group" aria-labelledby="cc-q-subj">
+                <h3 class="cc-q" id="cc-q-subj">${grade ? "La ce materie?" : personal ? "Ține de o materie?" : "La ce materie?"}</h3>
+                <div class="cc-subjects">
+                    ${lessons.map(subj).join("")}${rest.map(subj).join("")}
+                    ${grade ? "" : `<button type="button" class="cc-subj is-none ${cc.subject ? "" : "is-on"}" data-action="cc-subject" data-mat="" aria-pressed="${!cc.subject}"><span>Fără materie</span></button>`}
+                </div>
+                ${!Object.keys(state.subjects).length ? `<p class="cc-hint">Nu ai încă materii. <button type="button" class="btn-link" data-action="cc-subject-new">Adaugă prima materie</button></p>` : ""}
+            </section>
+            ${grade ? `
+            <section class="cc-sec" role="group" aria-labelledby="cc-q-val">
+                <h3 class="cc-q" id="cc-q-val">Ce notă ai luat?</h3>
+                <div class="cc-keys">${Array.from({ length: 10 }, (_, i) => i + 1).map(n => `<button type="button" class="cc-val tone-${gradeTone(n)} ${cc.val === n ? "is-on" : ""}" data-action="cc-val" data-val="${n}" aria-pressed="${cc.val === n}">${n}</button>`).join("")}</div>
+            </section>
+            <section class="cc-sec" role="group" aria-labelledby="cc-q-gtype">
+                <h3 class="cc-q" id="cc-q-gtype">Pentru ce?</h3>
+                <div class="cc-seg">${GRADE_TYPES.map(t => `<button type="button" class="cc-chip ${cc.gtype === t ? "is-on" : ""}" data-action="cc-gtype" data-type="${escapeHTML(t)}" aria-pressed="${cc.gtype === t}">${escapeHTML(t)}</button>`).join("")}</div>
+            </section>` : `
+            <section class="cc-sec">
+                <label class="cc-q" for="cc-text">${personal ? "Ce vrei să ții minte?" : "Ce anume? <span>(dacă vrei)</span>"}</label>
+                <input type="text" id="cc-text" class="cc-input" maxlength="100" spellcheck="false" enterkeyhint="done" autocomplete="off"
+                    placeholder="${personal ? "ex: adu fișa semnată" : cc.type === "Temă" ? "ex: exercițiile de la pagina 42" : "ex: capitolul 3, cinematică"}" value="${escapeHTML(cc.details)}">
+            </section>`}
+            <section class="cc-sec" role="group" aria-labelledby="cc-q-day">
+                <h3 class="cc-q" id="cc-q-day">${grade ? "Când ai luat-o?" : "Când?"}</h3>
+                <div class="cc-days">
+                    ${days.map(dayBtn).join("")}
+                    <label class="cc-day cc-pick ${otherDay ? "is-on" : ""}">${icon("calendar")}<span>${otherDay ? escapeHTML(shortDayLabel(cc.date)) : "Altă zi"}</span><input type="date" id="cc-date" value="${escapeHTML(cc.date)}" ${grade ? `max="${ccToday()}"` : ""} aria-label="Altă zi"></label>
+                    ${grade ? "" : `<label class="cc-day cc-pick ${cc.time ? "is-on" : ""}">${icon("clock")}<span>${cc.time ? escapeHTML(cc.time) : "Ora"}</span><input type="time" id="cc-time" value="${escapeHTML(cc.time)}" aria-label="Ora"></label>`}
+                    ${!grade && cc.time ? `<button type="button" class="cc-day cc-clear" data-action="cc-time-clear" aria-label="Fără oră">${icon("x")}</button>` : ""}
+                </div>
+            </section>
+        </div>
+        <footer class="cc-foot">
+            <p class="cc-preview" id="cc-preview" aria-live="polite"></p>
+            <div class="cc-foot-btns">
+                ${grade ? "" : `<button type="button" class="btn btn-text btn-sm cc-more" data-action="cc-more">Repetă, notițe…</button>`}
+                <button type="submit" class="btn btn-primary cc-add">${icon("plus")} <span>${escapeHTML(CC_INFO[cc.type].add)}</span></button>
+            </div>
+        </footer>`;
+}
+
+/** Ce element are focusul, ca să-l regăsim după redesenare. */
+function ccFocusKey() {
+    const a = document.activeElement;
+    if (!a || !$("cc-overlay-host")?.contains(a)) return null;
+    if (a.id) return `#${a.id}`;
+    const d = a.dataset || {};
+    if (!d.action) return null;
+    const extra = ["type", "mat", "val", "date"].filter(k => k in d).map(k => `[data-${k}="${CSS.escape(d[k])}"]`).join("");
+    return `[data-action="${d.action}"]${extra}`;
+}
+
+function ccRender({ focus = "" } = {}) {
+    const host = $("cc-overlay-host");
+    if (!host || !cc.open) return;
+    if (!DATE_KEY_RE.test(cc.date)) cc.date = ccToday();
+    const key = focus ? null : ccFocusKey();
+    const scroller = host.querySelector(".cc-scroll");
+    const top = scroller && host.querySelector(".cc-sheet")?.dataset.step === cc.step ? scroller.scrollTop : 0;
+    host.innerHTML = `
+        <form class="cc-sheet" id="cc-form" data-step="${cc.step}" data-type="${escapeHTML(cc.type)}" autocomplete="off" aria-labelledby="cc-title">
+            ${ccHead()}
+            ${cc.step === "form" ? ccFormStep() : ccTypeStep()}
+        </form>`;
+    const sc = host.querySelector(".cc-scroll");
+    if (sc) sc.scrollTop = top;
+    ccPreview();
+    const target = (focus && host.querySelector(focus)) || (key && host.querySelector(key));
+    if (target) target.focus({ preventScroll: true });
+}
+
+/** Ce se va adăuga, într-o propoziție. */
 function ccPreview() {
     const el = $("cc-preview");
-    const ico = ccHost()?.querySelector(".cc-ico");
-    if (ico) {
-        const grade = ccIsGrade();
-        ico.className = `cc-ico ${grade ? "is-grade" : `ev-${EVENT_TYPE_CLASS[cc.type] || "personal"}`}`;
-        ico.innerHTML = icon(grade ? "check-circle" : EVENT_TYPE_ICON[cc.type] || "plus");
-    }
     if (!el) return;
     const n = daysBetween(ccToday(), cc.date);
     const when = `${relativeDayLabel(cc.date)}${Math.abs(n) > 1 ? `, ${shortDayLabel(cc.date)}` : ""}${!ccIsGrade() && cc.time ? ` la ${cc.time}` : ""}`;
     if (ccIsGrade()) {
-        const missing = !cc.val ? "alege nota" : !state.subjects[cc.subject] ? "alege materia" : "";
+        const missing = !state.subjects[cc.subject] ? "alege materia" : !cc.val ? "alege nota" : "";
         el.innerHTML = missing
-            ? `${icon("info")} <span>Nota ${cc.val || "…"} (${escapeHTML(cc.gtype)}) · ${escapeHTML(missing)}</span>`
-            : `${icon("check")} <b>Nota ${cc.val} (${escapeHTML(cc.gtype)}) la ${escapeHTML(shortSubjectName(cc.subject))}</b> · ${escapeHTML(when)}`;
+            ? `${icon("info")} <span>${cc.val ? `Nota ${cc.val}` : "Nota"} (${escapeHTML(cc.gtype)}): ${escapeHTML(missing)}</span>`
+            : `${icon("check")} <span><b>${cc.val} la ${escapeHTML(shortSubjectName(cc.subject))}</b> (${escapeHTML(cc.gtype)}), ${escapeHTML(when)}</span>`;
         el.classList.toggle("is-missing", Boolean(missing));
         return;
     }
-    el.classList.remove("is-missing");
-    const text = $("cc-text")?.value || "";
-    el.innerHTML = `${icon("check")} <b>${escapeHTML(eventTitleFrom(text, cc.type, cc.subject))}</b> · ${escapeHTML(when)}`;
+    const missing = cc.type === "Personal" && !cc.details.trim() && !cc.subject;
+    el.classList.toggle("is-missing", missing);
+    el.innerHTML = missing
+        ? `${icon("info")} <span>Scrie ce vrei să ții minte</span>`
+        : `${icon("check")} <span><b>${escapeHTML(ccTitle())}</b>, ${escapeHTML(when)}</span>`;
 }
 
-/** Textul scris completează ce n-ai ales tu. */
-function ccFromText() {
-    const text = $("cc-text")?.value || "";
-    const p = parseEventText(text);
-    const g = parseGradeText(text);
-    const before = JSON.stringify([cc.type, cc.subject, cc.date, cc.time, cc.val, cc.gtype]);
-    if (!cc.manual.has("type")) cc.type = g.looksLikeGrade ? CC_GRADE : p.type || "Test";
-    if (!cc.manual.has("subject")) cc.subject = p.subject || "";
-    if (ccIsGrade()) {
-        if (!cc.manual.has("val")) cc.val = g.val || 0;
-        if (!cc.manual.has("gtype")) cc.gtype = g.gtype || ccSavedGType();
-        if (!cc.manual.has("date")) cc.date = g.date || ccToday();
-    } else {
-        if (!cc.manual.has("date")) cc.date = p.date || (cc.subject && nextLessonDate(cc.subject)) || ccToday();
-        if (!cc.manual.has("time")) cc.time = p.time || "";
+/** Titlul evenimentului: „Test Fizică”, cu detaliile după două puncte („Test Fizică: cinematică”). */
+function ccTitle() {
+    const subject = state.subjects[cc.subject] ? cc.subject : "";
+    const details = URN_RULES.cleanText(cc.details.trim().replace(/\s+/g, " "), URN_RULES.LIMITS.eventTitle);
+    if (cc.type === "Personal") {
+        if (details) return (details[0].toLocaleUpperCase("ro") + details.slice(1)).slice(0, 100);
+        return subject ? `De ținut minte: ${subject}` : "Altceva";
     }
-    if (before !== JSON.stringify([cc.type, cc.subject, cc.date, cc.time, cc.val, cc.gtype])) renderCompose();
-    else ccPreview();
+    const base = autoEventTitle(cc.type, subject);
+    return (details ? `${base}: ${details}` : base).slice(0, 100);
 }
 
 /* ---------- deschis / închis ---------- */
-function ccOpen({ focus = true } = {}) {
-    if (!requireAccount()) return;
-    if (!cc.open) {
-        cc.open = true;
-        renderCompose();
-    }
-    if (focus) {
-        const input = $("cc-text");
-        input?.focus();
-        if (cc.overlay) return;
-        const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 60;
-        const box = $("cal-compose");
-        if (box && box.getBoundingClientRect().top < bar) window.scrollTo({ top: box.getBoundingClientRect().top + window.scrollY - bar - 12, behavior: reduceMotion() ? "auto" : "smooth" });
-    }
-}
-
-/** De oriunde: „Adaugă”, „+” pe telefon, tasta N/T/H. În Calendar folosește bara de acolo; în rest se deschide peste pagină. */
 function ccOpenGlobal({ type = "", mat = "", date = "" } = {}) {
     if (!requireAccount()) return;
     closeQuickAdd?.({ restoreFocus: false });
-    const inCalendar = ui.activeTab === "tab-calendar" && $("cal-compose");
-    if (!inCalendar) {
-        cc.returnFocus = document.activeElement;
-        cc.overlay = true;
-        $("cc-overlay").hidden = false;
-        document.body.classList.add("cc-overlay-open");
+    if (!cc.open) cc.returnFocus = document.activeElement;
+    Object.assign(cc, {
+        open: true, step: "type", type: "Test", subject: "", date: ccToday(), time: "", val: 0, gtype: ccSavedGType(), details: "",
+        manual: new Set(), ctxDate: DATE_KEY_RE.test(date) ? date : "", ctxMat: state.subjects[mat] ? mat : "", orderDate: DATE_KEY_RE.test(date) ? date : ccToday()
+    });
+    $("cc-overlay").hidden = false;
+    document.body.classList.add("cc-overlay-open");
+    if (CC_TYPES.includes(type)) ccChooseType(type);
+    else ccRender({ focus: ".cc-tile" });
+}
+
+/** Din calendar: „+” pe o zi sau pe o oră din orar. */
+function ccPreset({ date = "", mat = "", type = "" } = {}) {
+    ccOpenGlobal({ type, mat, date });
+}
+
+/** Al doilea pas: formularul tipului ales, cu ce știm deja (ziua, materia). */
+function ccChooseType(type) {
+    cc.type = type;
+    cc.step = "form";
+    cc.val = 0;
+    cc.subject = cc.ctxMat || (cc.manual.has("subject") ? cc.subject : "");
+    if (ccIsGrade()) {
+        cc.date = cc.ctxDate && cc.ctxDate <= ccToday() ? cc.ctxDate : ccToday();
+        if (!state.subjects[cc.subject]) cc.subject = "";
+    } else {
+        cc.date = cc.ctxDate || (cc.subject && nextLessonDate(cc.subject)) || ccToday();
     }
-    ccReset({ keepOpen: true, type: CC_TYPES.includes(type) ? type : cc.type || "Test" });
-    if (type) cc.manual.add("type");
-    if (state.subjects[mat]) { cc.subject = mat; cc.manual.add("subject"); }
-    if (DATE_KEY_RE.test(date)) { cc.date = date; cc.manual.add("date"); }
-    if ($("cc-text")) $("cc-text").value = "";
-    renderCompose();
-    ccOpen();
+    if (cc.ctxDate) cc.manual.add("date"); else cc.manual.delete("date");
+    const first = !state.subjects[cc.subject] && Object.keys(state.subjects).length
+        ? ".cc-subj"
+        : ccIsGrade() ? ".cc-val" : "#cc-text";
+    ccRender({ focus: first });
 }
 
 function ccCloseOverlay() {
-    if (!cc.overlay) return;
-    cc.overlay = false;
+    if (!cc.open) return;
+    cc.open = false;
     $("cc-overlay").hidden = true;
     $("cc-overlay-host").innerHTML = "";
     document.body.classList.remove("cc-overlay-open");
-    ccReset();
-    renderCompose(); // bara din Calendar revine la locul ei
     const back = cc.returnFocus;
     cc.returnFocus = null;
     if (back && document.contains(back)) back.focus();
@@ -249,35 +278,35 @@ function ccCloseOverlay() {
 /* ---------- adăugarea ---------- */
 function ccSubmit() {
     if (!requireAccount()) return;
-    const text = ($("cc-text")?.value || "").trim();
+    if (cc.step !== "form") return;
     if (ccIsGrade()) return ccSubmitGrade();
-    if (!text && !cc.subject && cc.type === "Personal") {
+    if (cc.type === "Personal" && !cc.details.trim() && !cc.subject) {
         showToast("Scrie ce vrei să ții minte.");
         $("cc-text")?.focus();
         return;
     }
     const subject = state.subjects[cc.subject] ? cc.subject : "";
-    const ev = { id: uid(), title: eventTitleFrom(text, cc.type, subject), time: TIME_RE.test(cc.time) ? cc.time : "", type: cc.type, subject, description: "" };
+    const ev = { id: uid(), title: ccTitle(), time: TIME_RE.test(cc.time) ? cc.time : "", type: cc.type, subject, description: "" };
     const date = cc.date;
-    ev.title = URN_RULES.cleanText(ev.title, URN_RULES.LIMITS.eventTitle) || eventTitleFrom("", cc.type, subject);
     if (!allowEvent(ev, date)) return;
     withUndo(`✅ Am pus „${ev.title}”, ${relativeDayLabel(date)}.`, () => {
         (state.calendar[date] ||= []).push(ev);
         addActivity(`Ai adăugat „${ev.title}” pentru ${getDateLabel(date)}.`);
     });
-    ccAfterAdd(date, () => ccFlash(date, ev.id));
+    ccCloseOverlay();
+    ccFlash(date, ev.id);
 }
 
 function ccSubmitGrade() {
-    if (!cc.val) {
-        showToast("⚠️ Alege nota, de la 1 la 10.");
-        ccHost()?.querySelector(".cc-val")?.focus();
-        return;
-    }
     const mat = cc.subject;
     if (!state.subjects[mat]) {
         showToast("⚠️ Alege materia.");
-        ccHost()?.querySelector(".cc-subj")?.focus();
+        $("cc-overlay-host")?.querySelector(".cc-subj")?.focus();
+        return;
+    }
+    if (!cc.val) {
+        showToast("⚠️ Alege nota, de la 1 la 10.");
+        $("cc-overlay-host")?.querySelector(".cc-val")?.focus();
         return;
     }
     const grade = { id: uid(), val: cc.val, type: cc.gtype, date: cc.date > ccToday() ? ccToday() : cc.date };
@@ -290,26 +319,8 @@ function ccSubmitGrade() {
         state.subjects[mat].grades.push(grade);
         addActivity(`Ai adăugat nota ${grade.val} (${grade.type}) la ${mat}.`);
     });
-    ccAfterAdd(grade.date, () => {});
+    ccCloseOverlay();
     celebrateGrade(grade.val);
-}
-
-/** După adăugare: peste pagină se închide; în Calendar rămâne deschisă, goală, pentru următorul. */
-function ccAfterAdd(date, flash) {
-    if (cc.overlay) {
-        ccCloseOverlay();
-        flash();
-        return;
-    }
-    const keepDate = cc.manual.has("date") ? date : null;
-    const type = cc.type;
-    ccReset({ keepOpen: true, type: type === CC_GRADE ? CC_GRADE : "Test" });
-    if (type === CC_GRADE) cc.manual.add("type");
-    if (keepDate) { cc.date = keepDate; cc.manual.add("date"); }
-    if ($("cc-text")) $("cc-text").value = "";
-    renderCompose();
-    $("cc-text")?.focus();
-    flash();
 }
 
 /** Arată unde a ajuns ce ai adăugat (dacă e pe ecran). */
@@ -320,67 +331,38 @@ function ccFlash(date, id) {
     setTimeout(() => el.classList.remove("flash"), 1500);
 }
 
-/** Din calendar: „+” pe o zi sau o oră din orar → bara se deschide cu ziua (și materia) deja alese. */
-function ccPreset({ date = "", mat = "", type = "" } = {}) {
-    if (!requireAccount()) return;
-    if (ccIsGrade() && !type) { cc.type = "Test"; cc.manual.delete("type"); }
-    if (DATE_KEY_RE.test(date)) { cc.date = date; cc.manual.add("date"); }
-    if (mat !== undefined && mat !== "" && state.subjects[mat]) { cc.subject = mat; cc.manual.add("subject"); }
-    if (CC_TYPES.includes(type)) { cc.type = type; cc.manual.add("type"); }
-    cc.open = true;
-    renderCompose();
-    ccOpen();
-}
-
 Object.assign(ACTIONS, {
-    "cc-open": () => ccOpen(),
-    "cc-close": () => {
-        if (cc.overlay) { ccCloseOverlay(); return; }
-        if (document.activeElement?.closest?.("#cal-compose")) document.activeElement.blur(); // altfel bara s-ar redeschide singură
-        ccReset();
-        if ($("cc-text")) $("cc-text").value = "";
-        renderCompose();
-    },
-    "cc-type": el => {
-        const was = ccIsGrade();
-        cc.type = el.dataset.type;
-        cc.manual.add("type");
-        // nota e de obicei de azi sau din urmă; un eveniment, de azi încolo
-        if (was !== ccIsGrade() && !cc.manual.has("date")) cc.date = ccToday();
-        if (ccIsGrade() && cc.date > ccToday()) cc.date = ccToday();
-        renderCompose();
-        $("cc-text")?.focus();
-    },
-    "cc-val": el => { cc.val = Number(el.dataset.val); cc.manual.add("val"); renderCompose(); $("cc-text")?.focus(); },
-    "cc-gtype": el => { cc.gtype = el.dataset.type; cc.manual.add("gtype"); renderCompose(); $("cc-text")?.focus(); },
+    "cc-start": el => ccOpenGlobal({ type: el.dataset.type || "" }),
+    "cc-type": el => ccChooseType(el.dataset.type),
+    "cc-back": () => { cc.step = "type"; ccRender({ focus: `.cc-type[data-type="${CSS.escape(cc.type)}"]` }); },
+    "cc-val": el => { cc.val = Number(el.dataset.val); ccRender(); },
+    "cc-gtype": el => { cc.gtype = el.dataset.type; ccRender(); },
     "cc-subject": el => {
         cc.subject = el.dataset.mat || "";
         cc.manual.add("subject");
         // materia aleasă fără zi aleasă: ziua sare la următoarea ei oră (doar pentru evenimente)
         if (cc.subject && !ccIsGrade() && !cc.manual.has("date")) cc.date = nextLessonDate(cc.subject) || cc.date;
-        renderCompose();
-        $("cc-text")?.focus();
+        ccRender();
     },
-    "cc-more-subjects": () => { cc.moreSubjects = true; renderCompose(); },
     "cc-day": el => {
         if (!$("cc-form")?.contains(el)) { ccPreset({ date: el.dataset.date }); return; } // „+” dintr-o zi a calendarului
-        cc.date = el.dataset.date; cc.manual.add("date"); renderCompose(); $("cc-text")?.focus();
+        cc.date = el.dataset.date; cc.manual.add("date"); ccRender();
     },
     "cc-pick": el => ccPreset({ date: el.dataset.date, mat: el.dataset.mat, type: el.dataset.type }),
-    "cc-time-clear": () => { cc.time = ""; cc.manual.add("time"); renderCompose(); },
+    "cc-time-clear": () => { cc.time = ""; ccRender({ focus: "#cc-time" }); },
     "cc-subject-new": () => { ccCloseOverlay(); promptAddMaterie(); },
     // formularul întreg (repetare, notițe), cu ce ai ales deja
     "cc-more": () => {
-        const text = $("cc-text")?.value || "";
-        const pre = { date: cc.date, subject: cc.subject, type: cc.type, time: cc.time };
-        if (cc.overlay) ccCloseOverlay(); else { ccReset(); renderCompose(); }
+        const pre = { date: cc.date, subject: cc.subject, type: cc.type, time: cc.time, details: cc.details.trim() };
+        ccCloseOverlay();
         openEventModal({ date: pre.date, subject: pre.subject, type: pre.type });
         const t = $("ev-title");
-        if (t && text) t.value = text;
+        if (t && pre.details) t.value = pre.details;
         if (pre.time && $("ev-time")) $("ev-time").value = pre.time;
         if (typeof syncEventForm === "function") syncEventForm();
     },
-    "cc-overlay-close": () => ccCloseOverlay()
+    "cc-overlay-close": () => ccCloseOverlay(),
+    "cc-close": () => ccCloseOverlay()
 });
 
 document.addEventListener("submit", event => {
@@ -389,29 +371,23 @@ document.addEventListener("submit", event => {
     ccSubmit();
 });
 document.addEventListener("input", event => {
-    if (event.target.id === "cc-text") ccFromText();
+    if (event.target.id === "cc-text") { cc.details = event.target.value; ccPreview(); }
 });
 document.addEventListener("change", event => {
     if (event.target.id === "cc-date" && DATE_KEY_RE.test(event.target.value)) {
         cc.date = ccIsGrade() && event.target.value > ccToday() ? ccToday() : event.target.value;
-        cc.manual.add("date"); renderCompose();
+        cc.manual.add("date"); ccRender({ focus: "#cc-date" });
     }
-    if (event.target.id === "cc-time") { cc.time = TIME_RE.test(event.target.value) ? event.target.value : ""; cc.manual.add("time"); renderCompose(); }
-});
-document.addEventListener("focusin", event => {
-    if (event.target.id === "cc-text" && !cc.open) {
-        if (!canEdit()) { event.target.blur(); requireAccount(); return; }
-        cc.open = true;
-        renderCompose();
-    }
+    if (event.target.id === "cc-time") { cc.time = TIME_RE.test(event.target.value) ? event.target.value : ""; ccRender({ focus: "#cc-time" }); }
 });
 document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && (event.target.id === "cc-text" || cc.overlay)) {
+    if (!cc.open) return;
+    if (event.key === "Escape") {
         event.stopPropagation();
-        if (event.target.id === "cc-text" && event.target.value) { event.target.value = ""; ccFromText(); }
-        else ACTIONS["cc-close"]();
+        ccCloseOverlay();
         return;
     }
-    if (cc.overlay && event.key === "Tab") trapFocusIn($("cc-overlay"), event);
+    // Enter într-un buton alege butonul; Enter în câmpul de text adaugă (formularul se trimite singur)
+    if (event.key === "Tab") trapFocusIn($("cc-overlay"), event);
 }, true);
-["cc-open", "cc-close", "cc-more-subjects", "cc-overlay-close"].forEach(a => GUEST_OK.add(a));
+["cc-start", "cc-back", "cc-close", "cc-overlay-close"].forEach(a => GUEST_OK.add(a));

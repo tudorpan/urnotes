@@ -66,22 +66,27 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
   click(examBtn);
   assert(T.ui.activeTab === "tab-calendar", "tapping an exam notification opens Calendar");
 
-  // adăugare rapidă: bara de compus peste orice pagină (în Calendar e chiar în pagină)
+  // „+”: întâi „Ce adaugi?” (plăci mari), apoi formularul tipului ales
   click(q("[data-action='nav'][data-tab='tab-dashboard']"));
   click($("quick-add-btn"));
-  assert(!$("cc-overlay").hidden && w.document.body.classList.contains("cc-overlay-open"), "+ opens the quick-add bar over the page");
+  assert(!$("cc-overlay").hidden && w.document.body.classList.contains("cc-overlay-open") && q("#cc-form")?.dataset.step === "type", "+ opens the type step over the page");
+  assert(qa("#cc-overlay-host .cc-tile").map(b => b.dataset.type).join() === "Notă,Test,Temă,Proiect" && w.document.activeElement === q(".cc-tile"), "four big tiles, focus on the first");
+  click(q('.cc-tile[data-type="Temă"]'));
+  assert(q("#cc-form").dataset.step === "form" && q("#cc-form").dataset.type === "Temă" && /Temă nouă/.test(q(".cc-title").textContent), "a tile opens its own form");
+  click(q('[data-action="cc-back"]'));
+  assert(q("#cc-form").dataset.step === "type" && w.document.activeElement === q('.cc-tile[data-type="Temă"]'), "back returns to the tiles");
   key("Escape");
-  assert($("cc-overlay").hidden, "Escape closes the bar");
+  assert($("cc-overlay").hidden, "Escape closes it");
   key("t");
-  assert(!$("cc-overlay").hidden && q("#cc-overlay-host .cc-type.is-on").dataset.type === "Test", "letter T opens the bar on 'Test'");
+  assert(!$("cc-overlay").hidden && q("#cc-form").dataset.step === "form" && q("#cc-form").dataset.type === "Test", "letter T goes straight to the Test form");
   key("Escape");
   key("n");
-  assert(!$("cc-overlay").hidden && q("#cc-overlay-host .cc-type.is-on").dataset.type === "Notă" && q("#cc-overlay-host .cc-val"), "N opens the bar in grade mode");
+  assert(!$("cc-overlay").hidden && q("#cc-form").dataset.type === "Notă" && qa("#cc-overlay-host .cc-val").length === 10, "N goes straight to the grade form");
   key("n");
-  assert(!$("cc-overlay").hidden, "N ignored while the bar is open");
+  assert(!$("cc-overlay").hidden, "N ignored while it is open");
   key("Escape");
   const field = $("cat-search"); field.focus(); key("n", {}, field);
-  assert($("cc-overlay").hidden, "typing N in a field does not open the bar");
+  assert($("cc-overlay").hidden, "typing N in a field does not open it");
   // căutarea
   key("k", { ctrlKey: true });
   assert(!$("palette").hidden && qa("#palette-list .palette-item").length > 4, "Ctrl+K opens search");

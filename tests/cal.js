@@ -85,10 +85,12 @@ const set = (id, v) => { $(id).value = v; };
 
   // quick add from lesson chip
   click(qa(`.cal-col[data-date="${today}"] .cal-lesson`).find(b => /Matematică/.test(b.textContent)));
-  // acum: ora din orar pregătește bara de adăugat (fără fereastră), cu materia și ziua alese
-  assert(q(".cc-subj.is-on")?.dataset.mat === "Matematică" && q(".cc-day.is-on")?.dataset.date === today && q(".cc-type.is-on")?.dataset.type === "Test" && !$("cal-compose").querySelector(".cc-body").hidden, "lesson chip presets subject/date/type in the add bar");
+  // ora din orar deschide „Ce adaugi?” cu ziua și materia știute; alegi „Test” și formularul le are deja
+  assert(!$("cc-overlay").hidden && q("#cc-form")?.dataset.step === "type" && qa(".cc-tile").length === 4 && /Matematic/.test(q(".cc-ctx")?.textContent || ""), "lesson chip opens the type step with its subject and day");
+  click(q('.cc-tile[data-type="Test"]'));
+  assert(q("#cc-form").dataset.step === "form" && q("#cc-form").dataset.type === "Test" && q(".cc-subj.is-on")?.dataset.mat === "Matematică" && q(".cc-day.is-on")?.dataset.date === today, "Test form keeps the subject and the day");
   assert(/Test Matematică/.test($("cc-preview").textContent), "preview shows the auto title");
-  assert(w.document.activeElement === $("cc-text"), "focus in the add bar");
+  assert(w.document.activeElement === $("cc-text"), "focus in the details field");
   click(q(".cc-add"));
   const added = T.state.calendar[today].find(e => e.title === "Test Matematică");
   assert(added && added.subject === "Matematică", "event added with auto title");

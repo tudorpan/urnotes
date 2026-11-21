@@ -298,10 +298,6 @@ body.style-benzi .ag-day { border: 2.5px solid #111; border-radius: 0; }
 body.style-benzi .ag-day.is-today { background: var(--k-y) var(--k-dots); color: #111; }
 body.style-benzi .ag-date b { font: 400 30px/1 var(--font-hand); letter-spacing: 1px; }
 body.style-benzi :is(.ag-add, .cal-arrow) { border: 2.5px solid #111; border-radius: 0; }
-body.style-benzi :is(.cal-compose, .cc-bar) { border: var(--k-line); border-radius: 0; box-shadow: 5px 5px 0 #111; background: #fff; }
-body.style-benzi.dark-mode :is(.cal-compose, .cc-bar) { background: var(--k-panel); }
-body.style-benzi .cc-chip { border: 2.5px solid #111; border-radius: 0; font-weight: 800; }
-body.style-benzi .cc-chip[aria-pressed="true"], body.style-benzi .cc-chip.is-on { background: var(--k-y); color: #111; }
 body.style-benzi .stats-nav-link { border: 2.5px solid #111; border-radius: 0; font: 400 17px/1 var(--font-hand); letter-spacing: 1px; }
 body.style-benzi .stats-nav-link.active, body.style-benzi .stats-nav-link[aria-current] { background: var(--k-y); color: #111; }
 body.style-benzi .trend-chip { border: 2px solid #111; border-radius: 0; }
@@ -406,3 +402,48 @@ body.style-benzi .ag-day.is-today .cal-ev, body.style-benzi .ag-day.is-today .ag
     body.style-benzi .home-tile.is-hero { padding-top: 30px; padding-bottom: 14px; }
     body.style-benzi #cal-title { font-size: clamp(19px, 6vw, 26px); letter-spacing: 0.6px; overflow-wrap: anywhere; }
 }
+
+/* ==================== ADAUGĂ ====================
+   Foaia e o planșă: titlul în căsuța galbenă de sus, plăcile sunt căsuțe colorate cu puncte de tipar. */
+body.style-benzi .cc-sheet { border: var(--k-line); border-radius: 0; box-shadow: 8px 8px 0 var(--k-ink); }
+body.style-benzi .cc-head { margin-bottom: 10px; padding-top: 12px; padding-bottom: 12px; background: var(--k-y); border-bottom: var(--k-line); }
+body.style-benzi .cc-title { font-size: 32px; font-weight: 400; letter-spacing: 1.4px; color: #111; }
+body.style-benzi .cc-ctx { color: #111; font-family: var(--font-bubble); font-size: 16px; }
+body.style-benzi .cc-round { border: 2.5px solid #111; border-radius: 0; background: #fff; color: #111; }
+body.style-benzi .cc-ico { border: 2.5px solid #111; border-radius: 0; color: #111; background: #fff !important; }
+body.style-benzi .cc-tile { border: var(--k-line); border-radius: 0; box-shadow: var(--k-pop); color: #111; background-image: radial-gradient(var(--k-dot) 1.2px, transparent 1.4px); background-size: 8px 8px; }
+body.style-benzi .cc-tile:nth-child(odd) { transform: rotate(-0.6deg); }
+body.style-benzi .cc-tile:nth-child(even) { transform: rotate(0.6deg); }
+body.style-benzi .cc-tile:hover { transform: translate(-2px, -2px) rotate(-1deg); box-shadow: 7px 7px 0 #111; border-color: #111; }
+body.style-benzi .cc-tile.is-grade { background-color: var(--k-y); }
+body.style-benzi .cc-tile.ev-test { background-color: var(--k-c); }
+body.style-benzi .cc-tile.ev-tema { background-color: var(--k-g); }
+body.style-benzi .cc-tile.ev-proiect { background-color: var(--k-o); }
+body.style-benzi .cc-tile-ico { border: 2.5px solid #111; border-radius: 0; background: #fff; color: #111 !important; }
+body.style-benzi .cc-tile b { font-family: var(--font-hand); font-size: 30px; font-weight: 400; letter-spacing: 1.3px; }
+body.style-benzi .cc-tile small { font-family: var(--font-bubble); font-size: 16px; color: #111; }
+body.style-benzi :is(.cc-mini, .cc-launch-btn) { border: 2.5px solid #111; border-radius: 0; font-weight: 800; box-shadow: 3px 3px 0 #111; }
+body.style-benzi .cc-mini.is-subject, body.style-benzi .cc-launch-btn.is-more { border-style: dashed; box-shadow: none; }
+body.style-benzi .cc-q { font-family: var(--font-hand); font-size: 21px; font-weight: 400; letter-spacing: 1.1px; }
+body.style-benzi .cc-q span { font-family: var(--font-bubble); font-size: 15px; letter-spacing: 0; }
+body.style-benzi :is(.cc-subj, .cc-chip, .cc-day, .cc-val) { border: 2.5px solid #111; border-radius: 0; font-weight: 800; }
+body.style-benzi .cc-subj i { width: 12px; height: 12px; border: 2px solid #111; border-radius: 0; }
+body.style-benzi .cc-subj small { border: 2px solid #111; border-radius: 0; background: var(--k-y); color: #111; transform: rotate(3deg); }
+body.style-benzi :is(.cc-subj, .cc-chip, .cc-day).is-on { background: var(--k-y); color: #111; box-shadow: 3px 3px 0 #111; border-color: #111; }
+body.style-benzi .cc-val { font-family: var(--font-hand); font-size: 30px; font-weight: 400; }
+body.style-benzi .cc-val.is-on { background: #111; color: var(--k-y); box-shadow: 3px 3px 0 var(--k-m); }
+body.style-benzi .cc-day small { color: #1F7A2E; }
+body.style-benzi .cc-day.is-on small { color: #111; }
+body.style-benzi .cc-input { border: 2.5px solid #111; border-radius: 0; background: #fff; font-family: var(--font-bubble); font-size: 18px; }
+body.style-benzi .cc-foot { border-top: var(--k-line); }
+body.style-benzi .cc-preview { font-family: var(--font-bubble); font-size: 16px; color: var(--k-muted); }
+body.style-benzi.dark-mode .cc-sheet { box-shadow: 8px 8px 0 #000; }
+body.style-benzi.dark-mode :is(.cc-subj, .cc-chip, .cc-day, .cc-val, .cc-mini, .cc-launch-btn) { border-color: #F4EFE2; }
+body.style-benzi.dark-mode .cc-input { background: #FFFEF7; color: #111; }
+body.style-benzi.dark-mode .cc-day small { color: #8BE07A; }
+body.style-benzi.dark-mode :is(.cc-subj, .cc-chip, .cc-day).is-on { box-shadow: 3px 3px 0 #000; }
+@media (max-width: 640px) {
+    body.style-benzi .cc-sheet { border-bottom: 0; box-shadow: 0 -6px 0 var(--k-m); }
+    body.style-benzi .cc-tile { transform: none !important; }
+}
+body.style-benzi.dark-mode .cc-day.is-on small { color: #111; }

@@ -38,7 +38,7 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
   - `core/`: configurarea (`config.js`, cu anii școlari în `SCHOOL_YEAR_DATA`), utilitarele, modelul, stocarea, motorul de calcul (`metrics.js`), randarea, acțiunile (`events.js`), adresele paginilor (`router.js`) și pornirea (`state.js`, `boot.js`, `main.js`, încărcate ultimele).
   - `azi/`: pagina Azi (`azi.js`) și „Ce ai luat?” (`realism.js`).
   - `note/`: materiile și notele (`catalog.js`, `grades-subjects.js`, `quickgrade.js`, `notes.js`), Progresul (`stats.js`, `report.js`, `selects-charts.js`) și Ce-ar fi dacă (`simulator.js`).
-  - `calendar/`: calendarul, bara de adăugat (`cal-compose.js`), orarul și amintirile de seară.
+  - `calendar/`: calendarul, fereastra „Adaugă” (`cal-compose.js`: întâi alegi ce adaugi, apoi un formular scurt pentru acel lucru), orarul și amintirile de seară.
   - `plan/`: planul de învățat (`plan.js`) și examenele (`exams.js`, cu `EXAM_CALENDAR`).
   - `eu/`: pagina Eu: setările, backupul, configurarea, turul, anii școlari, mascota (`pal.js`) și creșterea ei (`growth.js`).
   - `cont/`: contul și sincronizarea (`account.js`, `guest.js`, `api.js`, `serversync.js`) și, ca extra, părinții și profesorii (`viewer.js`).
