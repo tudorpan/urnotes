@@ -35,10 +35,26 @@ const DATA = {
   if (w.document.readyState === "loading") await new Promise(r => w.document.addEventListener("DOMContentLoaded", r));
   await new Promise(r => setTimeout(r, 30));
   // stil
-  assert(w.document.body.classList.contains("style-urnotes") && !w.document.body.classList.contains("style-notion"), "one style: urNotes");
-  assert(!$("set-style") && !$("set-accent"), "no style or accent switch in settings");
+  // stiluri: Blocuri (implicit), Raftul, Bandă desenată, Clasic (= vechiul style-urnotes)
+  const cls = () => [...w.document.body.classList].filter(c => c.startsWith("style-")).join(",");
+  assert(cls() === "style-blocuri" && w.document.body.dataset.style === "blocuri", "default style: Blocuri (" + cls() + ")");
+  assert(!$("set-accent"), "no accent switch in settings");
   T.state.settings.appearance.style = "notion"; T.applyAppearanceSettings();
-  assert(w.document.body.classList.contains("style-urnotes"), "an old saved 'notion' setting still shows urNotes");
+  assert(cls() === "style-blocuri", "an unknown saved style falls back to Blocuri");
+  T.switchTab("tab-setari");
+  assert(qa("#style-pick .style-card").length === 4 && q('#style-pick [data-style="blocuri"]').getAttribute("aria-checked") === "true", "Eu › Aspect: four style cards, the current one checked");
+  click(q('#style-pick [data-style="raft"]'));
+  assert(cls() === "style-raft" && T.state.settings.appearance.style === "raft" && q('#style-pick [data-style="raft"]').getAttribute("aria-checked") === "true", "picking Raftul switches at once");
+  assert(JSON.parse(w.localStorage.getItem("pro_settings_db_v4")).appearance.style === "raft", "the choice is saved");
+  click(q('#style-pick [data-style="benzi"]'));
+  assert(cls() === "style-benzi", "Bandă desenată");
+  click(q('#style-pick [data-style="clasic"]'));
+  assert(cls() === "style-urnotes", "Clasic keeps the old style class (with Tiți)");
+  click(q('#style-pick [data-style="blocuri"]'));
+  T.switchTab("tab-dashboard");
+  assert(!$("azi-subjects").hidden && qa("#azi-subjects .as-item[data-mat]").length === Object.keys(T.state.subjects).length && q("#azi-subjects .as-add"), "Azi › Materiile tale: one item per subject + add");
+  const it = qa("#azi-subjects .as-item[data-mat]")[0];
+  assert(/--pct:\s*[\d.]+%/.test(it.getAttribute("style")), "each subject carries its average as --pct for the jar / book height");
 
   // arbore lateral
   const subs = qa("#side-subjects .side-sub[data-mat]").map(b => b.dataset.mat);

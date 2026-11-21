@@ -221,7 +221,17 @@ const subjectStyle = mat => {
 const subjectInitials = mat => { const s = shortSubjectName(mat).replace(/[^\p{L}\p{N} ]/gu, "").trim(); const w = s.split(/\s+/); return (w.length > 1 && w[1] ? w[0][0] + w[1][0] : s.slice(0, 2)).replace(/^./, c => c.toUpperCase()); };
 
 /* Stilul aplicației: „notion” (simplu, ca o pagină albă) sau „urnotes” (colorat, cu post-it-uri) */
-const APP_STYLES = ["urnotes"]; // un singur stil (faza 2 din planul de design); „notion” a fost scos
+/** Stilurile aplicației (Eu › Aspect). Fiecare are foaia lui: style-blocuri.css, style-raft.css, style-benzi.css;
+ *  „clasic” e aspectul de dinainte (style.css + ui.css), cu Tiți. Primul e cel implicit. */
+const APP_STYLES = ["blocuri", "raft", "benzi", "clasic"];
+const STYLE_INFO = {
+    blocuri: { name: "Blocuri", hint: "culori tari, contururi groase, materiile ca borcane care se umplu", theme: ["#EEEBFF", "#17123A"] },
+    raft: { name: "Raftul", hint: "materiile sunt cărți pe un raft: cu cât e mai înaltă cartea, cu atât e mai mare media", theme: ["#D9E7E2", "#1D2B33"] },
+    benzi: { name: "Bandă desenată", hint: "pagina e o bandă desenată: căsuțe, baloane și „POW!” pentru medie", theme: ["#F4EFE2", "#111111"] },
+    clasic: { name: "Clasic", hint: "aspectul de dinainte, cu post-it-uri și cu Tiți", theme: ["#F6F4EE", "#111319"] }
+};
+/** Clasa de pe <body> pentru un stil („clasic” păstrează numele vechi, style-urnotes). */
+const styleClass = key => `style-${key === "clasic" ? "urnotes" : key}`;
 
 const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
 
@@ -231,7 +241,7 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "yellow", style: "urnotes" },
+    appearance: { theme: "system", accent: "yellow", style: "blocuri" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată

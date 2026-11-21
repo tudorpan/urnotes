@@ -288,7 +288,7 @@ function renderCatalogList() {
         const pct = hasGrades ? Math.min(100, d.exactAvg / Math.max(1, sub.target) * 100) : 0;
         return `<div class="cat-row-wrap">
             <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
-                style="${subjectStyle(mat)}" ${selected ? 'aria-current="true"' : ""}>
+                style="${subjectStyle(mat)}; --pct: ${hasGrades ? (d.exactAvg * 10).toFixed(1) : 0}%" ${selected ? 'aria-current="true"' : ""}>
                 <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span><span class="subj-emoji" aria-hidden="true">${subjectEmoji(mat)}</span>
                 <span class="cat-row-main">
                     <span class="cat-row-name">${sub.priority ? '<span class="cat-star" aria-label="prioritară">★</span>' : ""}${escapeHTML(mat)}</span>

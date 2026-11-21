@@ -338,6 +338,7 @@ function renderDashboard() {
     part("orele", () => { $("azi-day").innerHTML = homeDayHTML(days, links); }, "azi-day");
     part("de făcut", () => { $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today, step.key || ""); }, "azi-todo");
     part("săptămâna", () => { if ($("azi-week")) { const wh = homeWeekHTML(days.today, links); $("azi-week").innerHTML = wh; $("azi-week").hidden = !wh; } }, "azi-week");
+    part("materii", () => { const el = $("azi-subjects"); if (el) { const h = homeSubjectsHTML(); el.innerHTML = h; el.hidden = !h; } }, "azi-subjects");
     part("la note", () => { if ($("azi-focus")) { const fh = homeFocusHTML(); $("azi-focus").innerHTML = fh; $("azi-focus").hidden = !fh; } }, "azi-focus");
     part("planul", () => { if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today); }, "azi-plan");
     part("anul", () => { if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; } });
@@ -487,6 +488,32 @@ function homeStartHTML() {
 
 function homeCardHead(id, iconName, title, extra = "") {
     return `<div class="azi-card-head"><h3 id="${id}">${icon(iconName)} ${title}</h3>${extra}</div>`;
+}
+
+/** „Materiile tale”: toate materiile dintr-o privire. Fiecare stil le desenează altfel (borcane care se umplu,
+ *  cărți pe un raft, căsuțe de bandă desenată); --pct e media pe o scară de la 0 la 100. */
+function homeSubjectsHTML() {
+    const entries = statsEntries().filter(e => e.d).sort((a, b) => a.mat.localeCompare(b.mat, "ro"));
+    if (!entries.length) return "";
+    const items = entries.map(({ mat, sub, d, standing }) => {
+        const has = sub.grades.length > 0;
+        const avg = has ? d.exactAvg : 0;
+        const label = shortSubjectName(mat);
+        const state = standing.key === "risk" ? "is-risk" : !has ? "is-empty" : standing.key === "below" ? "is-below" : "is-ok";
+        const aria = has ? `${mat}: media ${avg.toFixed(2)}${standing.key === "risk" ? ", la risc" : ""}` : `${mat}: încă nicio notă`;
+        return `<button type="button" class="as-item ${state}" data-action="open-subject" data-mat="${escapeHTML(mat)}"
+            style="${subjectStyle(mat)}; --pct: ${(avg * 10).toFixed(1)}%" aria-label="${escapeHTML(aria)}">
+            <span class="as-fill" aria-hidden="true"></span>
+            <span class="as-avg" aria-hidden="true">${has ? (Number.isInteger(avg) ? avg : avg.toFixed(2)) : "–"}</span>
+            <span class="as-name" aria-hidden="true">${escapeHTML(label)}</span>
+            ${standing.key === "risk" ? '<span class="as-flag" aria-hidden="true">risc</span>' : ""}
+        </button>`;
+    }).join("");
+    return `${homeCardHead("azi-subjects-title", "notebook", "Materiile tale",
+            `<button type="button" class="btn btn-text btn-sm" data-action="nav" data-tab="tab-catalog">Toate notele</button>`)}
+        <div class="as-row">${items}
+            <button type="button" class="as-item as-add" data-action="add-subject" aria-label="Materie nouă"><span class="as-name">+ materie</span></button>
+        </div>`;
 }
 
 /** „La note”: cele mai importante 3 concluzii din Progres, cu drum direct la materie. */

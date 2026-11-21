@@ -85,6 +85,8 @@ function pfGear(cx, cy, ro, ri, n) {
 /** Se poate arăta animația acum? (nu la pornire, nu cu „reducere mișcare”, nu în testele automate) */
 const PFX_REAL = !/jsdom/i.test((typeof navigator !== "undefined" && navigator.userAgent) || "");
 function pageFxReady(tabId) {
+    // post-it-ul animat ține de stilul Clasic; celelalte stiluri au intrarea lor, din CSS
+    if (!document.body.classList.contains("style-urnotes")) return false;
     return PFX_REAL && Boolean(PAGE_FX_ART[tabId]) && pageFxOn() && !reduceMotion() && Date.now() - pfx.bootAt > 1200;
 }
 

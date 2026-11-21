@@ -27,6 +27,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ui.css">
     <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style-blocuri.css">
+    <link rel="stylesheet" href="style-raft.css">
+    <link rel="stylesheet" href="style-benzi.css">
     <script src="firebase-config.js" defer></script>
     <script src="api-config.js" defer></script>
     <!-- Aplicația, în ordinea de încărcare (vezi js/; nu schimba ordinea) -->
@@ -176,7 +181,10 @@
                 document.body.classList.add("dark-mode");
                 document.documentElement.classList.add("theme-dark");
             }
-            document.body.classList.add("style-urnotes"); // un singur stil: urNotes
+            // stilul ales (Eu › Aspect), aceleași nume ca APP_STYLES din js/core/config.js; „urnotes” = vechiul stil unic
+            var st = ["blocuri", "raft", "benzi", "clasic"].indexOf(s.style) >= 0 ? s.style : "blocuri";
+            document.body.classList.add(st === "clasic" ? "style-urnotes" : "style-" + st);
+            document.body.setAttribute("data-style", st);
             var dark = document.body.classList.contains("dark-mode");
             // culoarea mărcii, aceeași ca accentVars() din js/core/config.js: [cerneală, umplutură, text pe umplutură, fundal moale]
             var v = dark ? ["#FFD25E", "#FFC93C", "#171C2E", "rgba(255, 201, 60, 0.16)"] : ["#1E2B58", "#FFC93C", "#1E2B58", "#FFF1C7"];
@@ -254,6 +262,8 @@
 
                 <!-- Conținutul e generat în js/azi/azi.js (renderDashboard): cifrele zilei, apoi ce ai de făcut -->
                 <div id="azi-tiles" class="home-tiles" aria-label="Pe scurt"></div>
+                <!-- „Materiile tale”: borcane / cărți pe raft / căsuțe, după stil (js/azi/azi.js, homeSubjectsHTML) -->
+                <section class="glass-card azi-card azi-subjects" id="azi-subjects" aria-labelledby="azi-subjects-title" hidden></section>
                 <div class="azi-grid">
                     <div class="azi-col azi-col-main">
                         <!-- „Acum”: un singur lucru de făcut, primul pe pagină -->
@@ -607,19 +617,19 @@
                 </nav>
                 <div class="settings-grid" id="settings-grid" data-sec="profil">
                     <div class="glass-card me-card" data-sec="profil">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg> Tu și colegul tău</h3>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg> <span class="pal-only">Tu și colegul tău</span><span class="no-pal">Tu</span></h3>
                         <div class="me-row mt-3">
                             <div class="me-preview" id="set-buddy-preview" aria-hidden="true"></div>
                             <div class="form-group">
                                 <label for="set-name">Numele tău</label>
                                 <input type="text" id="set-name" class="glass-input" maxlength="40" autocomplete="name" placeholder="ex: Tudor">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group pal-only">
                                 <label for="set-buddy">Numele mascotei</label>
                                 <input type="text" id="set-buddy" class="glass-input" maxlength="20" autocomplete="off" placeholder="Tiți">
                             </div>
                         </div>
-                        <div id="pal-level-setting" class="mt-3"></div>
+                        <div id="pal-level-setting" class="mt-3 pal-only"></div>
                     </div>
                     <div class="glass-card programme-card" data-sec="scoala">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Programa ta <button type="button" class="help-dot" data-action="help" data-key="programme" aria-label="Ce înseamnă: Programa?" title="Ce înseamnă?">?</button></h3>
@@ -691,12 +701,14 @@
                     <div class="glass-card" data-sec="profil">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</h3>
                         <div id="badge-setting" class="mt-3" hidden></div>
+                        <p class="form-label mt-3" id="style-pick-label">Stilul aplicației</p>
+                        <div id="style-pick" class="style-pick" role="radiogroup" aria-labelledby="style-pick-label"></div>
                         <div class="form-group">
                             <label for="set-theme">Temă</label>
                             <select id="set-theme" class="glass-select">
                                 <option value="system">Ca sistemul</option>
-                                <option value="light">Luminos (foaie)</option>
-                                <option value="dark">Întunecat (caiet noaptea)</option>
+                                <option value="light">Luminos</option>
+                                <option value="dark">Întunecat</option>
                             </select>
                         </div>
                         <label class="remind-toggle mt-2">

@@ -145,7 +145,6 @@ function saveSettings({ quiet = false } = {}) {
     s.calc.riskDrop = clampNumber(field("set-risk-drop"), 0.1, 5, 0.5);
     s.appearance.theme = field("set-theme") || "system";
     s.appearance.accent = "yellow";
-    s.appearance.style = "urnotes";
     s.profile.name = cleanName(field("set-name"), 40);
     s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
     s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
@@ -515,6 +514,10 @@ function applyAppearanceSettings() {
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#111319" : "#F6F4EE"; m.removeAttribute("media"); });
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
-    document.body.classList.add("style-urnotes");
+    const style = APP_STYLES.includes(a.style) ? a.style : APP_STYLES[0];
+    APP_STYLES.forEach(k => document.body.classList.toggle(styleClass(k), k === style));
+    document.body.dataset.style = style;
+    const tc = STYLE_INFO[style].theme; // bara Safari ia culoarea foii stilului
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? (style === "clasic" ? "#111319" : "#14151B") : tc[0]; });
 
 }
