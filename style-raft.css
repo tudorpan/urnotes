@@ -1,15 +1,16 @@
-/* urNotes · Stilul „Raftul”
-   Un colț de bibliotecă: perete verde-cenușiu, meniul ca un dulap închis la culoare (pagina deschisă iese din el),
-   materiile sunt cărți pe un raft de lemn — cu cât e mai înaltă cartea, cu atât e mai mare media; o carte la risc are
-   un semn de carte galben, una fără note e goală și stă înclinată. „Acum” e o etichetă de bagaj, cifrele zilei sunt
-   file de calendar de birou. Litere: Fraunces (titluri, cifre), Lexend (restul). Tema întunecată: biblioteca seara. */
+/* urNotes · Stilul aplicației: „Raftul liniștit”
+   O bibliotecă liniștită, cu ce era bun în stilul clasic: hârtie cald-cenușie, cerneală, o singură culoare de accent
+   (galbenul de post-it / marker), materiile în culori stinse (cotoare de cărți), roșu doar pentru „risc”.
+   Raftul de pe Azi, teancul de cărți din Note, coperta și fișa cu ștampile, filele de calendar, permisul de cititor.
+   Atingeri de mână: notițe scrise (Kalam), sublinieri cu markerul, post-it lipit cu bandă, ziua de azi încercuită.
+   Litere: Fraunces (titluri, cifre), Lexend (text), Kalam (notițe). Tema întunecată: biblioteca la lumina lămpii. */
 
 body.style-raft {
-    --r-wall: #D9E7E2; --r-wall-2: #CBDDD6; --r-stripe: rgba(255, 255, 255, 0.2);
-    --r-wood: #C2834F; --r-wood-dk: #8F5A31;
-    --r-ink: #1D2B33; --r-muted: #48616A; --r-paper: #FFFDF8; --r-cab: #1D2B33; --r-cab-ink: #D4DDDF;
-    --r-gold: #FFC66B; --r-red: #C23A2F; --r-tag: #FFE7A8; --r-tag-ink: #7A4D0B;
-
+    --r-wall: #EFEEE9; --r-wall-2: #E1DFD7; --r-stripe: transparent;
+    --r-wood: #CDB089; --r-wood-dk: #A88B66;
+    --r-ink: #25292B; --r-muted: #5C6365; --r-paper: #FCFBF8; --r-cab: #E8E6DF; --r-cab-ink: #25292B;
+    --r-gold: #F0CD5E; --r-red: #A4483B; --r-tag: #FAEBB2; --r-tag-ink: #6A4F08;
+    --font-note: "Kalam", "Segoe Print", "Bradley Hand", cursive;
     --font-ui: "Lexend", ui-sans-serif, system-ui, sans-serif;
     --font-hand: "Fraunces", Georgia, "Times New Roman", serif;
     --font-display: var(--font-hand); --font-sans: var(--font-ui); --font-pal: var(--font-ui);
@@ -21,7 +22,7 @@ body.style-raft {
     --accent-fill: var(--r-gold); --on-accent-fill: var(--r-ink);
     --accent-soft: color-mix(in srgb, var(--r-gold) 30%, var(--r-paper));
     --yellow: var(--r-gold); --yellow-soft: var(--r-tag); --on-yellow: var(--r-ink); --note: var(--r-tag); --note-ink: var(--r-ink);
-    --marker: var(--r-gold); --risk: #B23426; --ok: #19694A; --warn: #8A5A10;
+    --marker: var(--r-gold); --risk: #A13D30; --ok: #2F6B4D; --warn: #7A5A10;
     --input-bg: color-mix(in srgb, var(--r-wall) 40%, var(--r-paper)); --input-focus: var(--r-paper); --card-hover: var(--r-paper);
     --radius-lg: 18px; --radius-md: 12px; --radius-sm: 10px; --radius-pill: 99px;
     --shadow-card: 0 3px 0 var(--r-wall-2); --shadow-card-hover: 0 3px 0 var(--r-wall-2), 0 14px 26px -18px rgba(29, 43, 51, 0.5);
@@ -30,15 +31,15 @@ body.style-raft {
 
     font-family: var(--font-ui); font-weight: 400; font-size: 15px; color: var(--r-ink);
     background-color: var(--r-wall);
-    background-image: linear-gradient(90deg, transparent 0 46px, var(--r-stripe) 46px 48px); background-size: 48px 100%;
+    background-image: none;
 }
 body.style-raft.dark-mode {
-    --r-wall: #16252A; --r-wall-2: #0E1A1E; --r-stripe: rgba(255, 255, 255, 0.025);
-    --r-wood: #8A5C38; --r-wood-dk: #5C3B22;
-    --r-ink: #E6EEEB; --r-muted: #9FB3B8; --r-paper: #21343A; --r-cab: #0D171A; --r-cab-ink: #B5C3C6;
-    --r-tag: #4A3B1C; --r-tag-ink: #FFD99A; --r-red: #FF8A7A;
-    --risk: #FF8A7A; --ok: #7ED6A8; --warn: #FFC66B;
-    --rule: rgba(230, 238, 235, 0.14);
+    --r-wall: #1B1E1D; --r-wall-2: #121514; --r-stripe: transparent;
+    --r-wood: #6E5C46; --r-wood-dk: #4D402F;
+    --r-ink: #E8E5DD; --r-muted: #A6AAA5; --r-paper: #252928; --r-cab: #202423; --r-cab-ink: #DAD7CF;
+    --r-gold: #D9B64C; --r-tag: #403820; --r-tag-ink: #F0D58A; --r-red: #E39283;
+    --risk: #E39283; --ok: #8FCBA6; --warn: #E2C06A;
+    --rule: rgba(232, 229, 221, 0.12);
 }
 body.style-raft :is(h1, h2, h3, h4) { font-family: var(--font-hand); font-weight: 800; letter-spacing: -0.01em; }
 body.style-raft ::selection { background: var(--r-gold); color: #1D2B33; }
@@ -576,3 +577,177 @@ body.style-raft .cat-row.is-purtare .cat-row-main { flex: 1; min-width: 0; displ
     body.style-raft .cat-row.is-risk::after { right: 118px; }
 }
 body.style-raft .cat-row.is-purtare .cat-row-avg { right: 18px; }
+
+/* ==========================================================================
+   LINIȘTE: o singură culoare de accent, culori stinse, atingeri de mână
+   (vine după tot ce e mai sus și îl îmblânzește)
+   ========================================================================== */
+/* cotoarele: culoarea materiei, stinsă, cu text de cerneală */
+body.style-raft :is(.as-item, .cat-row, .cat-detail-head, .ag-lesson) { --spine: color-mix(in oklab, var(--subj, #8A9294) 22%, #F1EFE8); --spine-ink: #25292B; }
+body.style-raft.dark-mode :is(.as-item, .cat-row, .cat-detail-head, .ag-lesson) { --spine: color-mix(in oklab, var(--subj, #8A9294) 24%, #2A2E2D); --spine-ink: #ECE9E1; }
+/* evenimentele: aceleași tipuri, culori mai blânde */
+body.style-raft .ev-test { --ev: #4A6A9C; } body.style-raft .ev-examen { --ev: #A4483B; } body.style-raft .ev-tema { --ev: #9A6A1C; }
+body.style-raft .ev-proiect { --ev: #6E5E91; } body.style-raft .ev-prezentare { --ev: #3E7A72; } body.style-raft .ev-personal { --ev: #6B7173; }
+body.style-raft.dark-mode .ev-test { --ev: #9DB6E0; } body.style-raft.dark-mode .ev-examen { --ev: #E39283; } body.style-raft.dark-mode .ev-tema { --ev: #E2C06A; }
+body.style-raft.dark-mode .ev-proiect { --ev: #BBAEDC; } body.style-raft.dark-mode .ev-prezentare { --ev: #8CCBC2; } body.style-raft.dark-mode .ev-personal { --ev: #B3B8B4; }
+
+/* cardurile: hârtie, o linie fină, aproape fără umbră */
+body.style-raft { --shadow-card: 0 1px 0 var(--r-wall-2), 0 0 0 1px color-mix(in srgb, var(--r-ink) 7%, transparent); --shadow-card-hover: var(--shadow-card); }
+body.style-raft .glass-card, body.style-raft.dark-mode .glass-card { box-shadow: var(--shadow-card); border-radius: 16px; }
+body.style-raft :is(.azi-card-head h3, .glass-card > h3, .cat-block h4) .ico, body.style-raft .glass-card > h3 > .ico { color: var(--r-muted); }
+body.style-raft :is(h1, h2, h3, h4) { font-weight: 700; }
+
+/* titlurile paginilor: o subliniere trasă cu markerul; dedesubt, o notiță de mână */
+body.style-raft :is(.page-intro h2, .azi-head h2) {
+    display: inline-block; padding-bottom: 6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none'%3E%3Cpath d='M3 9 C38 4 78 12 118 7 S176 5 197 8' stroke='%23F0CD5E' stroke-width='7' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") left bottom / 100% 13px no-repeat;
+}
+body.style-raft.dark-mode :is(.page-intro h2, .azi-head h2) { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none'%3E%3Cpath d='M3 9 C38 4 78 12 118 7 S176 5 197 8' stroke='%23B8973A' stroke-width='7' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); }
+body.style-raft .page-intro p { font-family: var(--font-note); font-size: 17.5px; line-height: 1.35; color: var(--r-muted); }
+body.style-raft .azi-date { font-family: var(--font-note); font-size: 17px; font-weight: 400; }
+
+/* meniul: un raft deschis la culoare; pagina deschisă e subliniată cu markerul */
+body.style-raft .sidebar { background: var(--r-cab); border-right: 1px solid var(--r-wall-2); color: var(--r-ink); }
+body.style-raft .tab-btn.side-link { color: var(--r-muted); }
+body.style-raft .tab-btn.side-link:hover { background: color-mix(in srgb, var(--r-paper) 70%, transparent); color: var(--r-ink); }
+body.style-raft .sidebar .tab-btn.side-link.active, body.style-raft .side-nav .tab-btn.side-link.active { background: var(--r-wall); color: var(--r-ink); font-weight: 700; }
+body.style-raft .sidebar .tab-btn.side-link.active .ico { color: var(--r-ink); }
+body.style-raft .sidebar .tab-btn.side-link.active > span:not(.side-row-grades):first-of-type,
+body.style-raft .sidebar .tab-btn.side-link.active .side-label { background: linear-gradient(transparent 52%, color-mix(in srgb, var(--r-gold) 80%, transparent) 52% 90%, transparent 90%); }
+body.style-raft .side-sub, body.style-raft .side-row-grades .side-row-add, body.style-raft .side-twist, body.style-raft .side-search, body.style-raft .account-chip, body.style-raft .side-brand-text small { color: var(--r-muted); }
+body.style-raft .side-sub:hover, body.style-raft .side-search:hover { background: color-mix(in srgb, var(--r-paper) 70%, transparent); color: var(--r-ink); }
+body.style-raft .side-foot { border-top: 1px solid var(--r-wall-2); }
+body.style-raft .side-add { box-shadow: 0 2px 0 color-mix(in srgb, var(--r-gold) 60%, #8A6A10); }
+body.style-raft .brand-name, body.style-raft .brand-name .brand-ur, body.style-raft .topbar-brand .brand-name, body.style-raft .topbar-brand .brand-name .brand-ur { color: var(--r-ink); }
+body.style-raft .brand-name .brand-ur { background: linear-gradient(transparent 58%, color-mix(in srgb, var(--r-gold) 85%, transparent) 58% 92%, transparent 92%); }
+body.style-raft .side-sub-risk { background: var(--r-tag); color: var(--r-tag-ink); }
+
+/* butoane, mesaje */
+body.style-raft .btn-primary, body.style-raft .btn-primary:hover { box-shadow: 0 2px 0 color-mix(in srgb, var(--r-gold) 55%, #7A5E0E); }
+body.style-raft .toast { background: #2B302F; color: #F3F1EA; }
+body.style-raft .badge-count { background: var(--r-red); }
+body.style-raft input[type="checkbox"] { accent-color: var(--r-ink); }
+body.style-raft .subnav-btn.active .ico, body.style-raft .mobile-nav-btn.active .ico { color: var(--r-ink); }
+
+/* Azi: filele zilei fără benzi colorate; eticheta scrisă de mână */
+body.style-raft .home-tile, body.style-raft.dark-mode .home-tile { box-shadow: var(--shadow-card); padding: 12px 10px 14px; }
+body.style-raft .home-tile .home-tile-label { padding: 0; background: none; color: var(--r-muted) !important; font: 400 17px/1.2 var(--font-note); }
+body.style-raft .home-tile-value { font-weight: 700; margin-top: 4px; }
+body.style-raft .home-tile.is-hero .home-tile-value { display: inline-block; font-style: normal; color: var(--r-ink); background: linear-gradient(transparent 62%, color-mix(in srgb, var(--r-gold) 75%, transparent) 62% 92%, transparent 92%); padding: 0 6px; }
+body.style-raft .home-tile:hover { transform: none; box-shadow: var(--shadow-card); }
+
+/* raftul de pe Azi: cărți în culori stinse, scândură de stejar deschis */
+body.style-raft .as-item { background: var(--spine); color: var(--spine-ink); box-shadow: inset -6px 0 0 rgba(0, 0, 0, 0.06), inset 4px 0 0 rgba(255, 255, 255, 0.25); }
+body.style-raft .as-item::before { background: color-mix(in srgb, var(--spine-ink) 18%, transparent); height: 2px; top: 46px; box-shadow: 0 5px 0 color-mix(in srgb, var(--spine-ink) 18%, transparent); }
+body.style-raft .as-item.is-risk .as-avg { color: var(--risk); }
+body.style-raft .azi-subjects::after { height: 14px; box-shadow: 0 6px 0 var(--r-wood-dk), 0 14px 20px -12px rgba(0, 0, 0, 0.25); }
+body.style-raft .as-row::before, body.style-raft .as-row::after { background: linear-gradient(90deg, #8D9396, #B9BEC0 45%, #8D9396); }
+body.style-raft .as-flag { background: var(--r-gold); }
+
+/* „Acum”: un post-it lipit cu o bucată de bandă (din stilul clasic) */
+body.style-raft .azi-next, body.style-raft .azi-next.is-warm, body.style-raft .azi-next.is-hot, body.style-raft.dark-mode .azi-next {
+    clip-path: none; overflow: visible; border-radius: 3px; padding: 26px 22px 20px; background: var(--r-tag);
+    transform: rotate(-0.7deg); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 14px 22px -16px rgba(40, 32, 8, 0.45);
+}
+body.style-raft .azi-next::before {
+    left: 50%; top: -11px; width: 96px; height: 24px; margin: 0 0 0 -48px; border-radius: 2px; transform: rotate(-3deg);
+    background: color-mix(in srgb, #FFFFFF 55%, transparent); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+body.style-raft.dark-mode .azi-next::before { background: rgba(255, 255, 255, 0.16); }
+body.style-raft .azi-next-kicker { font-family: var(--font-note); font-size: 16px; font-weight: 400; }
+body.style-raft .qg-btn, body.style-raft .qg-btn[class*="tone-"] { box-shadow: 0 2px 0 color-mix(in srgb, var(--r-tag-ink) 22%, var(--r-tag)); }
+
+/* liste de pe Azi */
+body.style-raft .azi-count small { background: var(--r-ink); color: var(--r-paper); }
+body.style-raft .azi-count.is-near small, body.style-raft .azi-count.is-late small { background: var(--r-red); color: #fff; }
+body.style-raft.dark-mode .azi-count small { background: #3A403E; color: #ECE9E1; }
+body.style-raft.dark-mode .azi-count:is(.is-near, .is-late) small { background: #7E3428; color: #fff; }
+body.style-raft .azi-plan, body.style-raft.dark-mode .azi-plan { background: var(--r-paper); }
+body.style-raft .azi-group { font: 700 19px/1.2 var(--font-note); }
+
+/* Note: teancul de cărți, în culori stinse */
+body.style-raft .cat-sum.is-accent .cat-sum-value, body.style-raft .cat-stat:first-child b { color: var(--r-ink); font-style: normal; }
+body.style-raft .cat-sum, body.style-raft.dark-mode .cat-sum { box-shadow: var(--shadow-card); }
+body.style-raft :is(.cat-row.subj-tile, .cat-row.is-purtare), body.style-raft.dark-mode :is(.cat-row.subj-tile, .cat-row.is-purtare) {
+    color: var(--spine-ink);
+    background:
+        linear-gradient(90deg, transparent 18px, color-mix(in srgb, var(--spine-ink) 30%, transparent) 18px 19.5px, transparent 19.5px 24px, color-mix(in srgb, var(--spine-ink) 30%, transparent) 24px 25px, transparent 25px),
+        linear-gradient(270deg, transparent 18px, color-mix(in srgb, var(--spine-ink) 30%, transparent) 18px 19.5px, transparent 19.5px 24px, color-mix(in srgb, var(--spine-ink) 30%, transparent) 24px 25px, transparent 25px),
+        var(--spine);
+    box-shadow: 0 2px 0 rgba(20, 24, 26, 0.12);
+}
+body.style-raft .cat-row.is-purtare { --subj: #7A5440; }
+body.style-raft .cat-row :is(.cat-row-name, .cat-row-meta) { color: var(--spine-ink); }
+body.style-raft .cat-row .cat-row-meta { opacity: 0.85; }
+body.style-raft .cat-row .cat-tag { background: var(--r-paper); color: var(--r-ink); }
+body.style-raft .cat-row .cat-row-avg { background: var(--r-paper); color: var(--r-ink); box-shadow: 0 0 0 1px color-mix(in srgb, var(--r-ink) 10%, transparent); }
+body.style-raft .cat-row .cat-row-avg b, body.style-raft .cat-row .cat-row-avg b[class*="tone-text"] { color: var(--r-ink); }
+body.style-raft .cat-row .cat-row-avg small { color: var(--r-muted); font-family: var(--font-note); font-size: 14px; }
+body.style-raft .cat-row.is-risk .cat-row-avg :is(b, small) { color: var(--risk); }
+body.style-raft .cat-row.is-empty, body.style-raft.dark-mode .cat-row.is-empty { background: transparent; border-color: color-mix(in srgb, var(--subj) 50%, var(--r-muted)); }
+body.style-raft .cat-row.is-empty .cat-row-avg, body.style-raft.dark-mode .cat-row.is-empty .cat-row-avg { background: var(--r-paper); }
+
+/* pagina materiei: coperta în culoarea stinsă a materiei, rama trasă cu creionul */
+body.style-raft .cat-detail-head {
+    color: var(--spine-ink);
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 16px, rgba(255, 255, 255, 0.25) 16px 17px, transparent 17px), var(--spine);
+    box-shadow: 0 2px 0 rgba(20, 24, 26, 0.14), 0 16px 26px -20px rgba(20, 24, 26, 0.5);
+}
+body.style-raft .cat-detail-head::before { border-color: color-mix(in srgb, var(--spine-ink) 35%, transparent); }
+body.style-raft .cat-detail-head :is(.cat-title, .subtitle) { color: var(--spine-ink); }
+body.style-raft .cat-detail-head .btn-star { color: color-mix(in srgb, var(--spine-ink) 55%, transparent); }
+body.style-raft .cat-detail-head .btn-star.active { color: #B8860B; }
+body.style-raft .cat-detail-head :is(.badge, .btn-glass, .help-dot) { background: var(--r-paper); color: var(--r-ink); }
+body.style-raft { --stamp-hi: #3F7A5B; --stamp-mid: #4A6A9C; --stamp-low: #946413; --stamp-fail: #A4483B; }
+body.style-raft.dark-mode { --stamp-hi: #8FCBA6; --stamp-mid: #9DB6E0; --stamp-low: #E2C06A; --stamp-fail: #E39283; }
+body.style-raft .cat-grade-val.tone-hi { background: #3F7A5B; } body.style-raft .cat-grade-val.tone-mid { background: #4A6A9C; }
+body.style-raft .cat-grade-val.tone-low { background: #946413; } body.style-raft .cat-grade-val.tone-fail { background: #A4483B; }
+body.style-raft .cat-block-head .subtitle { font-family: var(--font-note); font-size: 16px; }
+
+/* etichetele secțiunilor: carton cu margine de creion, în loc de alamă */
+body.style-raft :is(.azi-subjects .azi-card-head h3, .stats-section-title, .cat-block > h4, .cat-block-head h4, .ag-week-sep) {
+    border: 1.5px solid color-mix(in srgb, var(--r-ink) 32%, transparent); border-radius: 4px;
+    background:
+        radial-gradient(circle at 10px 50%, color-mix(in srgb, var(--r-ink) 40%, transparent) 0 2px, transparent 2.6px),
+        radial-gradient(circle at calc(100% - 10px) 50%, color-mix(in srgb, var(--r-ink) 40%, transparent) 0 2px, transparent 2.6px),
+        var(--r-paper);
+    box-shadow: 0 1px 0 var(--r-wall-2); color: var(--r-ink);
+}
+body.style-raft :is(.azi-subjects .azi-card-head h3, .stats-section-title, .cat-block > h4, .cat-block-head h4) .ico { color: var(--r-muted); }
+body.style-raft .cat-block-head h4 .cat-count { background: var(--r-ink); color: var(--r-paper); }
+body.style-raft .ag-week-sep { padding: 3px 22px; }
+
+/* Calendar: filele cu banda de cerneală; azi, încercuit de mână cu pixul roșu */
+body.style-raft .ag-day.is-today, body.style-raft.dark-mode .ag-day.is-today { background: color-mix(in srgb, var(--r-tag) 70%, var(--r-paper)); border-color: transparent; box-shadow: none; }
+body.style-raft .ag-day.is-today .ag-date span { background: var(--r-ink); color: var(--r-paper); }
+body.style-raft .ag-day.is-weekend .ag-date span { background: #4F5759; color: #F3F1EA; }
+body.style-raft.dark-mode .ag-date span { background: #3A403E; color: #F1EDE4; }
+body.style-raft .ag-day.is-today .ag-date b {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40' preserveAspectRatio='none'%3E%3Cpath d='M37 5 C20 2 6 9 6 20 C6 32 22 37 34 35 C48 33 56 25 54 16 C52 8 40 4 28 6' stroke='%23B5473A' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center 60% / 46px 34px no-repeat;
+}
+body.style-raft .ag-lesson { background: var(--spine); color: var(--spine-ink); border-color: transparent; }
+body.style-raft .ag-lesson i { display: none; }
+body.style-raft .cal-attn { background: var(--r-tag); }
+
+/* permisul și fișa: aceeași hârtie */
+body.style-raft .me-card > h3 { background: var(--r-ink); color: var(--r-paper); }
+body.style-raft .me-card > h3 .ico { color: var(--r-paper); }
+body.style-raft.dark-mode .me-card > h3 { background: #3A403E; color: #F1EDE4; }
+
+/* telefon: bara de jos e o foaie deschisă, nu un sertar închis */
+@media (max-width: 900px) {
+    body.style-raft .mobile-bottom-nav { background: var(--r-paper); box-shadow: 0 0 0 1px var(--r-wall-2), 0 12px 26px -16px rgba(20, 24, 26, 0.35); }
+    body.style-raft .mobile-nav-btn { color: var(--r-muted); }
+    body.style-raft .mobile-nav-btn.active { background: var(--r-wall) !important; color: var(--r-ink); transform: none; box-shadow: none; border-radius: 14px; }
+    body.style-raft .mobile-bottom-nav { padding-top: 6px; }
+    body.style-raft .mobile-add { box-shadow: 0 2px 0 color-mix(in srgb, var(--r-gold) 55%, #7A5E0E); }
+    body.style-raft .app-bar.is-scrolled { background: var(--r-wall); box-shadow: 0 1px 0 var(--r-wall-2); }
+    body.style-raft .topbar-title { font-weight: 700; }
+}
+
+body.style-raft .azi-subjects, body.style-raft.dark-mode .azi-subjects { background: none; box-shadow: none; }
+body.style-raft .home-tile.is-hero .home-tile-value { width: fit-content; margin-inline: auto; }
+body.style-raft .azi-real, body.style-raft.dark-mode .azi-real { background: var(--r-paper); }
+body.style-raft .azi-real h3 .ico { color: var(--warn); }
+body.style-raft .side-brand-text small { opacity: 1; color: var(--r-muted); }
+body.style-raft .side-search kbd { background: var(--r-paper); color: var(--r-ink); }

@@ -1,4 +1,4 @@
-/* urNotes · Reguli de bază pentru Raftul (singurul stil): „Materiile tale”, fără Tiți, pagina materiei.
+/* urNotes · Reguli de bază pentru Raftul (singurul stil): „Materiile tale”, mascota, pagina materiei.
    Aspectul propriu-zis e în style-raft.css; style.css + ui.css sunt temelia. */
 
 /* ---------- Azi › „Materiile tale”: aspectul de bază (Clasic); stilurile îl desenează în felul lor ---------- */
@@ -16,8 +16,8 @@
 .as-add { border-style: dashed; color: var(--ink-2); }
 .as-item:focus-visible { outline: 3px solid var(--accent-color); outline-offset: 2px; }
 
-/* ---------- Tiți nu apare în Raftul ---------- */
-body:not(.style-urnotes) :is(.azi-buddy, .side-pal, .page-pal, .nav-pal, .pal-level, .buddy-poke, .toast-pal, .me-preview, .pal-only, svg.buddy, [data-pal-mood]) { display: none !important; }
+/* ---------- Mascota: apare peste tot, mai puțin pe butonul „Eu” (acolo rămâne iconița) ---------- */
+body:not(.style-urnotes) .nav-pal { display: none !important; }
 body.style-urnotes .no-pal { display: none; }
 body:not(.style-urnotes) .me-btn .nav-user { display: block !important; }
 
@@ -27,3 +27,18 @@ body:not(.style-urnotes) .me-btn .nav-user { display: block !important; }
     body:not(.style-urnotes) .cat-nav { position: static; background: none; }
 }
 body:not(.style-urnotes) .brand-ur { background: none; padding: 0; }
+
+/* ---------- Alegerea mascotei (Eu, garderoba, configurarea) ---------- */
+.pal-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pal-kind { display: grid; justify-items: center; gap: 2px; padding: 12px 10px 14px; border: 1.5px solid var(--rule); border-radius: 14px; background: var(--sheet); color: var(--ink); font: inherit; text-align: center; cursor: pointer; }
+.pal-kind .buddy { width: 76px; height: 76px; margin-bottom: 4px; }
+.pal-kind b { font-family: var(--font-hand); font-size: 18px; }
+.pal-kind small { font-size: 12.5px; line-height: 1.3; color: var(--ink-2); }
+.pal-kind:hover { border-color: color-mix(in srgb, var(--ink) 30%, var(--rule)); }
+.pal-kind.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink) inset; background: var(--input-bg); }
+.pal-kind:focus-visible { outline: 3px solid var(--accent-fill); outline-offset: 2px; }
+.setup-me .pal-kinds { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.setup-me .pal-kind { padding: 8px 4px 10px; }
+.setup-me .pal-kind .buddy { width: 54px; height: 54px; }
+.setup-me .pal-kind small { display: none; }
+@media (max-width: 640px) { .pal-kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

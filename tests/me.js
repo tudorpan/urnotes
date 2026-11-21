@@ -51,28 +51,27 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   T.state.subjects.Fizica.grades = [{ val: 9, type: "Test", date: "2026-09-18" }]; T.refresh();
   assert(buddy() === "worried" && /Matematica e la 4\.00/.test(bubble()), "buddy worried about the risk subject: " + bubble());
   assert(T.state.settings.appearance.accent === "yellow", "old default blue or violet / missing accent → yellow (new brand)");
-  // numele din Setări
+  // Eu: numele tău și colegul (se alege dintre patru mascote, fiecare cu numele ei; nu se mai botează)
   nav("tab-setari");
-  assert(q("#set-buddy-preview .buddy") && /Tiți/.test($("set-buddy-preview").textContent), "settings preview shows the buddy");
-  $("set-name").value = "  Tudor   Popescu "; $("set-buddy").value = "Bobiță";
-  $("set-buddy").dispatchEvent(new w.Event("input", { bubbles: true }));
-  assert(/Bobiță/.test($("set-buddy-preview").textContent) && !/Salut/.test($("set-buddy-preview").textContent), "preview updates live while typing");
+  assert(!$("set-buddy") && qa("#pal-kind-setting .pal-kind").length === 4, "Eu: no name field for the mascot, four mascots to pick");
+  assert(q('#pal-kind-setting .pal-kind[data-kind="bufi"]').getAttribute("aria-checked") === "true", "Bufi (the owl) is the default");
+  click(q('#pal-kind-setting .pal-kind[data-kind="cotorel"]'));
+  assert(T.state.pal.look.kind === "cotorel" && q('#pal-kind-setting .pal-kind[data-kind="cotorel"]').getAttribute("aria-checked") === "true", "picking Cotorel switches at once");
+  $("set-name").value = "  Tudor   Popescu ";
   $("set-name").dispatchEvent(new w.Event("change", { bubbles: true }));
   assert(/Salvat/.test($("settings-status").textContent), "saved automatically ('✓ Salvat')");
-  assert(T.state.settings.profile.name === "Tudor Popescu" && T.state.settings.profile.buddy === "Bobiță", "names saved (trimmed)");
-  assert(JSON.parse(w.localStorage.getItem("pro_settings_db_v4")).profile.buddy === "Bobiță", "names persisted");
+  assert(T.state.settings.profile.name === "Tudor Popescu", "name saved (trimmed)");
   nav("tab-dashboard");
   assert(txt("h-dashboard") === "Bună dimineața, Tudor!", "greeting uses first name");
-  assert(/Bobiță/.test(q("#azi-buddy .buddy-poke").getAttribute("aria-label")) && !q("#azi-buddy .buddy-bubble"), "pal on Azi: named face, no speech text");
+  assert(/Cotorel/.test(q("#azi-buddy .buddy-poke").getAttribute("aria-label")) && q("#azi-buddy .buddy-cotorel") && !q("#azi-buddy .buddy-bubble"), "pal on Azi: the chosen mascot, with its name");
   // mascota se bucură de un 10 recent (are prioritate)
   T.state.subjects.Chimie.grades.push({ val: 10, type: "Test", date: "2026-10-07" }); T.refresh();
   assert(buddy() === "starry" && /Un 10 la Chimie! Bravo, Tudor/.test(bubble()), "happy after a recent 10: " + bubble());
   // fără risc și fără 10: concentrată înaintea testului de azi
   T.state.subjects.Chimie.grades.pop(); T.state.subjects.Fizica.grades = [{ val: 9, type: "Test", date: "2026-09-18" }]; T.state.subjects.Matematica.grades = [{ val: 9, type: "Test", date: "2026-09-20" }]; T.refresh();
   assert(buddy() === "thinking" && /test la Fizica/i.test(bubble()), "focused before today's test: " + bubble());
-  // numele gol la mascotă → revine la Tiți
-  nav("tab-setari"); $("set-buddy").value = "   "; $("set-buddy").dispatchEvent(new w.Event("change", { bubbles: true }));
-  assert(T.state.settings.profile.buddy === "Tiți" && $("set-buddy").value === "Tiți", "empty buddy name falls back to Tiți");
+  // o mascotă necunoscută (date vechi) se desenează ca cea implicită
+  assert(T.buddySVG("happy", "", { kind: "nimeni", color: "yellow", acc: "" }).includes("buddy-bufi"), "unknown mascot → Bufi");
   // restabilirea setărilor păstrează numele
   click(q('[data-action="reset-settings"]')); click($("action-modal-confirm"));
   assert(T.state.settings.profile.name === "Tudor Popescu", "reset keeps the names");
@@ -80,14 +79,16 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   click(q('[data-action="setup-open"]'));
   assert($("setup-me-name").value === "Tudor Popescu" && q("#setup-buddy .buddy"), "setup shows the name fields with current values");
   $("setup-me-name").value = "Ana"; $("setup-me-name").dispatchEvent(new w.Event("input", { bubbles: true }));
-  $("setup-me-buddy").value = "Pufi"; $("setup-me-buddy").dispatchEvent(new w.Event("input", { bubbles: true }));
-  assert(/Pufi/.test($("setup-buddy").textContent) && !/Încântat/.test($("setup-buddy").textContent), "setup preview reacts");
+  assert(!$("setup-me-buddy") && qa("#setup-overlay .pal-kind, .setup-me .pal-kind").length === 4, "setup: pick a mascot instead of naming one");
+  click(q('.setup-me .pal-kind[data-kind="gumi"]'));
+  assert(T.state.pal.look.kind === "gumi" && /Gumi/.test($("setup-buddy").textContent) && q("#setup-buddy .buddy-gumi"), "setup preview shows the chosen mascot and its name");
   assert(JSON.parse(w.localStorage.getItem("pro_settings_db_v4")).profile.name === "Ana", "setup names saved immediately");
   click(q('[data-action="setup-skip"]'));
   assert(txt("h-dashboard") === "Bună dimineața, Ana!" || T.state.settings.profile.name === "Ana", "kept after skipping setup");
   // backup-ul poartă numele
-  assert(JSON.parse(w.localStorage.getItem("pro_settings_db_v4")).profile.buddy === "Pufi", "profile travels in the backup / cloud copy");
-  // fețele lui Tiți: toate stările se desenează, fiecare cu fața ei
+  assert(T.state.pal.look.kind === "gumi", "the mascot choice stays after skipping setup");
+  // fețele mascotei: toate stările se desenează, fiecare cu fața ei; fiecare mascotă are corpul ei
+  assert(["bufi", "cotorel", "gumi", "titi"].every(k => T.buddySVG("happy", "", { kind: k, color: "yellow", acc: "" }).includes(`buddy-${k}`)) && new Set(["bufi", "cotorel", "gumi", "titi"].map(k => T.buddySVG("happy", "", { kind: k, color: "yellow", acc: "" }))).size === 4, "four mascots, four different bodies");
   const moods = ["happy", "focused", "worried", "giggle", "surprised", "ouch", "dizzy", "angry", "love", "sleepy", "wink", "starry", "sad", "proud", "thinking", "shy", "party"];
   const faces = moods.map(m => T.buddySVG(m));
   assert(faces.every((f, i) => f.includes(`data-mood="${moods[i]}"`) && f.includes("buddy-breath")) && new Set(faces).size === moods.length, "17 distinct moods, all breathing");

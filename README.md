@@ -60,16 +60,20 @@ Aplicația e făcută pentru elev, în jurul zilei lui. Patru secțiuni, la fel 
 Pe telefon, bara de jos are Azi · Note · ＋ · Calendar · Plan, iar „Eu” e avatarul din bara de sus.
 O filă a unei secțiuni se înregistrează cu `hub` (calea „Note › Progres”, fără „înapoi”): `registerTab("tab-…", { …, group: "grades", hub: "tab-catalog" })`; filele se pun în `<nav class="subnav">` din `index.html`. O sub-pagină cu „înapoi” se înregistrează cu `parent`.
 
-### Aspectul: Raftul
+### Aspectul: Raftul liniștit
 
-Aplicația are un singur stil, **Raftul** (`style-raft.css`, clasa `style-raft` pe `<body>`, pusă direct în `index.html`): o bibliotecă.
-Materiile sunt cărți pe un raft (înălțimea = media), meniul e un dulap închis la culoare, „Acum” e o etichetă de bagaj, iar cartonașele sunt foi de calendar de birou.
-În Note, materiile sunt un teanc de cărți culcate (cotorul colorat, media pe o etichetă de bibliotecă, cartea e mai groasă cu cât are mai multe note); pagina unei materii are coperta cărții sus și notele pe o fișă de împrumut, ca ștampile; zilele din Calendar sunt file de calendar de birou; profilul din Eu e un permis de cititor; titlurile secțiunilor stau în rame de alamă, ca etichetele unui fișier.
+Un singur stil (`style-raft.css`, clasa `style-raft` pe `<body>`): o bibliotecă liniștită, cu ce era bun în stilul clasic.
+Hârtie cald-cenușie, cerneală și o singură culoare de accent (galbenul de post-it / marker); materiile apar în culoarea lor, stinsă (`--spine`), iar roșul rămâne doar pentru „risc”.
 
-- `style.css` + `ui.css` sunt temelia (aranjarea paginilor); `style-raft.css` le dă aspectul, cu variabilele de culoare și fonturile la început.
-- `styles.css` are „Materiile tale” de pe Azi (`#azi-subjects`, fiecare materie cu media în `--pct`), pagina întreagă a materiei și ascunderea lui Tiți.
-- Fonturile sunt găzduite cu aplicația (`fonts/`, `fonts.css`): Fraunces pentru titluri, Lexend pentru text, amândouă cu ă, â, î, ș, ț.
-- Tema (luminoasă / întunecată / ca sistemul) se alege din **Eu › Aspect**.
+- Azi: raftul cu cărți (înălțimea = media), „Acum” e un post-it lipit cu bandă. Note: un teanc de cărți culcate. Pagina unei materii: coperta sus, notele ca ștampile pe o fișă de împrumut. Calendar: file de calendar de birou, cu ziua de azi încercuită de mână. Eu: un permis de cititor. Plan: o fișă liniată.
+- Atingeri de mână: titlurile paginilor sunt subliniate cu markerul, iar notițele de pe margine (subtitluri, etichete mici) sunt scrise cu Kalam.
+- Fonturile sunt găzduite cu aplicația (`fonts/`, `fonts.css`): Fraunces (titluri, cifre), Lexend (text), Kalam (notițe), toate cu ă, â, î, ș, ț.
+- `style.css` + `ui.css` sunt temelia; `styles.css` are „Materiile tale”, alegerea mascotei și pagina întreagă a materiei.
+
+### Mascotele
+
+Colegul de bancă se alege, nu se botează: `PAL_KINDS` (`js/eu/growth.js`) are patru mascote, fiecare cu numele, descrierea și culoarea ei: **Bufi** (bufnița, implicită), **Cotorel** (cartea), **Gumi** (guma de șters) și **Tiți** (post-it-ul). Alegerea e în `state.pal.look.kind` și se face din Eu › Colegul tău, din garderobă sau din configurarea de la început.
+Corpurile sunt în `buddyBodySVG()` (`js/azi/azi.js`), în aceleași coordonate, așa că fețele, stările și accesoriile merg la toate. Prima culoare din garderobă („A lui”) e culoarea firească a mascotei; celelalte se deblochează cu nivelurile.
 
 ### Cum adaugi ceva
 

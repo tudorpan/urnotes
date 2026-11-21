@@ -55,7 +55,7 @@ const DATA = {
   assert(L1 === L0 + 1 && T.state.pal.seenLevel === L1 && new RegExp(`nivelul ${L1}`).test(toast()), "level up toast");
   // garderoba
   click(q("#azi-buddy .pal-level") || q('[data-action="wardrobe-open"]'));
-  assert(/Garderoba lui Bubu/.test($("action-modal-title").textContent), "wardrobe opens");
+  assert(/Garderoba lui Bufi/.test($("action-modal-title").textContent) && qa("#action-modal-body .pal-kind").length === 4, "wardrobe opens, with the four mascots to pick (an old typed name is ignored)");
   assert(!q('[data-action="wardrobe-acc"][data-id="glasses"]').disabled && q('[data-action="wardrobe-acc"][data-id="crown"]').disabled, "glasses unlocked, crown locked");
   click(q('[data-action="wardrobe-acc"][data-id="glasses"]'));
   click(q('[data-action="nav"][data-tab="tab-dashboard"]'));

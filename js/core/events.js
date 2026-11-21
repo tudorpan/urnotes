@@ -164,7 +164,7 @@ function bindEvents() {
         }
     });
     document.addEventListener("input", event => {
-        if (event.target.id === "set-name" || event.target.id === "set-buddy") renderBuddyPreview();
+        if (event.target.id === "set-name") renderBuddyPreview();
         if (event.target.id === "modal-grade-val") {
             document.querySelectorAll(".grade-pick-btn").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.val === event.target.value.trim())));
         }

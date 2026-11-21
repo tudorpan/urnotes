@@ -274,11 +274,9 @@ function bindSetupEvents() {
     });
     box.addEventListener("input", event => {
         const t = event.target;
-        if (t.id === "setup-me-name" || t.id === "setup-me-buddy") {
-            // Se salvează pe loc: numele rămân chiar dacă elevul sare peste restul configurării.
-            const p = state.settings.profile;
-            if (t.id === "setup-me-name") p.name = cleanName(t.value, 40);
-            else p.buddy = cleanName(t.value, 20) || DEFAULT_SETTINGS.profile.buddy;
+        if (t.id === "setup-me-name") {
+            // Se salvează pe loc: numele rămâne chiar dacă elevul sare peste restul configurării.
+            state.settings.profile.name = cleanName(t.value, 40);
             saveState();
             $("setup-buddy").innerHTML = setupBuddyHTML();
             return;

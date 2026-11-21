@@ -70,12 +70,12 @@ function greeting(hour) {
 
 /* ==================== PERSONALIZARE: ELEVUL ȘI MASCOTA ==================== */
 /*
- * Mascota e un post-it cu fața desenată; elevul îi alege numele (Setări sau configurarea).
+ * Mascota e unul dintre colegii din PAL_KINDS (bufnița, cartea, guma, post-it-ul), fiecare cu numele lui; elevul o alege din Eu.
  * Starea ei vine din note și din calendar: bucuroasă după un 10 sau când media e sus,
  * concentrată înaintea unui test, îngrijorată când o materie e sub pragul de risc.
  */
 const firstName = () => state.settings.profile.name.split(" ")[0] || "";
-const buddyName = () => state.settings.profile.buddy || DEFAULT_SETTINGS.profile.buddy;
+const buddyName = () => PAL_KINDS[palKind()].name;
 const formatAvg = v => Number(v).toFixed(2);
 
 /*
@@ -138,17 +138,50 @@ const BUDDY_FACES = {
     party: { eyes: MK_HAPPY_EYES(), mouth: MK_OPEN_MOUTH, hot: true }
 };
 
+/* Corpurile mascotelor, în aceleași coordonate (fața stă la ochi 44/76, y 55): post-itul, bufnița, cartea, guma. */
+const BUDDY_TILT = { titi: -6, bufi: -3, cotorel: -4, gumi: -5 };
+function buddyBodySVG(kind, paper, look, hat) {
+    const { fill, fold } = paper;
+    switch (kind) {
+        case "bufi": return `
+            <path d="M24 36 L17 7 L46 22 Z M96 36 L103 7 L74 22 Z" fill="${fill}"/>
+            <path d="M60 16 C88 16 104 36 104 64 C104 92 86 108 60 108 C34 108 16 92 16 64 C16 36 32 16 60 16 Z" fill="${fill}"/>
+            <path d="M17 60 C8 72 10 92 25 101 C22 87 22 74 27 63 Z M103 60 C112 72 110 92 95 101 C98 87 98 74 93 63 Z" fill="${fold}"/>
+            <ellipse cx="60" cy="92" rx="23" ry="13" fill="#FFFFFF" opacity="0.32"/>
+            <circle cx="44" cy="55" r="14.5" fill="#FFFFFF" opacity="0.6"/><circle cx="76" cy="55" r="14.5" fill="#FFFFFF" opacity="0.6"/>
+            <path d="M55.5 62 H64.5 L60 68.5 Z" fill="#E59A2F" stroke="${MK}" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M44 107 l-4 7 M49 108 v7 M54 107 l4 7 M66 107 l-4 7 M71 108 v7 M76 107 l4 7" stroke="#E59A2F" stroke-width="3" stroke-linecap="round"/>`;
+        case "cotorel": return `
+            <path d="M99 15 L106 19 V104 L99 107 Z" fill="#FFFDF5"/>
+            <path d="M101.5 24 V100 M104 26 V98" stroke="#DDD5C2" stroke-width="1"/>
+            <rect x="18" y="12" width="84" height="96" rx="6" fill="${fill}"/>
+            <rect x="18" y="12" width="13" height="96" rx="5" fill="${fold}"/>
+            <path d="M31 12 V108" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.5"/>
+            ${hat ? "" : `<rect x="45" y="20" width="44" height="11" rx="2" fill="#FFFFFF" opacity="0.65"/><path d="M51 25.5 H83" stroke="${fold}" stroke-width="2" stroke-linecap="round"/>`}
+            <path d="M38 96 H95 M38 100 H95" stroke="${fold}" stroke-width="2"/>`;
+        case "gumi": return `
+            <rect x="12" y="26" width="96" height="76" rx="18" fill="${fill}"/>
+            <path d="M12 86 H108 Q108 102 90 102 H30 Q12 102 12 86 Z" fill="${fold}"/>
+            <path d="M12 86 H108" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="2"/>
+            <rect x="22" y="31" width="34" height="8" rx="4" fill="#FFFFFF" opacity="0.45"/>`;
+        default: return `
+            <path d="M14 18H106V86L88 104H14Z" fill="${fill}"/>
+            <path d="M88 104V86H106Z" fill="${fold}"/>
+            ${hat ? "" : `<rect x="44" y="10" width="32" height="13" fill="${look.color === "pink" ? "#FFE58A" : "#FF9EC0"}"/>`}`;
+    }
+}
+
 function buddySVG(mood = "happy", cls = "", look = palLook()) {
     const f = BUDDY_FACES[mood] || BUDDY_FACES.happy;
-    const paper = PAL_COLORS[look.color] || PAL_COLORS.yellow;
+    const kind = PAL_KINDS[look.kind] ? look.kind : PAL_KIND_DEFAULT;
+    // „A lui” (prima culoare) = culoarea firească a mascotei; celelalte se deblochează cu nivelurile
+    const paper = !PAL_COLORS[look.color] || look.color === "yellow" ? PAL_KINDS[kind] : PAL_COLORS[look.color];
     const acc = PAL_ACCESSORIES.find(a => a.id === look.acc);
     const cheek = f.hot ? "#FF5C7A" : "#FF7AA8";
-    return `<svg class="buddy ${cls}" viewBox="0 0 120 120" aria-hidden="true" data-mood="${mood}">
+    return `<svg class="buddy buddy-${kind} ${cls}" viewBox="0 0 120 120" aria-hidden="true" data-mood="${mood}">
         <g class="buddy-body"><g class="buddy-anim"><g class="buddy-breath">
-            <g transform="rotate(-6 60 62)">
-                <path d="M14 18H106V86L88 104H14Z" fill="${paper.fill}"/>
-                <path d="M88 104V86H106Z" fill="${paper.fold}"/>
-                ${acc?.hat ? "" : `<rect x="44" y="10" width="32" height="13" fill="${look.color === "pink" ? "#FFE58A" : "#FF9EC0"}"/>`}
+            <g transform="rotate(${BUDDY_TILT[kind]} 60 62)">
+                ${buddyBodySVG(kind, paper, look, Boolean(acc?.hat))}
                 ${f.eyes}${f.brows || ""}
                 ${f.hot ? `<g class="b-cheeks"><ellipse cx="31" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.7"/><ellipse cx="89" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.7"/></g>` : ""}
                 ${f.mouth}

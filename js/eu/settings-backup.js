@@ -147,7 +147,6 @@ function saveSettings({ quiet = false } = {}) {
     s.appearance.accent = "yellow";
     s.profile.name = cleanName(field("set-name"), 40);
     s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
-    s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
 
     applyAppearanceSettings();
     refresh();

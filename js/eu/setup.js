@@ -564,8 +564,8 @@ function setupWelcomeHTML() {
                     <input type="text" id="setup-me-name" class="glass-input" maxlength="40" autocomplete="given-name" placeholder="ex: Tudor" value="${escapeHTML(state.settings.profile.name)}">
                 </div>
                 <div class="form-group">
-                    <label for="setup-me-buddy">Cum îl botezi pe colegul tău, post-it-ul?</label>
-                    <input type="text" id="setup-me-buddy" class="glass-input" maxlength="20" autocomplete="off" placeholder="${DEFAULT_SETTINGS.profile.buddy}" value="${escapeHTML(state.settings.profile.buddy)}">
+                    <span class="form-label">Cine îți ține companie?</span>
+                    ${palKindPickHTML("setup-kind")}
                 </div>
             </div>
         </div>

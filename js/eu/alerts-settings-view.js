@@ -122,13 +122,10 @@ function renderProgrammeSettings() {
         <button type="button" class="btn btn-primary btn-sm mt-3" data-action="programme-change">${icon("graduation")} Alege profilul și clasa</button>`;
 }
 
-/** Mascota de lângă câmpurile „Tu și colegul tău” (Setări), cu numele scris în câmp. */
+/** Eu › Colegul tău: cele patru mascote, de ales dintr-o atingere (numele vine cu ea). */
 function renderBuddyPreview() {
-    const box = $("set-buddy-preview");
-    if (!box) return;
-    const name = cleanName($("set-buddy")?.value, 20) || DEFAULT_SETTINGS.profile.buddy;
-    const who = cleanName($("set-name")?.value, 40).split(" ")[0];
-    box.innerHTML = `${buddySVG("happy")}<b class="buddy-name pal-name-tag">${escapeHTML(name)}</b>`;
+    const box = $("pal-kind-setting");
+    if (box) box.innerHTML = palKindPickHTML();
 }
 
 registerTab("tab-setari", { render: loadSettingsIntoUI, title: "Eu", icon: "user", group: "me" });

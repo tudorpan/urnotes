@@ -5,7 +5,7 @@
 "use strict";
 
 const PAL_COLORS = {
-    yellow: { label: "Galben", fill: "#FFC93C", fold: "#E0A21C", level: 1 },
+    yellow: { label: "A lui", fill: "#FFC93C", fold: "#E0A21C", level: 1 }, // culoarea firească a fiecărei mascote (PAL_KINDS)
     pink: { label: "Roz", fill: "#FF9EC0", fold: "#E0749A", level: 3 },
     mint: { label: "Mentă", fill: "#8FE3C0", fold: "#55B993", level: 5 },
     sky: { label: "Cer", fill: "#9CCBFF", fold: "#6A9EE0", level: 7 },
@@ -21,19 +21,28 @@ const PAL_ACCESSORIES = [
     { id: "gradcap", label: "Toc de absolvent", level: 12, hat: true },
     { id: "crown", label: "Coroană", level: 15, hat: true }
 ];
+/** Mascotele: fiecare are numele și corpul ei; fețele și stările sunt aceleași. Nu se botează, se alege una. */
+const PAL_KINDS = {
+    bufi: { name: "Bufi", what: "bufnița bibliotecii", hint: "stă trează cu tine la teme", fill: "#DDB27A", fold: "#B98852" },
+    cotorel: { name: "Cotorel", what: "o carte care vorbește", hint: "știe programa pe de rost", fill: "#8FB0BE", fold: "#68899A" },
+    gumi: { name: "Gumi", what: "guma de șters", hint: "șterge greșelile, nu și notele", fill: "#F2ADA6", fold: "#D48A82" },
+    titi: { name: "Tiți", what: "post-it-ul", hint: "ține minte ce ai de făcut", fill: "#FFC93C", fold: "#E0A21C" }
+};
+const PAL_KIND_DEFAULT = "bufi";
 const PAL_MAX_LEVEL = 30;
 /* Cât XP aduce fiecare lucru (apare și în garderobă, la „Cum crește”) */
 const XP = { grade: 10, ten: 5, plan: 15, event: 4, badge: 50, practice: 8 };
 
 function defaultPal() {
     // seenLevel 0 = încă nu știm nivelul (date vechi): îl aflăm la primul calcul, fără sărbătoare
-    return { look: { color: "yellow", acc: "" }, plan: 0, events: 0, seenLevel: 0 };
+    return { look: { kind: PAL_KIND_DEFAULT, color: "yellow", acc: "" }, plan: 0, events: 0, seenLevel: 0 };
 }
 
 function sanitizePal(raw) {
     const p = defaultPal();
     if (!isPlainObject(raw)) return p;
     const look = isPlainObject(raw.look) ? raw.look : {};
+    p.look.kind = PAL_KINDS[look.kind] ? look.kind : PAL_KIND_DEFAULT;
     p.look.color = PAL_COLORS[look.color] ? look.color : "yellow";
     p.look.acc = PAL_ACCESSORIES.some(a => a.id === look.acc) ? look.acc : "";
     p.plan = clampInteger(raw.plan, 0, 1e6, 0);
@@ -65,7 +74,26 @@ function palProgress(xp = palXP()) {
 
 /** Nivelul cel mai mare atins vreodată: de el depind lucrurile deblocate (nu le pierzi dacă ștergi o notă). */
 const palUnlockedLevel = () => Math.max(state.pal.seenLevel, palProgress().level);
-const palLook = () => (typeof state !== "undefined" && state.pal?.look) || { color: "yellow", acc: "" };
+const palLook = () => (typeof state !== "undefined" && state.pal?.look) || { kind: PAL_KIND_DEFAULT, color: "yellow", acc: "" };
+const palKind = (look = palLook()) => (PAL_KINDS[look.kind] ? look.kind : PAL_KIND_DEFAULT);
+
+/** Alegerea mascotei: câte un cartonaș pentru fiecare, cu ea desenată și numele ei. */
+function palKindPickHTML(action = "pal-kind") {
+    const cur = palKind();
+    return `<div class="pal-kinds" role="radiogroup" aria-label="Alege-ți colegul">${Object.entries(PAL_KINDS).map(([id, k]) => `
+        <button type="button" class="pal-kind ${id === cur ? "is-on" : ""}" role="radio" aria-checked="${id === cur}" data-action="${action}" data-kind="${id}">
+            ${buddySVG(id === cur ? "love" : "happy", "pal-kind-buddy", { ...palLook(), kind: id })}
+            <b>${escapeHTML(k.name)}</b><small>${escapeHTML(k.what)}, ${escapeHTML(k.hint)}</small>
+        </button>`).join("")}</div>`;
+}
+function pickPalKind(kind) {
+    if (!PAL_KINDS[kind] || palKind() === kind) return;
+    state.pal.look.kind = kind;
+    saveState();
+    refresh();
+    document.querySelectorAll(".pal-kinds").forEach(box => { box.outerHTML = palKindPickHTML(box.querySelector("[data-action]")?.dataset.action || "pal-kind"); });
+    showToast(`${PAL_KINDS[kind].name} e acum colegul tău.`);
+}
 
 /** Accesoriul, desenat peste post-it (în aceleași coordonate ca fața). */
 function palAccessorySVG(id) {
@@ -118,12 +146,12 @@ function openWardrobe() {
     const swatch = (id, c) => {
         const open = unlocked >= c.level;
         return `<button type="button" class="wr-item ${look.color === id ? "is-on" : ""}" data-action="wardrobe-color" data-id="${id}" ${open ? "" : "disabled"} aria-pressed="${look.color === id}" aria-label="${escapeHTML(open ? `Culoarea ${c.label}` : `${c.label}: se deblochează la nivelul ${c.level}`)}">
-            <i class="wr-swatch" style="background:${c.fill}"></i><span>${open ? escapeHTML(c.label) : `${icon("lock")} Nv. ${c.level}`}</span></button>`;
+            <i class="wr-swatch" style="background:${id === "yellow" ? PAL_KINDS[palKind(look)].fill : c.fill}"></i><span>${open ? escapeHTML(c.label) : `${icon("lock")} Nv. ${c.level}`}</span></button>`;
     };
     const acc = a => {
         const open = unlocked >= a.level;
         return `<button type="button" class="wr-item ${look.acc === a.id ? "is-on" : ""}" data-action="wardrobe-acc" data-id="${a.id}" ${open ? "" : "disabled"} aria-pressed="${look.acc === a.id}" aria-label="${escapeHTML(open ? a.label : `${a.label}: se deblochează la nivelul ${a.level}`)}">
-            ${buddySVG("happy", "wr-buddy", { color: look.color, acc: a.id })}<span>${open ? escapeHTML(a.label) : `${icon("lock")} Nv. ${a.level}`}</span></button>`;
+            ${buddySVG("happy", "wr-buddy", { ...look, acc: a.id })}<span>${open ? escapeHTML(a.label) : `${icon("lock")} Nv. ${a.level}`}</span></button>`;
     };
     const badges = ACHIEVEMENTS.map(a => ({ ...a, on: Boolean(state.achievements[a.key]) }));
     openModal({
@@ -151,11 +179,13 @@ function openWardrobe() {
                     <li>+${XP.badge} XP pentru fiecare insignă</li>
                 </ul>
             </details>
+            <h4 class="wr-title">Colegul</h4>
+            ${palKindPickHTML("wardrobe-kind")}
             <h4 class="wr-title">Culoare</h4>
             <div class="wr-grid wr-colors">${Object.entries(PAL_COLORS).map(([id, c]) => swatch(id, c)).join("")}</div>
             <h4 class="wr-title">Accesorii</h4>
             <div class="wr-grid">
-                <button type="button" class="wr-item ${!look.acc ? "is-on" : ""}" data-action="wardrobe-acc" data-id="" aria-pressed="${!look.acc}">${buddySVG("happy", "wr-buddy", { color: look.color, acc: "" })}<span>Nimic</span></button>
+                <button type="button" class="wr-item ${!look.acc ? "is-on" : ""}" data-action="wardrobe-acc" data-id="" aria-pressed="${!look.acc}">${buddySVG("happy", "wr-buddy", { ...look, acc: "" })}<span>Nimic</span></button>
                 ${PAL_ACCESSORIES.map(acc).join("")}
             </div>
             <h4 class="wr-title">Insigne <small>${badges.filter(b => b.on).length} din ${badges.length}</small></h4>
@@ -190,7 +220,17 @@ function renderPalLevelSetting() {
 
 Object.assign(ACTIONS, {
     "wardrobe-open": () => openWardrobe(),
+    "wardrobe-kind": el => { if (PAL_KINDS[el.dataset.kind]) setPalLook({ kind: el.dataset.kind }); },
+    "pal-kind": el => { if (requireAccount()) pickPalKind(el.dataset.kind); },
+    // în configurarea de la început: fără toast, doar se schimbă mascota de lângă câmpuri
+    "setup-kind": el => {
+        if (!PAL_KINDS[el.dataset.kind]) return;
+        state.pal.look.kind = el.dataset.kind;
+        saveState();
+        if ($("setup-buddy")) $("setup-buddy").innerHTML = setupBuddyHTML();
+        document.querySelectorAll(".pal-kinds").forEach(box => { box.outerHTML = palKindPickHTML("setup-kind"); });
+    },
     "wardrobe-color": el => { const c = PAL_COLORS[el.dataset.id]; if (c && palUnlockedLevel() >= c.level) setPalLook({ color: el.dataset.id }); },
     "wardrobe-acc": el => { const a = PAL_ACCESSORIES.find(x => x.id === el.dataset.id); if (!el.dataset.id || (a && palUnlockedLevel() >= a.level)) setPalLook({ acc: el.dataset.id || "" }); }
 });
-GUEST_OK.add("wardrobe-open");
+GUEST_OK.add("wardrobe-open"); GUEST_OK.add("setup-kind");
