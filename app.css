@@ -1,0 +1,316 @@
+/* urNotes · Aspectul aplicației: ca aplicațiile Apple.
+   Fontul sistemului (San Francisco pe iPhone/Mac, Segoe pe Windows, Roboto pe Android), fundal gri-deschis cu grupuri
+   albe rotunjite (ca în Setări), titluri mari și groase, linii subțiri între rânduri, o singură culoare de accent
+   (albastrul sistemului). Roșu doar pentru „risc”, verde pentru „bine”. Fără decoruri: fără post-it-uri, cărți,
+   scris de mână sau ștampile. Tema întunecată e neagră, ca pe iPhone.
+   style.css + ui.css dau aranjarea paginilor; aici sunt doar culorile, literele și forma componentelor. */
+
+body.style-app {
+    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-hand: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-note: var(--font-ui); --font-display: var(--font-hand);
+    --tint: #0058B8;            /* albastrul aplicației (ceva mai închis decât #007AFF, ca textul albastru să se citească) */
+    --tint-text: #0058B8;
+    --tint-soft: rgba(0, 88, 184, 0.1);
+    --fill: rgba(118, 118, 128, 0.12);       /* fundalul butoanelor gri și al câmpurilor */
+    --fill-2: rgba(118, 118, 128, 0.2);
+    --paper: #F2F2F7; --sheet: #FFFFFF; --sunken: #F2F2F7;
+    --ink: #1C1C1E; --ink-2: #5E5E63; --ink-3: #6C6C70;
+    --rule: rgba(60, 60, 67, 0.16);
+    --input-bg: var(--fill);
+    --accent-fill: var(--tint); --on-accent-fill: #FFFFFF; --accent-ink: var(--tint-text); --accent-color: var(--tint-text);
+    --yellow: var(--tint); --on-yellow: #FFFFFF; --yellow-soft: var(--tint-soft); --yellow-fold: var(--tint); --marker: transparent;
+    --note: var(--sheet); --note-ink: var(--ink); --note-fold: transparent;
+    --risk: #C0000F; --risk-soft: rgba(255, 59, 48, 0.1); --ok: #1A6B2D; --ok-soft: rgba(52, 199, 89, 0.12); --warn: #9A5600; --warn-soft: rgba(255, 149, 0, 0.12);
+    --danger-soft: var(--risk-soft); --success-soft: var(--ok-soft); --warning-soft: var(--warn-soft);
+    --shadow-card: none; --shadow-note: none; --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.18);
+    --radius-lg: 12px; --radius: 10px;
+    --focus: var(--tint);
+    background: var(--paper); color: var(--ink);
+    font-family: var(--font-ui); -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+}
+body.style-app.dark-mode {
+    --tint: #0A6CDB; --tint-text: #4DA3FF; --tint-soft: rgba(10, 132, 255, 0.18);
+    --fill: rgba(118, 118, 128, 0.24); --fill-2: rgba(118, 118, 128, 0.36);
+    --paper: #000000; --sheet: #1C1C1E; --sunken: #000000;
+    --ink: #FFFFFF; --ink-2: #A1A1A6; --ink-3: #98989D;
+    --rule: rgba(84, 84, 88, 0.55);
+    --risk: #FF6961; --risk-soft: rgba(255, 69, 58, 0.18); --ok: #30D158; --ok-soft: rgba(48, 209, 88, 0.16); --warn: #FFB340; --warn-soft: rgba(255, 159, 10, 0.16);
+    --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+body.style-app :is(h1, h2, h3, h4) { font-family: var(--font-hand); font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+body.style-app a, body.style-app .btn-link { color: var(--tint-text); }
+
+/* ---------- fără mascotă și fără decoruri ---------- */
+body.style-app :is(.azi-buddy, .side-pal, .page-pal, .nav-pal, .pal-level, .buddy-poke, .toast-pal, .me-preview, .pal-only, svg.buddy, [data-pal-mood], .pal-card, .pal-kinds, .plan-setup-buddy, .setup-buddy, #setup-buddy) { display: none !important; }
+body.style-app .azi-head h2::after, body.style-app .home-tile::after, body.style-app .home-tile.is-hero::after { display: none; }
+body.style-app :is(.home-tile, .cat-sum, .glass-card, .azi-next, .insight, .plan-setup) { transform: none !important; }
+body.style-app .me-barcode { display: none; }
+
+/* ---------- titluri mari, ca în aplicațiile iPhone ---------- */
+body.style-app :is(.page-intro h2, .azi-head h2) { font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.025em; background: none; padding: 0; }
+body.style-app :is(.page-intro h2, .azi-head h2) .ico { display: none; }
+body.style-app .page-intro p, body.style-app .azi-summary { color: var(--ink-2); font-size: 15px; font-family: var(--font-ui); }
+body.style-app .azi-date { color: var(--ink-2); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; font-family: var(--font-ui); }
+
+/* ---------- grupurile albe ---------- */
+body.style-app .glass-card, body.style-app.dark-mode .glass-card { background: var(--sheet); border: 0; border-radius: 12px; box-shadow: none; }
+body.style-app .glass-card > h3, body.style-app .azi-card-head h3 { font-size: 20px; font-weight: 700; }
+body.style-app .glass-card > h3 .ico, body.style-app .azi-card-head h3 .ico, body.style-app .cat-block h4 .ico { color: var(--tint-text); }
+body.style-app .subtitle { color: var(--ink-2); }
+
+/* ---------- meniul de pe calculator: bara laterală ca în macOS ---------- */
+body.style-app .sidebar { background: color-mix(in srgb, var(--paper) 88%, var(--ink) 4%); border-right: 1px solid var(--rule); }
+body.style-app.dark-mode .sidebar { background: #161618; }
+body.style-app .tab-btn.side-link { border-radius: 8px; color: var(--ink); font-weight: 500; font-size: 15px; }
+body.style-app .tab-btn.side-link .ico { color: var(--tint-text); }
+body.style-app .tab-btn.side-link:hover { background: var(--fill); }
+body.style-app .sidebar .tab-btn.side-link.active, body.style-app .side-nav.has-pill .tab-btn.side-link.active { background: var(--fill-2); color: var(--ink); font-weight: 600; }
+body.style-app .side-pill { background: var(--fill-2); border-radius: 8px; box-shadow: none; }
+body.style-app .side-nav.has-pill .tab-btn.side-link.active { background: transparent; }
+body.style-app :is(.side-sub, .side-search, .side-twist, .account-chip) { color: var(--ink-2); border-radius: 8px; }
+body.style-app :is(.side-sub, .side-search):hover { background: var(--fill); color: var(--ink); }
+body.style-app .side-sub-risk { background: var(--risk-soft); color: var(--risk); }
+body.style-app .side-search kbd, body.style-app kbd { background: var(--fill); color: var(--ink-2); border: 0; box-shadow: none; }
+body.style-app .side-add, body.style-app .side-add:hover { background: var(--tint); color: #fff; border: 0; border-radius: 10px; box-shadow: none; transform: none; font-weight: 600; }
+body.style-app .side-add kbd { background: rgba(255, 255, 255, 0.22); color: #fff; }
+body.style-app .brand-logo { filter: grayscale(1) contrast(1.1); }
+body.style-app .brand-name, body.style-app .brand-name .brand-ur { color: var(--ink); font-family: var(--font-hand); font-weight: 700; background: none; }
+body.style-app .brand-name .brand-ur { color: var(--tint-text); }
+body.style-app .side-brand-text small { color: var(--ink-2); }
+body.style-app .side-foot { border-top: 1px solid var(--rule); }
+
+/* ---------- butoane, câmpuri, etichete ---------- */
+body.style-app .btn { border-radius: 10px; font-weight: 600; box-shadow: none; transform: none; }
+body.style-app .btn-primary, body.style-app .btn-primary:hover { background: var(--tint); color: #fff; border: 0; }
+body.style-app .btn-glass, body.style-app .btn-glass:hover { background: var(--fill); color: var(--tint-text); border: 0; }
+body.style-app .btn-text, body.style-app .btn-text:hover { color: var(--tint-text); background: transparent; }
+body.style-app .btn-danger { background: var(--risk-soft); color: var(--risk); border: 0; }
+body.style-app :is(.glass-input, select.glass-input, textarea.glass-input) { background: var(--fill); border: 0; border-radius: 10px; box-shadow: none; color: var(--ink); }
+body.style-app .glass-input:focus { outline: 2px solid var(--tint); outline-offset: 0; }
+body.style-app .badge { background: var(--fill); color: var(--ink-2); border: 0; font-weight: 600; }
+body.style-app input[type="checkbox"], body.style-app input[type="radio"] { accent-color: var(--tint); }
+body.style-app .icon-btn { border: 0; background: var(--fill); color: var(--ink-2); box-shadow: none; }
+body.style-app .help-dot { background: var(--fill); color: var(--ink-2); }
+body.style-app .form-label, body.style-app label { color: var(--ink-2); }
+body.style-app :is(.chip, .plan-chip span, .cat-chip, .stats-chip) { border: 0; background: var(--fill); color: var(--ink); box-shadow: none; }
+body.style-app .plan-chip input:checked + span, body.style-app :is(.chip, .cat-chip).is-on, body.style-app :is(.chip, .cat-chip)[aria-pressed="true"] { background: var(--tint); color: #fff; }
+body.style-app .toast { background: rgba(28, 28, 30, 0.94); color: #fff; border-radius: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); border: 0; }
+body.style-app .toast .btn, body.style-app .toast button { color: #4DA3FF; }
+body.style-app .badge-count { background: #FF3B30; color: #fff; }
+body.style-app .notification-btn, body.style-app .me-btn { background: var(--sheet); border: 0; box-shadow: none; color: var(--tint-text); }
+
+/* ---------- butoanele segmentate (Materii · Progres · Ce-ar fi dacă) ---------- */
+body.style-app .subnav { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: var(--fill); }
+body.style-app .subnav-btn { border: 0; border-radius: 7px; background: transparent; color: var(--ink); font-weight: 500; font-size: 13.5px; box-shadow: none; }
+body.style-app .subnav-btn .ico { display: none; }
+body.style-app .subnav-btn.active { background: var(--sheet); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04); }
+body.style-app.dark-mode .subnav-btn.active { background: #636366; }
+
+/* ---------- Azi ---------- */
+body.style-app .home-tile, body.style-app.dark-mode .home-tile, body.style-app .home-tile.is-hero {
+    background: var(--sheet); color: var(--ink); border: 0; border-radius: 12px; box-shadow: none; text-align: left; padding: 14px 16px;
+}
+body.style-app .home-tile .home-tile-label, body.style-app .home-tile.is-hero .home-tile-label { color: var(--ink-2) !important; font: 600 13px/1.2 var(--font-ui); text-transform: none; letter-spacing: 0; background: none; padding: 0; }
+body.style-app .home-tile-value, body.style-app .home-tile.is-hero .home-tile-value { color: var(--ink); font: 700 28px/1.1 var(--font-hand); background: none; font-style: normal; margin: 4px 0 0; width: auto; }
+body.style-app .home-tile.is-hero .home-tile-value { font-size: 34px; }
+body.style-app .home-tile small, body.style-app .home-tile.is-hero small, body.style-app .home-tile.is-hero small span { color: var(--ink-2); }
+body.style-app .home-tile:hover { background: color-mix(in srgb, var(--sheet) 94%, var(--ink)); transform: none; }
+
+/* „Materiile tale”: o listă, ca în Setări */
+body.style-app .as-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 24px; align-items: stretch; overflow: visible; padding: 0; margin: 4px 0 0; }
+body.style-app .as-row::before, body.style-app .as-row::after { display: none; }
+body.style-app .azi-subjects::after { display: none; }
+body.style-app .as-item, body.style-app .as-item:hover {
+    display: flex; align-items: center; gap: 12px; height: auto; min-height: 48px; width: auto; padding: 10px 2px; margin: 0;
+    border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; background: transparent; color: var(--ink); box-shadow: none; transform: none; text-align: left; writing-mode: horizontal-tb;
+}
+body.style-app .as-item::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--subj, var(--ink-3)); position: static; inset: auto; box-shadow: none; }
+body.style-app .as-item .as-fill { display: none; }
+body.style-app .as-item .as-name { order: 1; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; writing-mode: horizontal-tb; transform: none; font: 500 15px/1.3 var(--font-ui); color: var(--ink); position: static; }
+body.style-app .as-item .as-avg { order: 2; position: static; font: 600 17px/1 var(--font-hand); color: var(--ink); background: none; padding: 0; }
+body.style-app .as-item .as-flag { order: 3; position: static; transform: none; background: var(--risk-soft); color: var(--risk); border-radius: 6px; padding: 2px 6px; font: 600 11.5px/1.3 var(--font-ui); text-transform: none; clip-path: none; }
+body.style-app .as-item.is-risk .as-avg { color: var(--risk); }
+body.style-app .as-item.is-empty { opacity: 1; border-style: solid; }
+body.style-app .as-item.is-empty .as-avg { color: var(--ink-3); }
+body.style-app .as-item::after { content: ""; order: 4; flex: none; width: 7px; height: 7px; border-right: 2px solid var(--ink-3); border-top: 2px solid var(--ink-3); transform: rotate(45deg); margin-right: 4px; opacity: 0.7; }
+body.style-app .as-item.as-add { color: var(--tint-text); }
+body.style-app .as-item.as-add::before { background: transparent; }
+body.style-app .as-item.as-add::after { display: none; }
+body.style-app .as-item.as-add .as-name { color: var(--tint-text); }
+body.style-app .as-item:hover { background: color-mix(in srgb, var(--sheet) 95%, var(--ink)); }
+
+/* „Acum”: un card obișnuit, cu notele ca butoane rotunde */
+body.style-app .azi-next, body.style-app .azi-next.is-warm, body.style-app .azi-next.is-hot, body.style-app.dark-mode .azi-next {
+    background: var(--sheet); color: var(--ink); border: 0; border-radius: 12px; box-shadow: none; clip-path: none; padding: 18px;
+}
+body.style-app .azi-next::before, body.style-app .azi-next::after { display: none; }
+body.style-app .azi-next-kicker { color: var(--ink-2); font: 600 13px/1.3 var(--font-ui); text-transform: none; letter-spacing: 0; }
+body.style-app .azi-next-ico { background: var(--tint-soft); color: var(--tint-text); border: 0; }
+body.style-app .qg-btn, body.style-app .qg-btn[class*="tone-"] { width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--fill); box-shadow: none; font: 600 17px/1 var(--font-ui); }
+body.style-app .qg-btn.tone-fail { color: var(--risk); } body.style-app .qg-btn.tone-low { color: var(--warn); }
+body.style-app .qg-btn.tone-mid { color: var(--ink); } body.style-app .qg-btn.tone-hi { color: var(--ok); }
+body.style-app .azi-real, body.style-app.dark-mode .azi-real { background: var(--sheet); border: 0; }
+body.style-app .azi-real h3 .ico { color: var(--warn); }
+body.style-app .insight, body.style-app.dark-mode .insight { background: var(--fill); border: 0; border-radius: 10px; box-shadow: none; }
+body.style-app .insight.is-bad .ico { color: var(--risk); }
+body.style-app .azi-count small, body.style-app.dark-mode .azi-count small { background: var(--fill); color: var(--ink-2); }
+body.style-app .azi-count.is-near small, body.style-app .azi-count.is-late small { background: var(--risk-soft); color: var(--risk); }
+body.style-app .azi-count b { color: var(--ink); font-family: var(--font-hand); }
+body.style-app .azi-plan, body.style-app.dark-mode .azi-plan { background: var(--sheet); }
+body.style-app .azi-group { font: 600 13px/1.3 var(--font-ui); color: var(--ink-2); text-transform: none; letter-spacing: 0; }
+
+/* ---------- Note: liste ---------- */
+body.style-app .cat-sum, body.style-app.dark-mode .cat-sum { background: var(--sheet); border: 0; border-radius: 12px; box-shadow: none; }
+body.style-app .cat-sum-label { color: var(--ink-2); font-weight: 600; text-transform: none; letter-spacing: 0; }
+body.style-app .cat-sum-value, body.style-app .cat-sum.is-accent .cat-sum-value { color: var(--ink); font-family: var(--font-hand); font-style: normal; }
+body.style-app .cat-list { gap: 0; background: var(--sheet); border-radius: 12px; overflow: hidden; }
+body.style-app .cat-row-wrap { padding: 0 !important; border-bottom: 1px solid var(--rule); }
+body.style-app .cat-row-wrap:last-child { border-bottom: 0; }
+body.style-app .cat-row, body.style-app.dark-mode .cat-row, body.style-app .cat-row.subj-tile, body.style-app .cat-row.is-purtare {
+    min-height: 60px; padding: 10px 52px 10px 16px !important; border: 0; border-radius: 0; background: var(--sheet); color: var(--ink); box-shadow: none; transform: none; gap: 12px;
+}
+body.style-app .cat-row.is-purtare { border-radius: 12px; margin-bottom: 12px; }
+body.style-app .cat-row:hover, body.style-app .cat-row.subj-tile:hover { background: color-mix(in srgb, var(--sheet) 95%, var(--ink)); transform: none; }
+body.style-app .cat-row.selected { background: var(--tint-soft); }
+body.style-app .cat-row::after, body.style-app .cat-row.is-risk::after { display: none; }
+body.style-app .cat-row :is(.subj-emoji, .subj-bar) { display: none; }
+body.style-app .cat-row .subj-chip { display: grid; flex: none; width: 34px; height: 34px; border-radius: 8px; background: var(--subj, var(--ink-3)); color: #fff; font: 700 13px/1 var(--font-ui); place-items: center; }
+body.style-app .cat-row .cat-row-name { color: var(--ink); font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.01em; }
+body.style-app .cat-row .cat-row-meta { color: var(--ink-2); font-size: 13px; opacity: 1; }
+body.style-app .cat-row .cat-tag { background: var(--fill); color: var(--ink-2); border: 0; }
+body.style-app .cat-row .cat-row-avg, body.style-app .cat-row.is-purtare .cat-row-avg { position: static; transform: none; min-width: 0; padding: 0; background: none; box-shadow: none; text-align: right; }
+body.style-app .cat-row .cat-row-avg b, body.style-app .cat-row .cat-row-avg b[class*="tone-text"] { color: var(--ink); font: 600 19px/1 var(--font-hand); font-style: normal; }
+body.style-app .cat-row .cat-row-avg small { color: var(--ink-2); font: 400 12px/1.3 var(--font-ui); }
+body.style-app .cat-row.is-risk .cat-row-avg :is(b, small) { color: var(--risk); }
+body.style-app .cat-row.is-empty, body.style-app.dark-mode .cat-row.is-empty { border: 0; background: var(--sheet); }
+body.style-app .cat-row .cat-dot { display: none; }
+body.style-app .cat-quick { right: 12px; width: 30px; height: 30px; border-radius: 50%; background: var(--fill); color: var(--tint-text); box-shadow: none; border: 0; opacity: 1; }
+body.style-app .cat-row-wrap:nth-child(n) .cat-quick { right: 12px; }
+
+/* pagina materiei: un titlu mare, fără copertă; notele într-o listă */
+body.style-app .cat-detail-head, body.style-app.dark-mode .cat-detail-head { background: none; color: var(--ink); padding: 0; margin: 6px 0 16px; border-radius: 0; box-shadow: none; }
+body.style-app .cat-detail-head::before { display: none; }
+body.style-app .cat-detail-head :is(.cat-title, .subtitle) { color: var(--ink); }
+body.style-app .cat-detail-head .cat-title { font-size: 30px; }
+body.style-app .cat-detail-head .subtitle { color: var(--ink-2); }
+body.style-app .cat-detail-head .btn-star { color: var(--ink-3); }
+body.style-app .cat-detail-head .btn-star.active { color: #FF9F0A; }
+body.style-app .cat-detail-head .btn-glass { background: var(--fill); color: var(--tint-text); }
+body.style-app .cat-block > h4, body.style-app .cat-block-head h4 { display: flex; width: auto; padding: 0; margin: 0 0 10px; border: 0; background: none; box-shadow: none; font-size: 20px; color: var(--ink); }
+body.style-app .cat-block-head h4 .cat-count { background: var(--fill); color: var(--ink-2); }
+body.style-app .cat-stat { background: var(--fill); border: 0; border-radius: 10px; }
+body.style-app .cat-stat b, body.style-app .cat-stat:first-child b { color: var(--ink); font-style: normal; font-family: var(--font-hand); }
+body.style-app .cat-grades { display: block; margin: 0; padding: 0 0 0 4px; list-style: none; background: none; box-shadow: none; border-radius: 0; }
+body.style-app .cat-grades::after { display: none; }
+body.style-app .cat-grades .cat-grade, body.style-app.dark-mode .cat-grades .cat-grade { gap: 14px; padding: 9px 0; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; background: transparent; }
+body.style-app .cat-grades .cat-grade:last-child { border-bottom: 0; }
+body.style-app .cat-grade-val, body.style-app .cat-grades .cat-grade-val {
+    display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; transform: none !important; box-shadow: none;
+    font: 600 16px/1 var(--font-ui); background: var(--fill) !important; color: var(--ink);
+}
+body.style-app .cat-grade-val.tone-hi { background: var(--ok-soft) !important; color: var(--ok) !important; }
+body.style-app .cat-grade-val.tone-mid { background: var(--tint-soft) !important; color: var(--tint-text) !important; }
+body.style-app .cat-grade-val.tone-low { background: var(--warn-soft) !important; color: var(--warn) !important; }
+body.style-app .cat-grade-val.tone-fail { background: var(--risk-soft) !important; color: var(--risk) !important; }
+body.style-app .cat-grades .cat-grade-info b { color: var(--ink); font-weight: 500; }
+body.style-app .cat-grades .cat-grade-info small { color: var(--ink-2); }
+body.style-app .cat-grades .icon-btn { background: transparent; color: var(--ink-3); }
+
+/* ---------- Calendar: ca aplicația Calendar ---------- */
+body.style-app .ag-date, body.style-app .ag-day .ag-date { width: auto; padding: 0; background: none; box-shadow: none; overflow: visible; color: var(--ink); text-align: center; align-items: center; }
+body.style-app .ag-date span { order: 0; padding: 0; background: none !important; color: var(--ink-2) !important; font: 600 11px/1.2 var(--font-ui); text-transform: none; }
+body.style-app .ag-date b, body.style-app .ag-day .ag-date b { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; color: var(--ink) !important; font: 500 20px/1 var(--font-ui); background: none !important; }
+body.style-app .ag-date b::after { display: none !important; }
+body.style-app .ag-day.is-today .ag-date b { background: #D70015 !important; color: #fff !important; font-weight: 600; }
+body.style-app .ag-day.is-today .ag-date span { color: #D70015 !important; }
+body.style-app .ag-day, body.style-app.dark-mode .ag-day, body.style-app .ag-day.is-today { background: var(--sheet); border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; box-shadow: none; }
+body.style-app .ag-day.is-past { opacity: 1; }
+body.style-app .ag-day.is-past .ag-date b { color: var(--ink-3) !important; }
+body.style-app .ag-week-sep { display: block; width: auto; margin: 18px 0 6px; padding: 0; border: 0; background: none; box-shadow: none; color: var(--ink-2); font: 600 13px/1.3 var(--font-ui); text-transform: none; letter-spacing: 0; }
+body.style-app .ag-free { color: var(--ink-3); }
+body.style-app .cal-ev, body.style-app.dark-mode .cal-ev { background: color-mix(in srgb, var(--ev) 12%, var(--sheet)); border: 0; border-left: 3px solid var(--ev); border-radius: 6px; box-shadow: none; }
+body.style-app .cal-ev .cal-ev-title { text-decoration: none; background: none !important; }
+body.style-app .cal-ev.is-done .cal-ev-title { text-decoration: line-through; color: var(--ink-2); }
+body.style-app .ev-test { --ev: #007AFF; } body.style-app .ev-examen { --ev: #FF3B30; } body.style-app .ev-tema { --ev: #FF9500; }
+body.style-app .ev-proiect { --ev: #AF52DE; } body.style-app .ev-prezentare { --ev: #30B0C7; } body.style-app .ev-personal { --ev: #8E8E93; }
+body.style-app .ag-lesson { background: var(--fill); color: var(--ink); border: 0; }
+body.style-app .cal-attn { background: var(--sheet); border: 0; }
+body.style-app .cc-launch-btn { border: 0; background: var(--fill); color: var(--ink); box-shadow: none; }
+body.style-app .cc-launch-btn .ico { color: var(--ev, var(--tint-text)); }
+
+/* ---------- Eu: avatarul cu inițiale, ca la contul Apple ---------- */
+body.style-app .me-card, body.style-app.dark-mode .me-card { background: var(--sheet); color: var(--ink); padding-top: var(--pad-card); }
+body.style-app .me-card > h3 { margin: 0 0 6px; padding: 0; background: none; color: var(--ink); font-size: 20px; }
+body.style-app .me-card > h3 .ico { color: var(--tint-text); }
+body.style-app .me-initials { display: grid; place-items: center; width: 64px; height: 64px; flex: none; border: 0; border-radius: 50%; background: linear-gradient(180deg, #A2A7B0, #858A93); color: #fff; font: 600 24px/1 var(--font-ui); }
+body.style-app .me-card .me-row { display: flex; align-items: center; gap: 16px; }
+body.style-app .me-card .glass-input { background: var(--fill); border: 0; border-radius: 10px; font: 400 17px/1.3 var(--font-ui); padding: 10px 12px; color: var(--ink); }
+body.style-app .me-card label { color: var(--ink-2); }
+
+/* ---------- Plan ---------- */
+body.style-app .plan-setup, body.style-app.dark-mode .plan-setup { background: var(--sheet); background-image: none; color: var(--ink); }
+body.style-app .plan-setup :is(h3, p, label, summary, .subtitle) { color: inherit; }
+body.style-app .plan-setup h3 { border: 0; padding: 0; }
+body.style-app .plan-setup .plan-chip input:not(:checked) + span { background: var(--fill); color: var(--ink); box-shadow: none; }
+
+/* ---------- foaia „Adaugă”: ca o foaie iOS ---------- */
+body.style-app .cc-sheet, body.style-app.dark-mode .cc-sheet { background: var(--paper); border: 0; border-radius: 14px; box-shadow: var(--shadow-pop); }
+body.style-app .cc-title { font-family: var(--font-hand); font-size: 20px; font-weight: 700; }
+body.style-app .cc-round { background: var(--fill); color: var(--ink-2); }
+body.style-app .cc-tile, body.style-app .cc-tile.is-grade { background: var(--sheet); border: 0; border-radius: 12px; box-shadow: none; }
+body.style-app .cc-tile::before, body.style-app .cc-tile::after { display: none; }
+body.style-app .cc-tile-ico { background: color-mix(in srgb, var(--ev, var(--tint)) 14%, var(--sheet)); color: var(--ev, var(--tint-text)) !important; border-radius: 10px; }
+body.style-app .cc-tile.is-grade .cc-tile-ico, body.style-app .cc-ico.is-grade { background: var(--tint-soft); color: var(--tint-text) !important; }
+body.style-app .cc-tile b { font-family: var(--font-hand); font-size: 17px; font-weight: 600; }
+body.style-app .cc-mini { background: var(--sheet); border: 0; box-shadow: none; }
+body.style-app .cc-q { font: 600 13px/1.3 var(--font-ui); color: var(--ink-2); text-transform: none; letter-spacing: 0; }
+body.style-app :is(.cc-subj, .cc-val, .cc-day, .cc-chip) { background: var(--sheet); border: 0; box-shadow: none; color: var(--ink); }
+body.style-app .cc-subj { border-left: 0; border-radius: 10px; }
+body.style-app .cc-subj i { display: block; }
+body.style-app .cc-subj small { background: var(--fill); border: 0; color: var(--ink-2); }
+body.style-app .cc-subj.is-on { background: var(--tint-soft); box-shadow: inset 0 0 0 2px var(--tint); color: var(--ink); }
+body.style-app .cc-val { border-radius: 10px; font: 600 20px/1 var(--font-ui); }
+body.style-app :is(.cc-val, .cc-day, .cc-chip).is-on { background: var(--tint); color: #fff; box-shadow: none; }
+body.style-app .cc-day.is-on small { color: #fff; }
+body.style-app .cc-day small { color: var(--ok); }
+body.style-app .cc-input { background: var(--sheet); border: 0; border-radius: 10px; }
+body.style-app .cc-foot { background: var(--paper); border-top: 1px solid var(--rule); box-shadow: none; }
+
+/* ---------- telefon: bara de jos ca pe iPhone, titluri mari ---------- */
+@media (max-width: 900px) {
+    body.style-app .mobile-bottom-nav, body.style-app.dark-mode .mobile-bottom-nav {
+        left: 0; right: 0; bottom: 0; width: auto; transform: none; border-radius: 0; padding: 6px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+        background: color-mix(in srgb, var(--sheet) 82%, transparent); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+        border: 0; border-top: 0.5px solid var(--rule); box-shadow: none;
+    }
+    body.style-app .mobile-nav-btn, body.style-app .mobile-nav-btn.active { background: transparent !important; color: var(--ink-3); box-shadow: none; transform: none; border-radius: 0; font-size: 10.5px; font-weight: 500; }
+    body.style-app .mobile-nav-btn.active, body.style-app .mobile-nav-btn.active .ico { color: var(--tint-text); }
+    body.style-app .nav-pill { display: none !important; }
+    body.style-app .mobile-add { background: var(--tint); color: #fff; border-radius: 50%; box-shadow: none; border: 0; }
+    body.style-app .app-bar, body.style-app .app-bar.is-scrolled { background: color-mix(in srgb, var(--paper) 82%, transparent); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); box-shadow: none; border-bottom: 0.5px solid transparent; }
+    body.style-app .app-bar.is-scrolled { border-bottom-color: var(--rule); }
+    body.style-app .topbar-title { font: 600 17px/1.2 var(--font-hand); color: var(--ink); }
+    body.style-app .as-row { grid-template-columns: 1fr; }
+    body.style-app .cc-sheet { border-radius: 14px 14px 0 0; }
+}
+
+/* restul stilului vechi: fără colțuri îndoite, fără bandă adezivă */
+body.style-app :is(.home-tile, .cat-sum)::before, body.style-app :is(.mobile-add, .side-add)::after { display: none !important; }
+body.style-app :is(.home-tile, .cat-sum, .mobile-add, .side-add, .home-tile:hover) { filter: none !important; transform: none !important; }
+body.style-app :is(.home-tile, .cat-sum, .glass-card, .btn, .side-add, .mobile-add) { clip-path: none !important; }
+/* ce mai era galben din stilul vechi: albastrul aplicației, ca peste tot */
+body.style-app :is(.stats-nav-link.active, .sim-subj-chip.is-on, .sim-tab.active, .sim-tab.is-on, .sim-scn.is-on) { background: var(--tint-soft); color: var(--tint-text); border-color: transparent; box-shadow: inset 0 0 0 1.5px var(--tint); }
+body.style-app :is(.period-badge, .sim-chip-count, .cat-count, .install-share, .sim-result.neutral) { background: var(--fill); color: var(--ink-2); border-color: transparent; }
+body.style-app output { background: var(--fill); color: var(--ink); }
+body.style-app .stats-nav-link { border: 0; border-radius: 8px; }
+
+/* contrast: în modul întunecat, accentul folosit ca text e albastrul deschis */
+body.style-app.dark-mode { --yellow: var(--tint-text); --on-yellow: #000; --yellow-fold: var(--tint-text); --accent-color: var(--tint-text); --risk: #FF7B73; }
+body.style-app.dark-mode .ag-day.is-today .ag-date span { color: #FF7B73 !important; }
+/* inițialele materiei: fundal deschis din culoarea materiei, text din aceeași culoare, mai închis */
+body.style-app .cat-row .subj-chip { background: color-mix(in srgb, var(--subj, var(--ink-3)) 20%, var(--sheet)); color: color-mix(in srgb, var(--subj, var(--ink-3)) 55%, var(--ink)); }
+body.style-app .cat-row .subj-chip { color: color-mix(in srgb, var(--subj, var(--ink-3)) 40%, var(--ink)); }
+body.style-app.dark-mode .sim-chip.active { background: var(--tint-text); color: #000; }
+body.style-app.dark-mode .badge-ok { color: var(--ok); }
+body.style-app.dark-mode .sim-result.neutral { color: #D1D1D6; }

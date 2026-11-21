@@ -53,17 +53,15 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   assert(T.state.settings.appearance.accent === "yellow", "old default blue or violet / missing accent → yellow (new brand)");
   // Eu: numele tău și colegul (se alege dintre patru mascote, fiecare cu numele ei; nu se mai botează)
   nav("tab-setari");
-  assert(!$("set-buddy") && qa("#pal-kind-setting .pal-kind").length === 4, "Eu: no name field for the mascot, four mascots to pick");
-  assert(q('#pal-kind-setting .pal-kind[data-kind="bufi"]').getAttribute("aria-checked") === "true", "Bufi (the owl) is the default");
-  click(q('#pal-kind-setting .pal-kind[data-kind="cotorel"]'));
-  assert(T.state.pal.look.kind === "cotorel" && q('#pal-kind-setting .pal-kind[data-kind="cotorel"]').getAttribute("aria-checked") === "true", "picking Cotorel switches at once");
+  // mascota e oprită în aspectul actual: nici câmp de nume, nici alegere, nici card în Eu
+  assert(!$("set-buddy") && !$("pal-kind-setting") && !q(".pal-card"), "Eu: no mascot card or name field");
   $("set-name").value = "  Tudor   Popescu ";
   $("set-name").dispatchEvent(new w.Event("change", { bubbles: true }));
   assert(/Salvat/.test($("settings-status").textContent), "saved automatically ('✓ Salvat')");
   assert(T.state.settings.profile.name === "Tudor Popescu", "name saved (trimmed)");
   nav("tab-dashboard");
   assert(txt("h-dashboard") === "Bună dimineața, Tudor!", "greeting uses first name");
-  assert(/Cotorel/.test(q("#azi-buddy .buddy-poke").getAttribute("aria-label")) && q("#azi-buddy .buddy-cotorel") && !q("#azi-buddy .buddy-bubble"), "pal on Azi: the chosen mascot, with its name");
+  assert(!q("#azi-buddy .buddy-bubble"), "no speech bubble on Azi");
   // mascota se bucură de un 10 recent (are prioritate)
   T.state.subjects.Chimie.grades.push({ val: 10, type: "Test", date: "2026-10-07" }); T.refresh();
   assert(buddy() === "starry" && /Un 10 la Chimie! Bravo, Tudor/.test(bubble()), "happy after a recent 10: " + bubble());
@@ -77,16 +75,14 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   assert(T.state.settings.profile.name === "Tudor Popescu", "reset keeps the names");
   // configurarea: numele se salvează pe loc
   click(q('[data-action="setup-open"]'));
-  assert($("setup-me-name").value === "Tudor Popescu" && q("#setup-buddy .buddy"), "setup shows the name fields with current values");
+  assert($("setup-me-name").value === "Tudor Popescu", "setup shows the name field with the current value");
   $("setup-me-name").value = "Ana"; $("setup-me-name").dispatchEvent(new w.Event("input", { bubbles: true }));
-  assert(!$("setup-me-buddy") && qa("#setup-overlay .pal-kind, .setup-me .pal-kind").length === 4, "setup: pick a mascot instead of naming one");
-  click(q('.setup-me .pal-kind[data-kind="gumi"]'));
-  assert(T.state.pal.look.kind === "gumi" && /Gumi/.test($("setup-buddy").textContent) && q("#setup-buddy .buddy-gumi"), "setup preview shows the chosen mascot and its name");
+  assert(!$("setup-me-buddy") && !q(".setup-me .pal-kind"), "setup: no mascot to name or pick");
   assert(JSON.parse(w.localStorage.getItem("pro_settings_db_v4")).profile.name === "Ana", "setup names saved immediately");
   click(q('[data-action="setup-skip"]'));
   assert(txt("h-dashboard") === "Bună dimineața, Ana!" || T.state.settings.profile.name === "Ana", "kept after skipping setup");
   // backup-ul poartă numele
-  assert(T.state.pal.look.kind === "gumi", "the mascot choice stays after skipping setup");
+
   // fețele mascotei: toate stările se desenează, fiecare cu fața ei; fiecare mascotă are corpul ei
   assert(["bufi", "cotorel", "gumi", "titi"].every(k => T.buddySVG("happy", "", { kind: k, color: "yellow", acc: "" }).includes(`buddy-${k}`)) && new Set(["bufi", "cotorel", "gumi", "titi"].map(k => T.buddySVG("happy", "", { kind: k, color: "yellow", acc: "" }))).size === 4, "four mascots, four different bodies");
   const moods = ["happy", "focused", "worried", "giggle", "surprised", "ouch", "dizzy", "angry", "love", "sleepy", "wink", "starry", "sad", "proud", "thinking", "shy", "party"];

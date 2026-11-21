@@ -119,6 +119,7 @@ function checkPalLevel() {
     if (level <= state.pal.seenLevel) return;
     const from = state.pal.seenLevel;
     state.pal.seenLevel = level;
+    if (!MASCOT_ON) return;
     const gifts = [
         ...PAL_ACCESSORIES.filter(a => a.level > from && a.level <= level).map(a => a.label.toLowerCase()),
         ...Object.values(PAL_COLORS).filter(c => c.level > from && c.level <= level).map(c => `culoarea ${c.label.toLowerCase()}`)

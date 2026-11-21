@@ -1,158 +1,39 @@
-/* urNotes · Mișcarea: doar tranziția dintre file (pagina alunecă puțin din partea în care mergi, în ui.css)
-   și indicatorii care o însoțesc: markerul din meniul lateral și pastila din bara de jos alunecă la fila nouă.
+/* urNotes · Mișcarea: doar tranziția dintre file (js/ui/pagefx.js). Când atingi o filă, un panou în culoarea ei,
+   cu iconița și numele, urcă de jos și acoperă ecranul; pagina se schimbă dedesubt; panoul pleacă în sus.
    Nimic nu se animă când se deschide aplicația sau o pagină. Totul dispare cu „reducere mișcare”. */
-@media (prefers-reduced-motion: no-preference) {
-    /* meniul lateral: pastila alunecă; sub pagina deschisă, markerul se trage */
-    body.style-raft .sidebar .side-nav.has-pill .tab-btn.side-link.active { background: transparent; }
-    body.style-raft .side-pill { background: var(--r-wall); border-radius: 14px 0 0 14px; box-shadow: none; }
-    body.style-raft .sidebar .tab-btn.side-link > span:first-of-type:not(.side-row-grades) {
-        background-image: linear-gradient(transparent 52%, color-mix(in srgb, var(--r-gold) 80%, transparent) 52% 90%, transparent 90%);
-        background-repeat: no-repeat; background-size: 0% 100%; transition: background-size .35s .08s ease-out;
-    }
-    body.style-raft .sidebar .tab-btn.side-link.active > span:first-of-type:not(.side-row-grades) { background-size: 100% 100%; }
-    /* telefon: pastila de sub fila activă alunecă */
-    body.style-raft .nav-pill { display: block !important; background: var(--r-wall); border-radius: 14px; transition: transform .3s ease-out, width .3s ease-out; }
-    body.style-raft .mobile-nav-btn.active { background: transparent !important; }
-}
 
-/* „Anulează”: bara care arată cât timp mai ai (utilă, nu decor; rămâne și cu mișcare redusă, dar fără să curgă) */
+/* nimic nu sare și nu intră pe rând */
+.stg, .np-pop, .is-catch, .home-tile-value, .mobile-nav-btn.is-pop .ico, .mobile-nav-btn.is-pop,
+.side-nav.has-pill .tab-btn.side-link.active .ico, .cc-overlay:not([hidden]) .cc-overlay-host, body .cc-overlay:not([hidden]) .cc-overlay-host,
+.cc-overlay-backdrop, .slide-from-l, .slide-from-r, .slide-up, .anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
+.confetti, .tick-pop, .grade-fly, .ripple-host, .toast.is-celebrate::after { display: none !important; }
+.toast .toast-ico { animation: none !important; }
+
+/* tranziția dintre file */
+.pt { position: fixed; inset: 0; z-index: 99999; overflow: hidden; pointer-events: auto; contain: strict; }
+.pt.is-out { pointer-events: none; }
+body.pt-run .tab-content.active { animation: none !important; }
+.pt-panel { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; background: var(--pt-c); color: #fff; }
+.pt-icon { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 20px; background: rgba(255, 255, 255, 0.2); }
+.pt-icon .ico { width: 44px; height: 44px; stroke-width: 2; color: #fff; }
+.pt-name { font: 700 30px/1.1 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; letter-spacing: -0.02em; }
+.pt.is-in .pt-panel { animation: ptUp .32s cubic-bezier(.32, .72, 0, 1) both; }
+.pt.is-in :is(.pt-icon, .pt-name) { animation: ptRise .32s .06s cubic-bezier(.32, .72, 0, 1) both; }
+.pt.is-out .pt-panel { animation: ptAway .42s cubic-bezier(.65, 0, .35, 1) both; }
+@keyframes ptUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes ptRise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes ptAway { from { transform: none; } to { transform: translateY(-100%); } }
+@media (prefers-reduced-motion: reduce) { .pt { display: none !important; } }
+
+/* „Anulează”: bara care arată cât timp mai ai */
 .toast { position: relative; overflow: hidden; }
-.toast-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--r-gold, var(--accent-fill)); transform-origin: left center; pointer-events: none; }
+.toast-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: #0A84FF; transform-origin: left center; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .toast-timer { display: none; } }
 @keyframes toastTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-/* telefon: bara de prins a foii „Adaugă” (o tragi în jos ca s-o închizi) */
+/* telefon: bara de prins a foii „Adaugă” */
 .cc-grab { display: none; }
 @media (max-width: 640px) {
-    .cc-grab { display: block; width: 44px; height: 5px; margin: 8px auto 0; border-radius: 99px; background: color-mix(in srgb, var(--ink) 22%, transparent); flex: none; }
+    .cc-grab { display: block; width: 36px; height: 5px; margin: 6px auto 0; border-radius: 99px; background: var(--fill-2, rgba(118, 118, 128, .3)); flex: none; }
     .cc-head { touch-action: none; }
 }
-
-/* nimic nu sare și nu intră pe rând: cardurile, foaia „Adaugă”, iconițele din meniu și cifrele apar direct */
-.stg, .np-pop, .is-catch, .home-tile-value, .mobile-nav-btn.is-pop .ico, .mobile-nav-btn.is-pop,
-.side-nav.has-pill .tab-btn.side-link.active .ico, .cc-overlay:not([hidden]) .cc-overlay-host, body .cc-overlay:not([hidden]) .cc-overlay-host,
-.cc-overlay-backdrop, .slide-from-l, .slide-from-r, .slide-up { animation: none !important; }
-.confetti, .tick-pop, .grade-fly, .ripple-host { display: none !important; }
-.anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
-.toast.is-celebrate::after { display: none !important; }
-.toast .toast-pal, .toast .toast-ico { animation: none !important; }
-
-/* ==========================================================================
-   TRANZIȚIILE DINTRE FILE (js/ui/pagefx.js): un desen care acoperă tot ecranul
-   .pt.is-in = acoperă (~0.33 s), apoi pagina se schimbă dedesubt, .pt.is-out = pleacă (~0.5 s)
-   ========================================================================== */
-.pt { position: fixed; inset: 0; z-index: 99999; overflow: hidden; pointer-events: auto; contain: strict; }
-.pt.is-out { pointer-events: none; }
-.pt * { box-sizing: border-box; }
-body.pt-run .tab-content.active { animation: none !important; }
-.pt {
-    --pt-paper: var(--r-paper, #FCFBF8); --pt-wall: var(--r-wall, #EFEEE9); --pt-ink: var(--r-ink, #25292B);
-    --pt-y: var(--r-gold, #F0CD5E); --pt-tag: #F6DC84; --pt-red: #B5473A; --pt-line: rgba(74, 106, 156, 0.22);
-    --pt-in: cubic-bezier(.65, 0, .35, 1); --pt-out: cubic-bezier(.55, 0, .3, 1);
-}
-body.dark-mode .pt { --pt-tag: #C9A94A; --pt-line: rgba(160, 190, 255, 0.14); }
-.pt-label, .pt-word { position: absolute; left: 50%; top: 50%; translate: -50% -50%; color: var(--pt-ink); white-space: nowrap; }
-.pt-label { padding: .2em .8em; border: 1.5px solid color-mix(in srgb, var(--pt-ink) 30%, transparent); border-radius: 6px; background: var(--pt-paper); font: 700 clamp(26px, 5vw, 56px)/1.2 var(--font-hand, Georgia, serif); }
-.pt-word { font: 700 clamp(64px, 14vw, 190px)/1 var(--font-note, cursive); }
-.pt-word-sm { font-size: clamp(40px, 8vw, 110px); }
-.pt-sub { display: block; font: 400 clamp(18px, 2.6vw, 34px)/1.2 var(--font-note, cursive); color: color-mix(in srgb, var(--pt-ink) 70%, transparent); }
-.pt.is-in .pt-label { animation: ptPop .3s .12s var(--pt-in) both; }
-.pt.is-out .pt-label { animation: ptFade .18s ease-in both; }
-
-/* ---------- Azi: un post-it uriaș cade, apoi se dezlipește spre colț ---------- */
-.pt-postit { position: absolute; left: 50%; top: 50%; width: 170vmax; height: 170vmax; margin: -85vmax 0 0 -85vmax; display: grid; place-items: center; background: var(--pt-tag); box-shadow: 0 30px 60px -20px rgba(40, 30, 0, .35); }
-.pt-postit-in { position: relative; text-align: center; transform: rotate(4deg); }
-.pt-postit .pt-word { position: static; translate: none; display: block; }
-.pt-tape { position: absolute; left: 50%; top: -0.9em; width: 2.6em; height: .7em; margin-left: -1.3em; background: rgba(255, 255, 255, .5); transform: rotate(-4deg); font-size: clamp(64px, 14vw, 190px); }
-.pt-azi.is-in .pt-postit { animation: ptPostitIn .36s var(--pt-in) both; }
-.pt-azi.is-out .pt-postit { animation: ptPostitOut .5s var(--pt-out) both; }
-
-/* ---------- Note: cotoarele cad de sus unul lângă altul, apoi alunecă în jos ---------- */
-.pt-books { position: absolute; inset: 0; display: flex; }
-.pt-books i { flex: 1; position: relative; background: color-mix(in oklab, var(--c) 46%, var(--pt-paper)); box-shadow: inset -6px 0 0 rgba(0, 0, 0, .06), inset 3px 0 0 rgba(255, 255, 255, .25); }
-.pt-books i::before, .pt-books i::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: color-mix(in srgb, var(--pt-ink) 25%, transparent); box-shadow: 0 7px 0 color-mix(in srgb, var(--pt-ink) 25%, transparent); }
-.pt-books i::before { top: 9%; } .pt-books i::after { bottom: 9%; }
-.pt-note.is-in .pt-books i { animation: ptDropIn .3s var(--pt-in) both; animation-delay: calc(var(--k) * 22ms); }
-.pt-note.is-out .pt-books i { animation: ptDropOut .38s var(--pt-out) both; animation-delay: calc(var(--k) * 22ms); }
-
-/* ---------- Progres: barele urcă de jos până sus, apoi coboară ---------- */
-.pt-bars { position: absolute; inset: 0; display: flex; }
-.pt-bars i { flex: 1; background: var(--pt-wall); border-right: 1px solid color-mix(in srgb, var(--pt-ink) 8%, transparent); transform-origin: bottom center; }
-.pt-bars i.is-y { background: var(--pt-y); } .pt-bars i.is-ink { background: color-mix(in srgb, var(--pt-ink) 88%, var(--pt-paper)); }
-.pt-prog.is-in .pt-bars i { animation: ptGrow .3s var(--pt-in) both; animation-delay: calc(var(--k) * 18ms); }
-.pt-prog.is-out .pt-bars i { animation: ptShrink .36s var(--pt-out) both; animation-delay: calc(var(--k) * 18ms); transform-origin: top center; }
-
-/* ---------- Ce-ar fi dacă: o foaie de matematică vine din colț, cu un semn de întrebare ---------- */
-.pt-graph { position: absolute; inset: -4vmax; background-color: var(--pt-paper); background-image: linear-gradient(var(--pt-line) 1px, transparent 1px), linear-gradient(90deg, var(--pt-line) 1px, transparent 1px); background-size: 28px 28px; }
-.pt-q { position: absolute; left: 50%; top: 38%; translate: -50% -50%; font: 700 clamp(160px, 34vw, 420px)/1 var(--font-note, cursive); color: var(--pt-y); opacity: .9; }
-.pt-graph .pt-word { top: 70%; }
-.pt-sim.is-in .pt-graph { animation: ptCornerIn .34s var(--pt-in) both; }
-.pt-sim.is-out .pt-graph { animation: ptCornerOut .46s var(--pt-out) both; }
-
-/* ---------- Calendar: o filă de calendar coboară, apoi se rupe și cade ---------- */
-.pt-calpage { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; background: var(--pt-paper); transform-origin: 0 0; }
-.pt-calband { position: absolute; left: 0; right: 0; top: 0; height: 22vh; display: grid; place-items: center; background: var(--pt-ink); color: var(--pt-paper); font: 700 clamp(24px, 4vw, 48px)/1 var(--font-hand, serif); }
-.pt-calband span { position: absolute; top: -14px; width: 22px; height: 42px; border-radius: 99px; background: var(--pt-wall); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--pt-ink) 50%, transparent); }
-.pt-calband span:first-child { left: 30%; } .pt-calband span:nth-child(2) { right: 30%; }
-.pt-calband em { font-style: normal; text-transform: capitalize; }
-.pt-calday { display: block; margin-top: 10vh; font: 700 clamp(140px, 30vw, 380px)/.9 var(--font-hand, serif); color: var(--pt-ink); }
-.pt-cal.is-in .pt-calpage { animation: ptFromTop .34s var(--pt-in) both; }
-.pt-cal.is-out .pt-calpage { animation: ptTear .5s var(--pt-out) both; }
-
-/* ---------- Plan: o fișă liniată urcă de jos, bifa se trage, apoi fișa pleacă în sus ---------- */
-.pt-lined { position: absolute; inset: 0; display: grid; place-items: center; background-color: var(--pt-paper);
-    background-image: linear-gradient(90deg, transparent 12%, color-mix(in srgb, var(--pt-red) 60%, transparent) 12% calc(12% + 2px), transparent calc(12% + 2px)), repeating-linear-gradient(transparent 0 37px, var(--pt-line) 37px 38px); }
-.pt-lined-in { position: relative; display: flex; align-items: center; gap: .3em; }
-.pt-lined .pt-word { position: static; translate: none; }
-.pt-check { width: clamp(70px, 12vw, 160px); height: auto; overflow: visible; }
-.pt-check path { fill: none; stroke: var(--pt-red); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
-.pt-plan.is-in .pt-lined { animation: ptFromBottom .34s var(--pt-in) both; }
-.pt-plan.is-in .pt-check path { animation: ptDraw .26s .2s ease-out both; }
-.pt-plan.is-out .pt-check path { stroke-dashoffset: 0; }
-.pt-plan.is-out .pt-lined { animation: ptToTop .46s var(--pt-out) both; }
-
-/* ---------- Examene: o foaie vine din dreapta și primește ștampila ---------- */
-.pt-exampaper { position: absolute; inset: 0; display: grid; place-items: center; background-color: var(--pt-paper); background-image: repeating-linear-gradient(transparent 0 37px, var(--pt-line) 37px 38px); }
-.pt-stamp { padding: .25em .7em; border: .12em solid var(--pt-red); border-radius: .3em; color: var(--pt-red); font: 800 clamp(30px, 9vw, 130px)/1 var(--font-hand, serif); letter-spacing: .06em; text-transform: uppercase; transform: rotate(-10deg); box-shadow: inset 0 0 0 .05em color-mix(in srgb, var(--pt-red) 40%, transparent); }
-.pt-exam.is-in .pt-exampaper { animation: ptFromRight .3s var(--pt-in) both; }
-.pt-exam.is-in .pt-stamp { animation: ptStamp .26s .18s cubic-bezier(.2, .8, .3, 1.2) both; }
-.pt-exam.is-out .pt-exampaper { animation: ptToLeft .44s var(--pt-out) both; }
-
-/* ---------- Eu: permisul de cititor se întoarce pe tot ecranul ---------- */
-.pt-eu { perspective: 1600px; }
-.pt-card { position: absolute; inset: 0; background: var(--pt-paper); transform-origin: left center; backface-visibility: hidden; }
-.pt-cardband { height: 24vh; display: grid; place-items: center; background: var(--pt-ink); color: var(--pt-paper); font: 700 clamp(26px, 5vw, 60px)/1 var(--font-hand, serif); }
-.pt-cardbody { display: flex; align-items: center; justify-content: center; gap: 5vw; height: 52vh; }
-.pt-photo { width: clamp(110px, 18vw, 220px); aspect-ratio: 4 / 5; border: 3px dashed color-mix(in srgb, var(--pt-ink) 45%, transparent); border-radius: 6px; background: var(--pt-wall); }
-.pt-lines { display: grid; gap: 4vh; width: min(46vw, 520px); }
-.pt-lines i { height: 0; border-bottom: 3px dotted color-mix(in srgb, var(--pt-ink) 60%, transparent); }
-.pt-barcode { position: absolute; right: 6vw; bottom: 7vh; width: min(34vw, 300px); height: 9vh; background: repeating-linear-gradient(90deg, var(--pt-ink) 0 3px, transparent 3px 6px, var(--pt-ink) 6px 8px, transparent 8px 12px, var(--pt-ink) 12px 17px, transparent 17px 19px); opacity: .85; }
-.pt-eu.is-in .pt-card { animation: ptFlipIn .38s var(--pt-in) both; }
-.pt-eu.is-out .pt-card { animation: ptFlipOut .46s var(--pt-out) both; transform-origin: right center; }
-
-/* ---------- celelalte: o foaie care trece de la dreapta la stânga ---------- */
-.pt-wipe { position: absolute; inset: 0; background: var(--pt-paper); }
-.pt-def.is-in .pt-wipe { animation: ptFromRight .3s var(--pt-in) both; }
-.pt-def.is-out .pt-wipe { animation: ptToLeft .42s var(--pt-out) both; }
-
-@keyframes ptPop { from { opacity: 0; scale: .8; } to { opacity: 1; scale: 1; } }
-@keyframes ptFade { to { opacity: 0; } }
-@keyframes ptPostitIn { from { transform: translate(-70vmax, -120vmax) rotate(-16deg); } to { transform: rotate(-4deg); } }
-@keyframes ptPostitOut { from { transform: rotate(-4deg); } to { transform: translate(80vmax, 125vmax) rotate(14deg); } }
-@keyframes ptDropIn { from { transform: translateY(-102%); } to { transform: none; } }
-@keyframes ptDropOut { from { transform: none; } to { transform: translateY(102%); } }
-@keyframes ptGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-@keyframes ptShrink { from { transform: scaleY(1); } to { transform: scaleY(0); } }
-@keyframes ptCornerIn { from { transform: translate(105%, 105%) rotate(8deg); } to { transform: none; } }
-@keyframes ptCornerOut { from { transform: none; } to { transform: translate(-105%, -105%) rotate(-8deg); } }
-@keyframes ptFromTop { from { transform: translateY(-102%); } to { transform: none; } }
-@keyframes ptTear { 0% { transform: none; } 30% { transform: rotate(4deg); } 100% { transform: translate(8%, 115%) rotate(16deg); } }
-@keyframes ptFromBottom { from { transform: translateY(102%); } to { transform: none; } }
-@keyframes ptToTop { from { transform: none; } to { transform: translateY(-102%); } }
-@keyframes ptFromRight { from { transform: translateX(102%); } to { transform: none; } }
-@keyframes ptToLeft { from { transform: none; } to { transform: translateX(-102%); } }
-@keyframes ptDraw { to { stroke-dashoffset: 0; } }
-@keyframes ptStamp { from { opacity: 0; transform: rotate(-24deg) scale(2.4); } to { opacity: 1; transform: rotate(-10deg) scale(1); } }
-@keyframes ptFlipIn { from { transform: rotateY(-90deg); } to { transform: none; } }
-@keyframes ptFlipOut { from { transform: none; } to { transform: rotateY(90deg); } }
-@media (prefers-reduced-motion: reduce) { .pt { display: none !important; } }

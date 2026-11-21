@@ -220,8 +220,12 @@ const subjectStyle = mat => {
 /** Inițialele de pe placa materiei (ex. „Română” → „Ro”, „Limba engleză” → „En”). */
 const subjectInitials = mat => { const s = shortSubjectName(mat).replace(/[^\p{L}\p{N} ]/gu, "").trim(); const w = s.split(/\s+/); return (w.length > 1 && w[1] ? w[0][0] + w[1][0] : s.slice(0, 2)).replace(/^./, c => c.toUpperCase()); };
 
+/** Mascota (colegul de bancă) e oprită în aspectul actual: nu apare nicăieri și nu e pomenită în texte.
+    Codul ei rămâne (growth.js, pal.js); se pornește înapoi punând true aici. */
+const MASCOT_ON = false;
+
 /** Culoarea barei de stare a telefonului (și a barei Safari): peretele raftului, luminos / întunecat. */
-const THEME_BAR = { light: "#D9E7E2", dark: "#14151B" };
+const THEME_BAR = { light: "#F2F2F7", dark: "#000000" };
 
 const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
 

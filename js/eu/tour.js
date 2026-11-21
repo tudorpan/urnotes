@@ -18,7 +18,7 @@ function tourSteps() {
     const hey = name ? `, ${name}` : "";
     const phone = isPhoneLayout();
     return [
-        { text: `Salut${hey}! Eu sunt ${buddyName()}, colegul tău de bancă. În mai puțin de un minut îți arăt cum merge urNotes.` },
+        { text: MASCOT_ON ? `Salut${hey}! Eu sunt ${buddyName()}, colegul tău de bancă. În mai puțin de un minut îți arăt cum merge urNotes.` : `Salut${hey}! În mai puțin de un minut îți arăt cum merge urNotes.` },
         { target: ".azi-head-text", text: "Asta e pagina Azi: ce ai de făcut azi și ce urmează. Totul pornește de aici." },
         { target: "#azi-tiles", text: "Plăcile colorate îți arată dintr-o privire media, testele din săptămână și planul de azi. Atinge una ca să mergi acolo." },
         { target: navSel("tab-catalog"), text: "La „Note” ai toate materiile, fiecare cu culoarea ei. Tot acolo, în file, găsești Progresul și „Ce-ar fi dacă”." },
@@ -94,7 +94,7 @@ function showTourStep(i, dir) {
     const visible = steps.map(tourVisible);
     const pos = visible.slice(0, tour.i + 1).filter(Boolean).length;
     $("tour-buddy").innerHTML = buddySVG(step.last ? "giggle" : tour.i === 0 ? "happy" : "focused");
-    $("tour-step").textContent = `${buddyName()} · ${pos} din ${visible.filter(Boolean).length}`;
+    $("tour-step").textContent = MASCOT_ON ? `${buddyName()} · ${pos} din ${visible.filter(Boolean).length}` : `Pasul ${pos} din ${visible.filter(Boolean).length}`;
     $("tour-text").textContent = step.text;
     $("tour-back").hidden = tour.i === 0;
     $("tour-next").textContent = step.last ? "Hai să începem!" : tour.i === 0 ? "Arată-mi" : "Mai departe";

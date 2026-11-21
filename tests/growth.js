@@ -52,7 +52,7 @@ const DATA = {
   const need = Math.ceil((T.xpForLevel(L0 + 1) - T.palXP()) / 10) + 1;
   T.state.subjects["Matematică"].grades.push(...grades(need)); T.refresh();
   const L1 = T.palProgress().level;
-  assert(L1 === L0 + 1 && T.state.pal.seenLevel === L1 && new RegExp(`nivelul ${L1}`).test(toast()), "level up toast");
+  assert(L1 === L0 + 1 && T.state.pal.seenLevel === L1 && !new RegExp(`nivelul ${L1}`).test(toast() || ""), "level up is counted, but no mascot toast (mascot off)");
   // garderoba
   click(q("#azi-buddy .pal-level") || q('[data-action="wardrobe-open"]'));
   assert(/Garderoba lui Bufi/.test($("action-modal-title").textContent) && qa("#action-modal-body .pal-kind").length === 4, "wardrobe opens, with the four mascots to pick (an old typed name is ignored)");

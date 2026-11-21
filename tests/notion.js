@@ -34,15 +34,15 @@ const DATA = {
   const { w, T, $, q, qa, click, press, type, caret } = A;
   if (w.document.readyState === "loading") await new Promise(r => w.document.addEventListener("DOMContentLoaded", r));
   await new Promise(r => setTimeout(r, 30));
-  // un singur stil: Raftul (fără alegere de stil și fără Tiți)
+  // un singur stil: aspectul ca aplicațiile Apple (fără alegere de stil și fără mascotă)
   const cls = () => [...w.document.body.classList].filter(c => c.startsWith("style-")).join(",");
-  assert(cls() === "style-raft", "the app is always Raftul (" + cls() + ")");
+  assert(cls() === "style-app", "the app has one look (" + cls() + ")");
   assert(!$("set-accent"), "no accent switch in settings");
   T.state.settings.appearance.style = "blocuri"; T.applyAppearanceSettings();
-  assert(cls() === "style-raft", "an old saved style choice changes nothing");
+  assert(cls() === "style-app", "an old saved style choice changes nothing");
   T.switchTab("tab-setari");
   assert(!$("style-pick") && !w.document.querySelector(".style-card"), "Eu › Aspect: no style picker");
-  assert(w.document.querySelector('meta[name="theme-color"]').content === "#D9E7E2", "the phone status bar takes the wall colour");
+  assert(w.document.querySelector('meta[name="theme-color"]').content === "#F2F2F7", "the phone status bar takes the background colour");
   T.switchTab("tab-dashboard");
   assert(!$("azi-subjects").hidden && qa("#azi-subjects .as-item[data-mat]").length === Object.keys(T.state.subjects).length && q("#azi-subjects .as-add"), "Azi › Materiile tale: one item per subject + add");
   const it = qa("#azi-subjects .as-item[data-mat]")[0];

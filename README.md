@@ -1,6 +1,6 @@
 # urNotes — notele tale, în stilul tău
 
-Aplicație web pentru evidența notelor școlare, personalizată pentru fiecare elev (numele tău, culoarea ta și o mascotă-post-it pe care o botezi tu): medii, ținte, purtare, calendar cu teste și teme, orar, statistici, simulator „ce-ar fi dacă” și raport pentru printare.
+Aplicație web pentru evidența notelor școlare, personalizată pentru fiecare elev (numele tău și culoarea ta): medii, ținte, purtare, calendar cu teste și teme, orar, statistici, simulator „ce-ar fi dacă” și raport pentru printare.
 
 Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu media, notele și notițele tale), meniul lateral arată toate paginile, iar testele și temele le vezi ca săptămână, lună, tabel sau panou.
 
@@ -60,26 +60,25 @@ Aplicația e făcută pentru elev, în jurul zilei lui. Patru secțiuni, la fel 
 Pe telefon, bara de jos are Azi · Note · ＋ · Calendar · Plan, iar „Eu” e avatarul din bara de sus.
 O filă a unei secțiuni se înregistrează cu `hub` (calea „Note › Progres”, fără „înapoi”): `registerTab("tab-…", { …, group: "grades", hub: "tab-catalog" })`; filele se pun în `<nav class="subnav">` din `index.html`. O sub-pagină cu „înapoi” se înregistrează cu `parent`.
 
-### Aspectul: Raftul liniștit
+### Aspectul
 
-Un singur stil (`style-raft.css`, clasa `style-raft` pe `<body>`): o bibliotecă liniștită, cu ce era bun în stilul clasic.
-Hârtie cald-cenușie, cerneală și o singură culoare de accent (galbenul de post-it / marker); materiile apar în culoarea lor, stinsă (`--spine`), iar roșul rămâne doar pentru „risc”.
+Un singur stil (`app.css`, clasa `style-app` pe `<body>`), după aplicațiile Apple: fontul sistemului, titluri mari, liste grupate pe card alb cu colțuri rotunjite, fundal gri deschis și un singur albastru pentru butoane și linkuri.
+Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul rămâne pentru „risc”. Modul întunecat e negru cu carduri gri închis.
 
-- Azi: raftul cu cărți (înălțimea = media), „Acum” e un post-it lipit cu bandă. Note: un teanc de cărți culcate. Pagina unei materii: coperta sus, notele ca ștampile pe o fișă de împrumut. Calendar: file de calendar de birou, cu ziua de azi încercuită de mână. Eu: un permis de cititor. Plan: o fișă liniată.
-- Atingeri de mână: titlurile paginilor sunt subliniate cu markerul, iar notițele de pe margine (subtitluri, etichete mici) sunt scrise cu Kalam.
-- Fonturile sunt găzduite cu aplicația (`fonts/`, `fonts.css`): Fraunces (titluri, cifre), Lexend (text), Kalam (notițe), toate cu ă, â, î, ș, ț.
-- `style.css` + `ui.css` sunt temelia; `styles.css` are „Materiile tale”, alegerea mascotei și pagina întreagă a materiei.
+- Azi: carduri simple cu cifre, „Materiile tale” ca listă (punct, nume, medie, săgeată), „Acum” cu butoane rotunde pentru notă. Note: rânduri cu inițialele materiei și media în dreapta. Pagina unei materii: titlu mare, notele în cercuri. Calendar: ziua de azi în cerc roșu, evenimentele cu o bară colorată. Eu: profil cu inițialele.
+- Pe telefon: bara de file de jos e translucidă, iar „Adaugă” se deschide ca o foaie iOS.
+- Fără fonturi descărcate; contrastul trece verificarea WCAG AA în ambele moduri.
+- `style.css` + `ui.css` sunt temelia; `tokens.css` și `styles.css` vin peste ele, iar `app.css` le dă aspectul final.
 
 ### Mișcarea și gesturile
 
-- Singura animație e tranziția dintre file (`js/ui/pagefx.js`, stilurile `pt-*` din `motion.css`): când atingi o filă, un desen mare acoperă tot ecranul, pagina se schimbă dedesubt și desenul pleacă (sub o secundă). Fiecare filă are desenul ei: Azi = un post-it uriaș, Note = cotoare de cărți, Progres = bare care urcă, Ce-ar fi dacă = o foaie de matematică cu un semn de întrebare, Calendar = o filă care se rupe, Plan = o fișă liniată cu o bifă, Examene = o foaie cu ștampila, Eu = permisul de cititor care se întoarce. Nimic nu se animă când se deschide aplicația sau o pagină; căutarea și butonul Înapoi schimbă pagina direct.
+- Singura animație e tranziția dintre file (`js/ui/pagefx.js`, stilurile `pt-*` din `motion.css`): când atingi o filă, un panou în culoarea ei, cu iconița și numele filei, acoperă tot ecranul, pagina se schimbă dedesubt și panoul pleacă (sub o secundă). Nimic nu se animă când se deschide aplicația sau o pagină; căutarea și butonul Înapoi schimbă pagina direct.
 - Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
-- Colegul își păstrează fețele și reacțiile. Cu „reducere mișcare” din sistem se oprește și tranziția dintre file.
+- Cu „reducere mișcare” din sistem se oprește și tranziția dintre file.
 
 ### Mascotele
 
-Colegul de bancă se alege, nu se botează: `PAL_KINDS` (`js/eu/growth.js`) are patru mascote, fiecare cu numele, descrierea și culoarea ei: **Bufi** (bufnița, implicită), **Cotorel** (cartea), **Gumi** (guma de șters) și **Tiți** (post-it-ul). Alegerea e în `state.pal.look.kind` și se face din Eu › Colegul tău, din garderobă sau din configurarea de la început.
-Corpurile sunt în `buddyBodySVG()` (`js/azi/azi.js`), în aceleași coordonate, așa că fețele, stările și accesoriile merg la toate. Prima culoare din garderobă („A lui”) e culoarea firească a mascotei; celelalte se deblochează cu nivelurile.
+Sunt oprite: `MASCOT_ON = false` în `js/core/config.js` ascunde colegul peste tot (Azi, Eu, configurarea, turul, notificările de nivel). Codul a rămas: `PAL_KINDS` (`js/eu/growth.js`) are patru mascote (Bufi, Cotorel, Gumi, Tiți), iar corpurile sunt în `buddyBodySVG()` (`js/azi/azi.js`). Ca să revină, pui `MASCOT_ON = true` și scoți regula care le ascunde din `app.css`.
 
 ### Cum adaugi ceva
 
