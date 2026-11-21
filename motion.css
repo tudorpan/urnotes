@@ -1,140 +1,38 @@
-/* urNotes · Mișcarea Raftului liniștit (pornită din js/ui/scena.js prin clasa „scena-play” pe pagina care intră).
-   Cărțile cad pe raft, teancul se așază, post-it-ul se lipește, markerul se trage sub titlu, ștampilele se apasă,
-   filele de calendar se rup, ziua de azi se încercuiește, bifele se trag cu creionul, foaia „Adaugă” alunecă între pași.
-   Totul e sub o secundă și dispare complet cu „reducere mișcare”. */
-@property --draw { syntax: "<angle>"; inherits: false; initial-value: 360deg; }
-:root { --bounce: cubic-bezier(.34, 1.56, .64, 1); --settle: cubic-bezier(.22, 1, .36, 1); }
-
+/* urNotes · Mișcarea: doar tranziția dintre file (pagina alunecă puțin din partea în care mergi, în ui.css)
+   și indicatorii care o însoțesc: markerul din meniul lateral și pastila din bara de jos alunecă la fila nouă.
+   Nimic nu se animă când se deschide aplicația sau o pagină. Totul dispare cu „reducere mișcare”. */
 @media (prefers-reduced-motion: no-preference) {
-    /* ---------- titlurile: markerul se trage de la stânga la dreapta ---------- */
-    body.style-raft .scena-play :is(.page-intro h2, .azi-head h2) { animation: markerDraw .75s .12s var(--settle) both; }
-
-    /* ---------- meniul: pastila alunecă; sub pagina deschisă, markerul se trage ---------- */
+    /* meniul lateral: pastila alunecă; sub pagina deschisă, markerul se trage */
     body.style-raft .sidebar .side-nav.has-pill .tab-btn.side-link.active { background: transparent; }
     body.style-raft .side-pill { background: var(--r-wall); border-radius: 14px 0 0 14px; box-shadow: none; }
     body.style-raft .sidebar .tab-btn.side-link > span:first-of-type:not(.side-row-grades) {
         background-image: linear-gradient(transparent 52%, color-mix(in srgb, var(--r-gold) 80%, transparent) 52% 90%, transparent 90%);
-        background-repeat: no-repeat; background-size: 0% 100%; transition: background-size .45s .12s var(--settle);
+        background-repeat: no-repeat; background-size: 0% 100%; transition: background-size .35s .08s ease-out;
     }
     body.style-raft .sidebar .tab-btn.side-link.active > span:first-of-type:not(.side-row-grades) { background-size: 100% 100%; }
-    /* telefon: pastila de sub fila activă alunecă și ea */
-    body.style-raft .nav-pill { display: block !important; background: var(--r-wall); border-radius: 14px; transition: transform .4s var(--settle), width .4s var(--settle); }
+    /* telefon: pastila de sub fila activă alunecă */
+    body.style-raft .nav-pill { display: block !important; background: var(--r-wall); border-radius: 14px; transition: transform .3s ease-out, width .3s ease-out; }
     body.style-raft .mobile-nav-btn.active { background: transparent !important; }
-    body.style-raft .mobile-nav-btn.active .ico { animation: navHop .5s var(--bounce); }
-
-    /* ---------- Azi: cărțile cad pe raft una câte una, suporturile alunecă, post-it-ul se lipește ---------- */
-    body.style-raft .scena-play .as-item { animation: bookDrop .62s var(--bounce) both; animation-delay: calc(var(--i, 0) * 55ms + 90ms); }
-    body.style-raft .scena-play .as-row::before { animation: bookendL .5s var(--settle) both; }
-    body.style-raft .scena-play .as-row::after { animation: bookendR .5s .45s var(--settle) both; }
-    body.style-raft .scena-play .azi-subjects::after { animation: plankIn .55s var(--settle) both; transform-origin: left center; }
-    body.style-raft .scena-play .azi-next { animation: postitIn .75s .28s var(--bounce) both; }
-    body.style-raft .scena-play .azi-next::before { animation: tapeIn .32s .9s var(--settle) both; }
-    body.style-raft .scena-play .home-tile { animation: tileUp .5s var(--settle) both; animation-delay: calc(var(--i, 0) * 60ms); }
-    body.style-raft .scena-play .home-tile.is-hero .home-tile-value { animation: markerDrawInline .7s .35s var(--settle) both; }
-    body.style-raft .scena-play :is(.azi-list, .azi-plan-list) > li { animation: rowIn .4s var(--settle) both; animation-delay: calc(var(--i, 0) * 45ms + 200ms); }
-    /* o carte ridicată (ții apăsat): iese puțin din raft */
-    body.style-raft .as-item.is-lifted { animation: bookLift .45s var(--bounce); }
-    body.style-raft .as-item:not(.as-add):hover { transform: translateY(-8px) rotate(-1.5deg); }
-    body.style-raft .as-item { transition: transform .25s var(--bounce); }
-
-    /* ---------- Note: teancul de cărți se așază de jos în sus ---------- */
-    body.style-raft .scena-play :is(.cat-row-wrap, .cat-row.is-purtare) { animation: stackIn .5s var(--settle) both; animation-delay: calc(var(--i, 0) * 45ms + 60ms); }
-    body.style-raft .scena-play .cat-sum { animation: tileUp .45s var(--settle) both; }
-    body.style-raft .cat-row.stg, body.style-raft .cat-row-wrap .cat-row.stg { animation: none; }
-
-    /* ---------- materia: coperta se deschide, ștampilele se apasă pe fișă, una după alta ---------- */
-    body.style-raft .scena-play .cat-detail-head { animation: coverIn .55s var(--settle) both; transform-origin: left center; }
-    body.style-raft .scena-play .cat-grades { animation: cardSlideUp .5s .15s var(--settle) both; }
-    body.style-raft .cat-grades .cat-grade { --r: -4deg; }
-    body.style-raft .cat-grades .cat-grade:nth-child(even) { --r: 3deg; }
-    body.style-raft .scena-play .cat-grades .cat-grade-val { animation: stamp .42s var(--settle) both; animation-delay: calc(var(--i, 0) * 110ms + 380ms); }
-    body.style-raft .scena-play .cat-grades .cat-grade-info { animation: rowIn .35s var(--settle) both; animation-delay: calc(var(--i, 0) * 110ms + 420ms); }
-    body.style-raft .cat-grades .cat-grade.is-new .cat-grade-val { animation: stampHard .6s var(--settle) both; }
-    body.style-raft .cat-grades .cat-grade.is-new { animation: inkFlash 1s ease-out; }
-
-    /* ---------- calendar: filele se rup una câte una, ziua de azi se încercuiește ---------- */
-    body.style-raft .scena-play .ag-day .ag-date { animation: pageFlip .5s var(--settle) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: top center; }
-    body.style-raft .scena-play .ag-day .cal-ev { animation: rowIn .38s var(--settle) both; animation-delay: calc(var(--i, 0) * 40ms + 150ms); }
-    body.style-raft .ag-day.is-today .ag-date b { position: relative; background: none !important; }
-    body.style-raft .ag-day.is-today .ag-date b::after {
-        content: ""; position: absolute; left: 50%; top: 60%; width: 46px; height: 34px; translate: -50% -50%; pointer-events: none;
-        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40' preserveAspectRatio='none'%3E%3Cpath d='M37 5 C20 2 6 9 6 20 C6 32 22 37 34 35 C48 33 56 25 54 16 C52 8 40 4 28 6' stroke='%23B5473A' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
-        -webkit-mask: conic-gradient(from 200deg, #000 var(--draw), transparent 0); mask: conic-gradient(from 200deg, #000 var(--draw), transparent 0);
-    }
-    body.style-raft .scena-play .ag-day.is-today .ag-date b::after { animation: drawCircle .8s .55s ease-out both; }
-    /* bifat: titlul se taie cu o linie de creion, trasă de la stânga */
-    body.style-raft .cal-ev .cal-ev-title { text-decoration: none !important; background: linear-gradient(currentColor, currentColor) left 58% / 0% 1.6px no-repeat; transition: background-size .38s var(--settle); }
-    body.style-raft .cal-ev.is-done .cal-ev-title { background-size: 100% 1.6px; }
-    body.style-raft .cal-ev input[type="checkbox"]:checked { animation: tickPop .4s var(--bounce); }
-
-    /* ---------- foaia „Adaugă”: plăcile apar pe rând, pașii alunecă ---------- */
-    .cc-sheet[data-step="type"] .cc-tile { animation: tileUp .42s var(--bounce) both; }
-    .cc-sheet[data-step="type"] .cc-tile:nth-child(2) { animation-delay: 50ms; }
-    .cc-sheet[data-step="type"] .cc-tile:nth-child(3) { animation-delay: 100ms; }
-    .cc-sheet[data-step="type"] .cc-tile:nth-child(4) { animation-delay: 150ms; }
-    .cc-sheet[data-step="type"] .cc-minor { animation: rowIn .35s .2s var(--settle) both; }
-    .cc-sheet.is-fwd .cc-scroll, .cc-sheet.is-fwd .cc-head-txt { animation: fromRight .3s var(--settle) both; }
-    .cc-sheet.is-back .cc-scroll, .cc-sheet.is-back .cc-head-txt { animation: fromLeft .3s var(--settle) both; }
-    .cc-sheet.is-fwd .cc-ico { animation: navHop .45s var(--bounce); }
-    .cc-val.is-on, .cc-subj.is-on, .cc-day.is-on, .cc-chip.is-on { animation: choosePop .3s var(--bounce); }
-    .cc-preview b { animation: fadeUp .25s var(--settle); }
-
-    /* ---------- colegul: alegerea lui sare; pe Azi te salută când intri ---------- */
-    .pal-kind.is-on .buddy { animation: navHop .55s var(--bounce); }
-    .scena-play .pal-kind { animation: tileUp .4s var(--bounce) both; animation-delay: calc(var(--i, 0) * 60ms); }
-    .buddy .buddy-pupils { transition: transform .18s ease-out; }
-
-    /* ---------- „Anulează”: bara care arată cât timp mai ai ---------- */
-    .toast { position: relative; overflow: hidden; }
-    .toast-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--r-gold, var(--accent-fill)); transform-origin: left center; pointer-events: none; }
-
-    /* ---------- View Transitions: cartea se deschide în copertă; tema se schimbă dintr-un cerc ---------- */
-    ::view-transition-group(urn-book) { animation-duration: .5s; animation-timing-function: var(--settle); }
-    ::view-transition-old(urn-book), ::view-transition-new(urn-book) { height: 100%; object-fit: fill; }
-    html.vt-book::view-transition-old(root) { animation: vtFadeOut .25s ease both; }
-    html.vt-book::view-transition-new(root) { animation: vtFadeIn .35s .1s ease both; }
-    html.vt-theme::view-transition-old(root), html.vt-theme::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-    html.vt-theme::view-transition-new(root) { z-index: 2; }
-
-    /* ---------- butoanele: se apasă puțin, cele principale strălucesc o dată la hover ---------- */
-    body.style-raft :is(.btn, .qg-btn, .cc-launch-btn, .pal-kind, .cat-quick):active { transform: scale(.96); }
-    body.style-raft .btn-primary { position: relative; overflow: hidden; }
-    body.style-raft .btn-primary::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .55) 50%, transparent 65%); transform: translateX(-120%); }
-    body.style-raft .btn-primary:hover::after { animation: shine .8s ease-out; }
 }
 
-/* telefon: bara de prins a foii „Adaugă” */
+/* „Anulează”: bara care arată cât timp mai ai (utilă, nu decor; rămâne și cu mișcare redusă, dar fără să curgă) */
+.toast { position: relative; overflow: hidden; }
+.toast-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--r-gold, var(--accent-fill)); transform-origin: left center; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .toast-timer { display: none; } }
+@keyframes toastTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* telefon: bara de prins a foii „Adaugă” (o tragi în jos ca s-o închizi) */
 .cc-grab { display: none; }
 @media (max-width: 640px) {
     .cc-grab { display: block; width: 44px; height: 5px; margin: 8px auto 0; border-radius: 99px; background: color-mix(in srgb, var(--ink) 22%, transparent); flex: none; }
     .cc-head { touch-action: none; }
 }
 
-@keyframes markerDraw { from { background-size: 0% 13px; } to { background-size: 100% 13px; } }
-@keyframes markerDrawInline { from { background-size: 0% 100%; background-repeat: no-repeat; } to { background-size: 100% 100%; background-repeat: no-repeat; } }
-@keyframes navHop { 0% { transform: none; } 35% { transform: translateY(-5px) scale(1.12); } 70% { transform: translateY(1px) scale(.97); } 100% { transform: none; } }
-@keyframes bookDrop { from { opacity: 0; transform: translateY(-70px) rotate(-8deg); } }
-@keyframes bookendL { from { opacity: 0; transform: translateX(-30px); } }
-@keyframes bookendR { from { opacity: 0; transform: translateX(30px); } }
-@keyframes plankIn { from { transform: scaleX(0); } }
-@keyframes postitIn { from { opacity: 0; transform: translateY(-36px) rotate(-7deg) scale(1.05); } }
-@keyframes tapeIn { from { opacity: 0; transform: rotate(-3deg) scaleX(.2); } }
-@keyframes tileUp { from { opacity: 0; transform: translateY(14px) scale(.97); } }
-@keyframes rowIn { from { opacity: 0; transform: translateX(-10px); } }
-@keyframes bookLift { 40% { transform: translateY(-16px) rotate(-3deg); } }
-@keyframes stackIn { from { opacity: 0; transform: translateX(70px) rotate(1.5deg); } }
-@keyframes coverIn { from { opacity: 0; transform: perspective(900px) rotateY(-18deg) translateX(-10px); } }
-@keyframes cardSlideUp { from { opacity: 0; transform: translateY(18px); } }
-@keyframes stamp { 0% { opacity: 0; transform: scale(1.9) rotate(calc(var(--r) - 12deg)); } 60% { opacity: 1; transform: scale(.9) rotate(var(--r)); } 100% { opacity: 1; transform: scale(1) rotate(var(--r)); } }
-@keyframes stampHard { 0% { opacity: 0; transform: scale(2.6) rotate(calc(var(--r) - 20deg)); } 55% { opacity: 1; transform: scale(.82) rotate(var(--r)); } 75% { transform: scale(1.08) rotate(var(--r)); } 100% { opacity: 1; transform: scale(1) rotate(var(--r)); } }
-@keyframes inkFlash { 0% { background: color-mix(in srgb, var(--r-gold, #F0CD5E) 45%, transparent); } 100% { background: transparent; } }
-@keyframes pageFlip { from { opacity: 0; transform: perspective(500px) rotateX(-80deg); } }
-@keyframes drawCircle { from { --draw: 0deg; } to { --draw: 360deg; } }
-@keyframes tickPop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
-@keyframes fromRight { from { opacity: 0; transform: translateX(28px); } }
-@keyframes fromLeft { from { opacity: 0; transform: translateX(-28px); } }
-@keyframes choosePop { 0% { transform: scale(.92); } 60% { transform: scale(1.05); } 100% { transform: scale(1); } }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(4px); } }
-@keyframes toastTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-@keyframes vtFadeOut { to { opacity: 0; } }
-@keyframes vtFadeIn { from { opacity: 0; } }
+/* nimic nu sare și nu intră pe rând: cardurile, foaia „Adaugă”, iconițele din meniu și cifrele apar direct */
+.stg, .np-pop, .is-catch, .home-tile-value, .mobile-nav-btn.is-pop .ico, .mobile-nav-btn.is-pop,
+.side-nav.has-pill .tab-btn.side-link.active .ico, .cc-overlay:not([hidden]) .cc-overlay-host, body .cc-overlay:not([hidden]) .cc-overlay-host,
+.cc-overlay-backdrop, .slide-from-l, .slide-from-r, .slide-up { animation: none !important; }
+.confetti, .tick-pop, .grade-fly, .ripple-host { display: none !important; }
+.anim-grow, .goal-arc, .stats-meter-fill, .stat-track-fill { animation: none !important; }
+.toast.is-celebrate::after { display: none !important; }
+.toast .toast-pal, .toast .toast-ico { animation: none !important; }

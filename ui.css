@@ -532,8 +532,7 @@ body.dark-mode .home-tile.is-hero, body.dark-mode .cat-sum.is-accent { filter: n
 .splash-name { font-size: 40px; color: var(--ink, #16122A); }
 .splash-tag { font-size: 14px; color: var(--ink-2, #5E587A); }
 @media (prefers-reduced-motion: no-preference) {
-    .splash-logo { animation: splashStick 0.6s cubic-bezier(.3, 1.5, .5, 1) both; }
-    .splash-name, .splash-tag { animation: splashUp 0.45s ease 0.2s both; }
+    /* pornirea e liniștită: fără animație la început */
 }
 @keyframes splashStick { from { transform: translateY(-40px) rotate(-24deg) scale(0.6); opacity: 0; } }
 @keyframes splashUp { from { transform: translateY(8px); opacity: 0; } }
@@ -1681,9 +1680,9 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
 :root { --spring: cubic-bezier(.34, 1.18, .64, 1); --ease-out: cubic-bezier(.22, 1, .36, 1); }
 
 /* paginile: intră din partea în care mergi (mai lin), cardurile apar pe rând */
-@keyframes tabInFwd { from { opacity: 0; transform: translate3d(20px, 0, 0); } to { opacity: 1; transform: none; } }
-@keyframes tabInBack { from { opacity: 0; transform: translate3d(-20px, 0, 0); } to { opacity: 1; transform: none; } }
-.tab-content.active.enter-fwd, .tab-content.active.enter-back { animation-duration: .42s; animation-timing-function: var(--ease-out); will-change: transform, opacity; }
+@keyframes tabInFwd { from { opacity: 0; transform: translate3d(14px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes tabInBack { from { opacity: 0; transform: translate3d(-14px, 0, 0); } to { opacity: 1; transform: none; } }
+.tab-content.active.enter-fwd, .tab-content.active.enter-back { animation-duration: .3s; animation-timing-function: var(--ease-out); will-change: transform, opacity; }
 .stg { animation: cardIn .55s var(--ease-out) both; animation-delay: calc(var(--stg, 0) * 32ms); will-change: transform, opacity; }
 @keyframes cardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 

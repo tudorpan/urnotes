@@ -29,7 +29,6 @@ function celebrate() {
 /** După orice notă nouă: un 10 merită confetti. */
 function celebrateGrade(val) {
     if (Number(val) === 10) celebrate();
-    if (typeof gradeFly === "function") gradeFly(val);                 // nota zboară spre „Note”
     if (typeof palReact === "function") palReact(palMoodForGrade(val)); // Tiți reacționează
 }
 

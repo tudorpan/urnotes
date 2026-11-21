@@ -72,10 +72,9 @@ Hârtie cald-cenușie, cerneală și o singură culoare de accent (galbenul de p
 
 ### Mișcarea și gesturile
 
-- `motion.css` + `js/ui/scena.js`: când intră o pagină, `scenaPlay()` îi pune clasa `scena-play` (și `--i` pe elementele din liste), iar animațiile pornesc de acolo: cărțile cad pe raft, teancul din Note se așază, ștampilele se apasă pe fișă, filele de calendar se rup, ziua de azi se încercuiește, markerul se trage sub titlu, cifrele numără.
-- Deschiderea unei materii (din raft sau din Note) și schimbarea temei folosesc View Transitions acolo unde browserul le are: cartea se face copertă, tema se schimbă dintr-un cerc.
-- Gesturi: pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
-- Mișcarea vechi din `fluid.js` / `motion.js` (colegul care reacționează, nota care zboară spre Note, pastila din meniu, cardurile pe rând) rămâne. Toată mișcarea se oprește cu „reducere mișcare” din sistem; gesturile merg și atunci.
+- Singura animație e tranziția dintre file: pagina nouă alunecă puțin din partea în care mergi (`animateTabEnter`, ui.css), iar markerul din meniul lateral și pastila din bara de jos alunecă la fila nouă (`motion.css`). Nimic nu se animă când se deschide aplicația sau o pagină: fără carduri care intră pe rând, cifre care numără sau bare care cresc.
+- Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
+- Colegul își păstrează fețele și reacțiile. Cu „reducere mișcare” din sistem se oprește și tranziția dintre file.
 
 ### Mascotele
 

@@ -23,7 +23,7 @@ function switchTab(tabId) {
     const from = ui.activeTab;
     ui.activeTab = tabId;
     // cifrele „numără” doar la prima deschidere; la următoarele intrări pagina apare direct, fără să pară reîncărcată
-    if (changed && tabId === "tab-statistici" && !ui.statsSeen) { ui.statsAnimate = true; ui.statsSeen = true; }
+    // Progresul apare direct (fără bare care cresc sau cifre care numără)
     // O pagină nouă începe de sus, cu titlul ei vizibil sub bară (nu la jumătatea derulării paginii anterioare).
     if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
 
@@ -69,8 +69,7 @@ function animateTabEnter(tabId, from) {
     el.classList.add(`enter-${dir}`, "is-entering");
     clearTimeout(el._enterT);
     document.body.classList.add("is-entering-page");
-    el._enterT = setTimeout(() => { el.classList.remove("enter-fwd", "enter-back", "is-entering"); document.body.classList.remove("is-entering-page"); }, 950);
-    if (typeof staggerIn === "function") staggerIn(el); // cardurile apar pe rând
+    el._enterT = setTimeout(() => { el.classList.remove("enter-fwd", "enter-back", "is-entering"); document.body.classList.remove("is-entering-page"); }, 400);
 }
 
 /** Pastila din bara de jos alunecă sub fila activă. */

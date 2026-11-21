@@ -132,6 +132,8 @@ const queueSidePill = () => { if (!sidePillFrame) sidePillFrame = requestAnimati
 /* ---------- cardurile paginii apar pe rând (doar ce se vede pe ecran) ---------- */
 const STAGGER_SEL = ".page-intro, .azi-head, .home-tile, .azi-next-wrap, .glass-card, .subnav, .cat-row, .set-sec, .stats-nav, .tt-col";
 function staggerIn(root) {
+    return; // cardurile apar direct, fără să intre pe rând
+    // eslint-disable-next-line no-unreachable
     if (!root || reduceMotion()) return;
     const marked = [];
     let i = 0;
@@ -146,25 +148,10 @@ function staggerIn(root) {
     setTimeout(() => marked.forEach(el => { el.classList.remove("stg"); el.style.removeProperty("--stg"); }), 1100);
 }
 
-/* ---------- valul de la atingere ---------- */
-const RIPPLE_SEL = ".btn, .setup-choice, .cat-row, .tt-tap, .tt-cell, .tt-slot, .cc-chip, .tab-btn.side-link, .mobile-nav-btn, .home-tile, .subnav-btn, .set-sec, .setup-qchip, .setup-qval, .palette-item, .side-sub";
-document.addEventListener("pointerdown", event => {
-    if (event.button !== 0 || reduceMotion()) return;
-    const el = event.target.closest?.(RIPPLE_SEL);
-    if (!el || el.disabled) return;
-    if (getComputedStyle(el).position === "static") el.style.position = "relative";
-    const r = el.getBoundingClientRect();
-    const host = document.createElement("span");
-    host.className = "ripple-host";
-    host.setAttribute("aria-hidden", "true");
-    const size = Math.max(r.width, r.height) * 2.2;
-    host.innerHTML = `<i style="width:${size}px;height:${size}px;left:${event.clientX - r.left - size / 2}px;top:${event.clientY - r.top - size / 2}px"></i>`;
-    el.appendChild(host);
-    setTimeout(() => host.remove(), 650);
-}, { passive: true });
-
 /* ---------- alunecă din partea în care mergi ---------- */
 function slideIn(el, dir) {
+    return; // fără mișcare în pagină: singura tranziție e cea dintre file (animateTabEnter)
+    // eslint-disable-next-line no-unreachable
     if (!el || reduceMotion()) return;
     el.classList.remove("slide-from-l", "slide-from-r", "slide-up");
     void el.offsetWidth;
