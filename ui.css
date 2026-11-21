@@ -582,7 +582,7 @@ body.dark-mode .side-pal-text small { color: color-mix(in srgb, var(--ink) 85%, 
 .catalog-layout.show-detail .cat-list-pane,
 .catalog-layout:not(.show-detail) .cat-detail-pane,
 #tab-catalog.cat-detail-open .page-intro,
-#tab-catalog.cat-detail-open .cat-summary,
+#tab-catalog.cat-detail-open .cat-summary { display: none; }
 .cat-back { display: inline-flex; }
 .catalog-layout:not(.show-detail) .cat-list-pane { max-width: 860px; }
 .catalog-layout .cat-row.selected:not(:focus-visible) { border-color: transparent; }
@@ -717,7 +717,6 @@ body.dark-mode .week-stat .is-up { color: #7BC59A; }
 .week-next .ico { flex: none; width: 16px; height: 16px; margin-top: 2px; }
 
 /* --- Lustruire --- */
-/* Note: legăturile spre Progres / Ce-ar fi dacă / Examene încap toate, fără derulare laterală */
 /* lista de materii: o pagină, nu o cutie cu derulare proprie */
 .catalog-layout .cat-list-pane { position: static; max-height: none; }
 
@@ -1507,7 +1506,8 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
    ========================================================================== */
 /* zilele trecute din agendă: mai liniștite, dar citibile (fără transparență peste text) */
 .ag-day.is-past { opacity: 1; }
-.ag-day.is-past .ag-main > *:not(.ag-free) { opacity: 0.72; }
+.ag-day.is-past .ag-main > *:not(.ag-free):not(.ag-items),
+.ag-day.is-past .ag-items > *:not(:has(.cal-ev-addgrade)) { opacity: 0.72; } /* un test trecut care așteaptă nota rămâne la contrast plin */
 .ag-day.is-past .ag-date b { color: var(--ink-2); }
 /* text alb pe culorile închise ale materiilor: nuanța mai închisă (--subj-chip) */
 .tt-tap i, .azi-lesson-n, .cal-lesson-n { background-color: var(--subj-chip, var(--subj)); }
@@ -1871,3 +1871,12 @@ body.dark-mode .subnav-btn.active { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
 .azi-watch-row:hover b { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
 .azi-watch-row:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; border-radius: 6px; }
 .azi-watch-row .azi-lesson-avg { flex: none; }
+
+/* „+ Notă” de pe un test trecut (24 px înălțime) primește și el zona de 44×44 a blocului TELEFON de mai sus */
+@media (max-width: 760px), (pointer: coarse) {
+    .cal-ev-addgrade { position: relative; z-index: 1; }
+    .cal-ev-addgrade::before { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+}
+
+/* data de pe Azi („Sâmbătă, 21 noiembrie · Modulul 2, săptămâna 3”) se rupe frumos, nu lasă „3” singur pe rând */
+.azi-date { text-wrap: balance; }

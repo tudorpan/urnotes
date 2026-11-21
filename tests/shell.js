@@ -13,7 +13,9 @@ w.localStorage.setItem("pro_catalog_db_v4", JSON.stringify({
   "Fizică": { ore: 2, target: 9, grades: [{ val: 5, type: "Test", date: "2026-10-01" }] },
   "Română": { ore: 4, target: 10, grades: [] }
 }));
-w.localStorage.setItem("pro_calendar_db_v4", JSON.stringify({ "2026-10-20": [{ id: "e", title: "Test fizică cinematică", type: "Test", subject: "Fizică" }] }));
+const soon = new Date(); soon.setDate(soon.getDate() + 3); // testul e mereu peste 3 zile (o dată fixă ieșea din fereastra notificărilor)
+const soonKey = `${soon.getFullYear()}-${String(soon.getMonth() + 1).padStart(2, "0")}-${String(soon.getDate()).padStart(2, "0")}`;
+w.localStorage.setItem("pro_calendar_db_v4", JSON.stringify({ [soonKey]: [{ id: "e", title: "Test fizică cinematică", type: "Test", subject: "Fizică" }] }));
 w.localStorage.setItem("pro_purtare_db_v4", JSON.stringify({ grades: {}, lastModule: "2026-1" }));
 w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,switchTab,get alerts(){return alerts}};");
 const T = w.__t, $ = id => w.document.getElementById(id), q = s => w.document.querySelector(s), qa = s => [...w.document.querySelectorAll(s)];

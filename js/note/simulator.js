@@ -169,7 +169,7 @@ function renderSimulator() {
                 <div class="empty-state-icon" aria-hidden="true">${icon("flask")}</div>
                 <h3>Simulatorul are nevoie de materii</h3>
                 <p>Adaugă o materie, apoi încearcă aici note ipotetice fără să-ți afectezi notele reale.</p>
-                <button class="btn btn-primary" type="button" data-action="add-subject">+ Adaugă Materie</button>
+                <button class="btn btn-primary" type="button" data-action="add-subject">+ Adaugă materie</button>
             </div>`;
         return;
     }

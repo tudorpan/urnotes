@@ -398,6 +398,8 @@ function renderStatistics() {
     if (!hasSubjects) document.querySelectorAll("#stats-empty [data-pal-mood]").forEach(el => { el.innerHTML = buddySVG(el.dataset.palMood); });
     body.hidden = !hasSubjects;
     $("stats-nav").hidden = !hasSubjects;
+    const printBtn = document.querySelector('#tab-statistici [data-action="stats-print"]');
+    if (printBtn) printBtn.hidden = !hasSubjects; // fără materii, raportul ar fi o pagină goală
     if (!hasSubjects) {
         ["chartStatTrend", "chartStatDistributie"].forEach(destroyChart);
         return;
