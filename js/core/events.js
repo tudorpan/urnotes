@@ -135,7 +135,6 @@ const ACTIONS = {
         openNotifPanel();
     },
     "theme-toggle": () => toggleTheme(),
-    "style-pick": el => pickStyle(el.dataset.style),
     "notif-close": () => closeNotifPanel(),
     "modal-cancel": () => closeActionModal(),
     "guest-signin": () => { authUI.reason = ""; openAuth("signin"); },

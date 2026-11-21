@@ -287,8 +287,8 @@ function renderCatalogList() {
         ].filter(Boolean).join(" · ");
         const pct = hasGrades ? Math.min(100, d.exactAvg / Math.max(1, sub.target) * 100) : 0;
         return `<div class="cat-row-wrap">
-            <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
-                style="${subjectStyle(mat)}; --pct: ${hasGrades ? (d.exactAvg * 10).toFixed(1) : 0}%" ${selected ? 'aria-current="true"' : ""}>
+            <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""} ${hasGrades ? "" : "is-empty"}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
+                style="${subjectStyle(mat)}; --pct: ${hasGrades ? (d.exactAvg * 10).toFixed(1) : 0}%; --n: ${Math.min(sub.grades.length, 12)}" ${selected ? 'aria-current="true"' : ""}>
                 <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span><span class="subj-emoji" aria-hidden="true">${subjectEmoji(mat)}</span>
                 <span class="cat-row-main">
                     <span class="cat-row-name">${sub.priority ? '<span class="cat-star" aria-label="prioritară">★</span>' : ""}${escapeHTML(mat)}</span>
@@ -351,7 +351,7 @@ function renderCatalogDetail() {
         </div>`;
 
     pane.innerHTML = `
-        <div class="glass-card cat-detail-card">
+        <div class="glass-card cat-detail-card" style="${subjectStyle(mat)}">
             <button type="button" class="btn btn-text cat-back" data-action="cat-back">← Toate materiile</button>
 
             <button type="button" class="page-emoji subj-emoji-btn" data-action="emoji-pick" data-mat="${safeMat}" aria-haspopup="dialog" aria-label="Schimbă pictograma materiei" title="Schimbă pictograma">${subjectEmoji(mat)}</button>

@@ -114,7 +114,6 @@ function sanitizeSettings(raw) {
         appearance: {
             theme: pick(s.appearance.theme, ["system", "light", "dark"], "system"),
             accent: pick(s.appearance.accent, Object.keys(ACCENTS), "yellow"),
-            style: pick(s.appearance.style, APP_STYLES, APP_STYLES[0]), // „urnotes” (vechiul stil unic) trece pe cel implicit
             // (densitatea și cursoarele personalizate au fost scoase în v9)
         },
         school: {

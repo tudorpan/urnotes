@@ -512,12 +512,8 @@ function applyAppearanceSettings() {
     document.body.classList.toggle("dark-mode", dark);
     document.documentElement.classList.toggle("theme-dark", dark); // bare de derulare și controale native întunecate
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#111319" : "#F6F4EE"; m.removeAttribute("media"); });
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.removeAttribute("media"));
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
-    const style = APP_STYLES.includes(a.style) ? a.style : APP_STYLES[0];
-    APP_STYLES.forEach(k => document.body.classList.toggle(styleClass(k), k === style));
-    document.body.dataset.style = style;
-    const tc = STYLE_INFO[style].theme; // bara Safari ia culoarea foii stilului
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? (style === "clasic" ? "#111319" : "#14151B") : tc[0]; });
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? THEME_BAR.dark : THEME_BAR.light; }); // peretele raftului
 
 }

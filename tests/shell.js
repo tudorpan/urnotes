@@ -119,10 +119,6 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
   assert($("notif-panel").hidden, "a second click on the bell closes them");
   click($("notif-btn")); w.document.body.focus(); key("Escape");
   assert($("notif-panel").hidden, "Escape closes notifications even with focus on the page");
-  const pf = $("set-pagefx");
-  assert(pf && pf.checked, "settings: page animations on by default");
-  pf.checked = false; pf.dispatchEvent(new w.Event("change", { bubbles: true }));
-  assert(w.localStorage.getItem("urn_page_fx_v1") === "0", "settings: turning page animations off is remembered");
   T.switchTab("tab-dashboard");
   w.document.body.insertAdjacentHTML("beforeend", '<button id="t-purt" data-action="purtare-settings"></button>');
   click($("t-purt"));

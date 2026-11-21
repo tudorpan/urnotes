@@ -54,31 +54,17 @@ const SETTINGS_FIELDS = {
     "set-buddy": ["profile", "buddy"]
 };
 
-/** Alegerea stilului: patru cartonașe, fiecare cu o mostră desenată în stilul lui. */
-function renderStylePick() {
-    const box = $("style-pick");
-    if (!box) return;
-    const cur = APP_STYLES.includes(state.settings.appearance.style) ? state.settings.appearance.style : APP_STYLES[0];
-    box.innerHTML = APP_STYLES.map(k => `
-        <button type="button" class="style-card style-card-${k}" role="radio" aria-checked="${k === cur}" data-action="style-pick" data-style="${k}">
-            <span class="style-sample" aria-hidden="true"><i></i><i></i><i></i><b>8.57</b></span>
-            <span class="style-card-text"><b>${STYLE_INFO[k].name}</b><small>${STYLE_INFO[k].hint}</small></span>
-        </button>`).join("");
+/** Permisul de cititor din Eu: inițialele numelui, în pătratul de fotografie. */
+function renderMeInitials(name = state.settings.profile?.name || "") {
+    const el = $("me-initials");
+    if (!el) return;
+    const w = String(name).trim().split(/\s+/).filter(Boolean);
+    el.textContent = w.length ? (w[0][0] + (w[1]?.[0] || "")).toLocaleUpperCase("ro") : "?";
 }
-
-/** Schimbă stilul pe loc (se vede imediat și se salvează). */
-function pickStyle(key) {
-    if (!APP_STYLES.includes(key) || state.settings.appearance.style === key) return;
-    state.settings.appearance.style = key;
-    saveState();
-    applyAppearanceSettings();
-    refresh();
-    renderStylePick();
-    showToast(`Stilul: ${STYLE_INFO[key].name}.`);
-}
+document.addEventListener("input", event => { if (event.target.id === "set-name") renderMeInitials(event.target.value); });
 
 function loadSettingsIntoUI() {
-    renderStylePick();
+    renderMeInitials();
     const themeBtn = $("eu-theme"); // „Eu”: tema dintr-o atingere
     if (themeBtn) {
         const dark = document.body.classList.contains("dark-mode");

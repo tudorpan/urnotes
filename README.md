@@ -60,21 +60,16 @@ Aplicația e făcută pentru elev, în jurul zilei lui. Patru secțiuni, la fel 
 Pe telefon, bara de jos are Azi · Note · ＋ · Calendar · Plan, iar „Eu” e avatarul din bara de sus.
 O filă a unei secțiuni se înregistrează cu `hub` (calea „Note › Progres”, fără „înapoi”): `registerTab("tab-…", { …, group: "grades", hub: "tab-catalog" })`; filele se pun în `<nav class="subnav">` din `index.html`. O sub-pagină cu „înapoi” se înregistrează cu `parent`.
 
-### Stilurile
+### Aspectul: Raftul
 
-Elevul alege stilul din **Eu › Aspect** (se schimbă pe loc și se salvează în `appearance.style`):
+Aplicația are un singur stil, **Raftul** (`style-raft.css`, clasa `style-raft` pe `<body>`, pusă direct în `index.html`): o bibliotecă.
+Materiile sunt cărți pe un raft (înălțimea = media), meniul e un dulap închis la culoare, „Acum” e o etichetă de bagaj, iar cartonașele sunt foi de calendar de birou.
+În Note, materiile sunt un teanc de cărți culcate (cotorul colorat, media pe o etichetă de bibliotecă, cartea e mai groasă cu cât are mai multe note); pagina unei materii are coperta cărții sus și notele pe o fișă de împrumut, ca ștampile; zilele din Calendar sunt file de calendar de birou; profilul din Eu e un permis de cititor; titlurile secțiunilor stau în rame de alamă, ca etichetele unui fișier.
 
-| Stil | Clasa pe `<body>` | Foaia | Ideea |
-| --- | --- | --- | --- |
-| **Blocuri** (implicit) | `style-blocuri` | `style-blocuri.css` | culori tari, contururi groase, umbre tari; media e un sticker-stea, materiile sunt borcane care se umplu |
-| **Raftul** | `style-raft` | `style-raft.css` | materiile sunt cărți pe un raft (înălțimea = media), meniul e un dulap închis, „Acum” e o etichetă de bagaj |
-| **Bandă desenată** | `style-benzi` | `style-benzi.css` | căsuțe cu etichete, puncte de tipar, salutul într-un balon, media într-un „POW!” |
-| **Clasic** | `style-urnotes` | `style.css` + `ui.css` | aspectul de dinainte, cu post-it-uri și cu Tiți |
-
-- Numele, descrierile și culoarea barei de sus sunt în `APP_STYLES` / `STYLE_INFO` (`js/core/config.js`); `index.html` pune clasa înainte de prima afișare, ca să nu clipească.
-- `styles.css` are ce e comun: alegerea stilului, „Materiile tale” de pe Azi (`#azi-subjects`, fiecare materie cu media în `--pct`) și ascunderea lui Tiți în afara stilului Clasic.
-- Fonturile sunt găzduite cu aplicația (`fonts/`, `fonts.css`); browserul descarcă doar ce folosește stilul ales. În Bandă desenată, cifrele vin din Luckiest Guy, pentru că Bangers desenează 7 aproape ca 1.
-- Un stil nou: o foaie `style-<nume>.css` cu reguli sub `body.style-<nume>`, o intrare în `APP_STYLES` + `STYLE_INFO`, numele în scriptul din `<head>` și o mostră `.style-card-<nume>` în `styles.css`.
+- `style.css` + `ui.css` sunt temelia (aranjarea paginilor); `style-raft.css` le dă aspectul, cu variabilele de culoare și fonturile la început.
+- `styles.css` are „Materiile tale” de pe Azi (`#azi-subjects`, fiecare materie cu media în `--pct`), pagina întreagă a materiei și ascunderea lui Tiți.
+- Fonturile sunt găzduite cu aplicația (`fonts/`, `fonts.css`): Fraunces pentru titluri, Lexend pentru text, amândouă cu ă, â, î, ș, ț.
+- Tema (luminoasă / întunecată / ca sistemul) se alege din **Eu › Aspect**.
 
 ### Cum adaugi ceva
 
