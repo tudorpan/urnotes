@@ -50,6 +50,9 @@ const SETTINGS_FIELDS = {
     "set-risk-drop": ["calc", "riskDrop"],
     "set-theme": ["appearance", "theme"],
     "set-name": ["profile", "name"],
+    "set-nickname": ["profile", "nickname"],
+    "set-motto": ["profile", "motto"],
+    "set-titles": ["appearance", "titles"],
     "set-county": ["school", "county"],
     "set-buddy": ["profile", "buddy"]
 };
@@ -60,8 +63,8 @@ function renderMeInitials(name = state.settings.profile?.name || "") {
     if (!el) return;
     const w = String(name).trim().split(/\s+/).filter(Boolean);
     // sigiliul tău (js/ui/identity.js): prima literă a numelui, în ceara lămpii
-    el.dataset.seal = sealLetter(name);
-    el.innerHTML = sealSVG(sealLetter(name), { cls: "me-seal-big" });
+    el.dataset.seal = "";
+    el.innerHTML = sealArt(userSeal(), { cls: "me-seal-big" }); // sigiliul tău (js/ui/seal.js)
 }
 document.addEventListener("input", event => { if (event.target.id === "set-name") renderMeInitials(event.target.value); });
 
@@ -69,6 +72,7 @@ function loadSettingsIntoUI() {
     renderMeInitials();
     renderSealChrome();
     renderIdentitySettings();
+    renderAziLayoutSetting();
     const themeBtn = $("eu-theme"); // „Eu”: tema dintr-o atingere
     if (themeBtn) {
         const dark = document.body.classList.contains("dark-mode");

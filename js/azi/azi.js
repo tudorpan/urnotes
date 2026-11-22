@@ -361,7 +361,10 @@ function renderDashboard() {
     });
     part("salut", () => {
         const first = firstName();
-        setText("h-dashboard", `${greeting(now.getHours())}${first ? `, ${first}` : ""}.`);
+        const call = state.settings.profile.nickname || first; // numele cu care vrei să fii salutat
+        setText("h-dashboard", `${greeting(now.getHours())}${call ? `, ${call}` : ""}.`);
+        const motto = $("azi-motto");
+        if (motto) { motto.textContent = state.settings.profile.motto || ""; motto.hidden = !state.settings.profile.motto; }
         renderAziSeal();
     });
     part("rezumat", () => setText("azi-summary", homeSummary(days, todo)));
@@ -384,6 +387,7 @@ function renderDashboard() {
         $("azi-tiles").innerHTML = homeTilesHTML(days, todo);
         if (metrics.globalAvg > 0) countUp($("azi-tiles").querySelector(".home-tile.is-hero .home-tile-value"), "gpa", metrics.globalAvg);
     });
+    part("ordinea ta", () => applyAziLayout()); // Eu › Pagina Azi (js/ui/personal.js)
 }
 
 /** Cele patru cifre ale zilei, ca plăci colorate: media, testele din săptămână, planul de azi, examenul (sau riscul). */

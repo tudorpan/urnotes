@@ -117,6 +117,7 @@ function sanitizeSettings(raw) {
             lamp: pick(s.appearance.lamp, Object.keys(LAMPS), "aur"), // culoarea lămpii (js/ui/identity.js)
             sounds: s.appearance.sounds !== false,
             haptics: s.appearance.haptics !== false,
+            titles: pick(s.appearance.titles, ["serif", "rotunjit", "simplu"], "serif"), // litera titlurilor
             // (densitatea și cursoarele personalizate au fost scoase în v9)
         },
         school: {
@@ -141,8 +142,12 @@ function sanitizeSettings(raw) {
         },
         profile: {
             name: cleanName(s.profile.name, 40),
-            buddy: cleanName(s.profile.buddy, 20) || DEFAULT_SETTINGS.profile.buddy
-        }
+            buddy: cleanName(s.profile.buddy, 20) || DEFAULT_SETTINGS.profile.buddy,
+            nickname: cleanName(s.profile.nickname, 20),   // cum te salută aplicația
+            motto: cleanName(s.profile.motto, 60)          // rândul tău de sub salut
+        },
+        seal: sanitizeSeal(s.seal),                        // sigiliul tău (js/ui/seal.js)
+        aziLayout: sanitizeAziLayout(s.aziLayout)          // cardurile din Azi: ordine și ascunse (js/ui/personal.js)
     };
 }
 

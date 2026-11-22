@@ -235,13 +235,15 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "lamp", accent: "yellow", lamp: "aur", sounds: true, haptics: true },
+    appearance: { theme: "lamp", accent: "yellow", lamp: "aur", sounds: true, haptics: true, titles: "serif" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată
     report: { name: "", cls: "", period: "year", sections: {} },
     // Personalizare: cum îl cheamă pe elev și cum și-a botezat mascota (post-it-ul de pe pagina Azi)
-    profile: { name: "", buddy: "Tiți" },
+    profile: { name: "", buddy: "Tiți", nickname: "", motto: "" },
+    seal: { shape: "ceara", wax: "lamp", rim: "simplu", kind: "letters", letters: "", icon: "", symbol: "stea" },
+    aziLayout: { order: [], hidden: [] },
     // Programa elevului (aleasă în configurare): de ea depind materiile care se pot adăuga
     school: { profile: "", cls: 0, variant: "", lm2: "Limba franceză", county: "" }
 };

@@ -33,6 +33,13 @@ const ACTIONS = {
         renderCalendar();
     },
     "shortcuts": () => { closeCalMenu?.(); openShortcuts(); },
+    // Eu: atelierul sigiliului (js/ui/seal.js)
+    "seal-workshop": () => openSealWorkshop(),
+    "seal-set": el => setSealDraft(el.dataset.group, el.dataset.key),
+    // Eu › Pagina Azi: arată / ascunde, mută un card (js/ui/personal.js)
+    "azi-card-toggle": el => setAziCard(el.dataset.card, { toggle: true }),
+    "azi-card-move": el => setAziCard(el.dataset.card, { move: Number(el.dataset.dir) }),
+    "azi-layout-reset": () => setAziCard(null, { reset: true }),
     // Azi: sigiliul de lângă salut → Eu › Sigiliile tale
     "seals-open": () => {
         switchTab("tab-setari");

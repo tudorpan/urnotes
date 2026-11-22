@@ -45,9 +45,13 @@ function checkAchievements() {
     if (typeof cloud !== "undefined" && cloud.applying) return;
     // un singur mesaj, chiar dacă s-au deblocat mai multe deodată (ex. după un import), și puțin după acțiune
     // un sigiliu nou se ștampilează (js/ui/identity.js); mai multe deodată (ex. după un import): unul singur, cu toate
+    // ce s-a deblocat în Atelierul sigiliului (js/ui/seal.js) odată cu ele
+    const n = sealCount(), before = n - fresh.length;
+    const news = [SEAL_SHAPES, SEAL_WAX, SEAL_RIMS, SEAL_SYMBOLS].flatMap(m => Object.values(m)).filter(it => it.at > before && it.at <= n).map(it => it.name.toLowerCase());
+    const unlock = news.length ? ` În atelier: ${news.slice(0, 3).join(", ")}${news.length > 3 ? " și altele" : ""}.` : "";
     stampMoment(fresh.length === 1
-        ? { seal: SEAL_MARKS[fresh[0].key] || "★", title: `Sigiliu nou: ${fresh[0].label}`, sub: "Îl găsești în Eu, la Sigiliile tale.", big: true }
-        : { seal: String(fresh.length), title: `${fresh.length} sigilii noi`, sub: fresh.map(a => a.label).join(", "), big: true });
+        ? { seal: SEAL_MARKS[fresh[0].key] || "★", title: `Sigiliu nou: ${fresh[0].label}`, sub: `Îl găsești în Eu, la Sigiliile tale.${unlock}`, big: true }
+        : { seal: String(fresh.length), title: `${fresh.length} sigilii noi`, sub: `${fresh.map(a => a.label).join(", ")}.${unlock}`, big: true });
 }
 
 const NONOTE_GROUP_ID = "nonote:group";

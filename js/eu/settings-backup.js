@@ -146,6 +146,9 @@ function saveSettings({ quiet = false } = {}) {
     s.appearance.theme = field("set-theme") || "system";
     s.appearance.accent = "yellow";
     s.profile.name = cleanName(field("set-name"), 40);
+    if ($("set-nickname")) s.profile.nickname = cleanName(field("set-nickname"), 20);
+    if ($("set-motto")) s.profile.motto = cleanName(field("set-motto"), 60);
+    if ($("set-titles")) s.appearance.titles = ["serif", "rotunjit", "simplu"].includes(field("set-titles")) ? field("set-titles") : "serif";
     s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
 
     applyAppearanceSettings();
@@ -515,5 +518,6 @@ function applyAppearanceSettings() {
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? THEME_BAR.dark : THEME_BAR.light; }); // peretele raftului
     applyLamp(dark); // culoarea lămpii și momentul zilei (js/ui/identity.js)
+    document.body.dataset.titles = a.titles || "serif"; // litera titlurilor (identity.css)
 
 }

@@ -207,3 +207,61 @@ body.style-app .subj-emoji-btn .sic-initials { font-size: 20px; }
 .sic-opt:hover { background: var(--fill-2); }
 .sic-opt:active { transform: scale(.92); }
 .sic-opt.is-on { color: color-mix(in srgb, var(--subj, var(--tint)) 72%, var(--ink)); background: color-mix(in srgb, var(--subj, var(--tint)) 18%, var(--sheet)); box-shadow: inset 0 0 0 2px var(--subj, var(--tint)); }
+
+/* ---------- litera titlurilor (Eu › Aspect): clasică, rotunjită sau simplă ---------- */
+body.style-app[data-titles="rotunjit"] { --serif: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", -apple-system, system-ui, sans-serif; }
+body.style-app[data-titles="simplu"] { --serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
+body.style-app[data-titles="rotunjit"] :is(.page-intro h2, .azi-head h2, .brand-name) { font-weight: 700; letter-spacing: -0.02em; }
+body.style-app[data-titles="simplu"] :is(.page-intro h2, .azi-head h2, .brand-name) { font-weight: 700; letter-spacing: -0.025em; }
+
+/* ---------- Azi: rândul tău de sub salut, cardurile ascunse ---------- */
+body.style-app .azi-motto { margin: 6px 0 2px; font: italic 500 17px/1.35 var(--serif); color: var(--tint-text); }
+body.style-app[data-titles="simplu"] .azi-motto, body.style-app[data-titles="rotunjit"] .azi-motto { font-style: normal; }
+.is-user-off { display: none !important; }
+
+/* ---------- Eu › Pagina Azi ---------- */
+.al-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.al-row { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 2px 4px 2px 0; border-bottom: 1px solid var(--rule); }
+.al-row:last-child { border-bottom: 0; }
+.al-row.is-off .al-check span { color: var(--ink-3); }
+.al-check { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; font: 500 15px/1.3 var(--font-ui); color: var(--ink); cursor: pointer; }
+.al-check input { width: 20px; height: 20px; accent-color: var(--tint); flex: none; }
+.al-pin { font: 500 12px/1 var(--font-ui); color: var(--ink-3); }
+.al-moves { display: flex; gap: 4px; }
+.al-move { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 10px; background: var(--fill); color: var(--ink); cursor: pointer; }
+.al-move:disabled { opacity: .35; cursor: default; }
+.al-move .ico { width: 18px; height: 18px; }
+
+/* ---------- Eu › profil: sigiliul se atinge ---------- */
+body.style-app button.me-initials { padding: 0; border: 0; cursor: pointer; transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+body.style-app button.me-initials:active { transform: scale(.94) rotate(-4deg); }
+body.style-app .me-seal-btn { display: inline-flex; align-items: center; gap: 8px; }
+
+/* ---------- Atelierul sigiliului ---------- */
+.sw-stage { position: sticky; top: -1px; z-index: 2; display: grid; justify-items: center; gap: 6px; margin: -4px -4px 8px; padding: 14px 4px 12px;
+    background: radial-gradient(circle at 50% 42%, rgba(var(--lamp-glow, 233, 184, 92), 0.2), transparent 62%), var(--sheet); border-bottom: 1px solid var(--rule); }
+.sw-preview { width: 132px; height: 132px; }
+.sw-big { filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.35)); }
+.sw-count { margin: 0; font: 500 13px/1.3 var(--font-ui); color: var(--ink-2); text-align: center; }
+.sw-h { margin: 16px 2px 8px; font: 600 13px/1.2 var(--font-ui); color: var(--ink-2); letter-spacing: 0; }
+.sw-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.sw-row::-webkit-scrollbar { display: none; }
+.sw-opt { flex: none; display: grid; justify-items: center; gap: 6px; width: 76px; padding: 10px 4px 8px; border: 0; border-radius: 14px; background: var(--fill); color: var(--ink); font: 600 12px/1.15 var(--font-ui); cursor: pointer; scroll-snap-align: start; transition: background-color .15s ease, transform .15s ease; }
+.sw-opt:active:not(:disabled) { transform: scale(.95); }
+.sw-opt .sw-mini { width: 44px; height: 44px; }
+.sw-opt.is-on { background: var(--tint-soft); box-shadow: inset 0 0 0 2px var(--tint); }
+.sw-opt:disabled { cursor: default; color: var(--ink-3); }
+.sw-opt:disabled .sw-mini { filter: grayscale(1) opacity(.35); }
+.sw-opt small { display: block; font-weight: 500; font-size: 11px; }
+.sw-opt span .ico { width: 12px; height: 12px; vertical-align: -1px; }
+.sw-kinds { display: flex; gap: 6px; padding: 3px; border-radius: 12px; background: var(--fill); }
+.sw-kind { flex: 1; min-height: 36px; border: 0; border-radius: 9px; background: none; color: var(--ink); font: 600 14px/1 var(--font-ui); cursor: pointer; }
+.sw-kind.is-on { background: var(--sheet); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); }
+.sw-letters { margin-top: 12px; }
+.sw-letters input { font: 600 20px/1.2 var(--serif); letter-spacing: .08em; text-transform: uppercase; max-width: 140px; }
+.sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 6px; margin-top: 12px; }
+.sw-ico { display: grid; place-items: center; aspect-ratio: 1; padding: 0; border: 0; border-radius: 12px; background: var(--fill); color: var(--ink); font-size: 22px; cursor: pointer; }
+.sw-ico .ico { width: 16px; height: 16px; color: var(--ink-3); }
+.sw-ico.is-on { color: var(--tint-text); background: var(--tint-soft); box-shadow: inset 0 0 0 2px var(--tint); }
+.sw-ico:disabled { cursor: default; }
+.sw-hint { margin-top: 16px; }

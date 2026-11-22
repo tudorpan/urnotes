@@ -56,67 +56,32 @@ function sealLetter(name = state.settings.profile?.name || "") {
     const w = String(name).trim();
     return w ? w[0].toLocaleUpperCase("ro") : "u";
 }
-/**
- * Un sigiliu de ceară: marginea curge neregulat (aceeași formă pentru același text), un inel presat și textul în relief.
- * Culoarea vine din lampă (var(--lamp-fill)), deci se schimbă singur când schimbi lampa.
- */
-function sealSVG(text = sealLetter(), { cls = "", label = "" } = {}) {
-    const id = `seal${++sealSeq}`;
-    let seed = [...String(text)].reduce((s, c) => s * 31 + c.charCodeAt(0), 7) >>> 0;
-    const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-    const pts = [];
-    const N = 18;
-    for (let i = 0; i < N; i++) {
-        const a = (i / N) * Math.PI * 2;
-        const r = 46 + rnd() * 3.2 - (i % 2 ? 2.6 : 0);
-        pts.push([50 + Math.cos(a) * r, 50 + Math.sin(a) * r]);
-    }
-    // contur neted prin puncte (curbe pătratice prin mijloacele laturilor)
-    const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
-    let d = `M${mid(pts[N - 1], pts[0]).map(n => n.toFixed(1)).join(" ")}`;
-    for (let i = 0; i < N; i++) {
-        const m = mid(pts[i], pts[(i + 1) % N]);
-        d += `Q${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)} ${m[0].toFixed(1)} ${m[1].toFixed(1)}`;
-    }
-    const t = String(text);
-    const size = t.length > 2 ? 26 : t.length === 2 ? 34 : 44;
-    return `<svg class="seal ${cls}" viewBox="0 0 100 100" ${label ? `role="img" aria-label="${escapeHTML(label)}"` : `aria-hidden="true"`}>
-        <defs>
-            <radialGradient id="${id}g" cx="38%" cy="32%" r="75%">
-                <stop offset="0" style="stop-color: color-mix(in srgb, var(--lamp-fill) 55%, #fff)"/>
-                <stop offset=".55" style="stop-color: var(--lamp-fill)"/>
-                <stop offset="1" style="stop-color: color-mix(in srgb, var(--lamp-fill) 62%, #000)"/>
-            </radialGradient>
-        </defs>
-        <path d="${d}" fill="url(#${id}g)"/>
-        <circle cx="50" cy="50" r="33" fill="none" style="stroke: color-mix(in srgb, var(--lamp-fill) 55%, #000)" stroke-opacity=".45" stroke-width="2.2"/>
-        <circle cx="50" cy="50.8" r="33" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width=".9"/>
-        <text x="50" y="51" text-anchor="middle" dominant-baseline="central" class="seal-t" font-size="${size}" fill="#fff" fill-opacity=".35" transform="translate(0 1.1)">${escapeHTML(t)}</text>
-        <text x="50" y="51" text-anchor="middle" dominant-baseline="central" class="seal-t" font-size="${size}" style="fill: color-mix(in srgb, var(--lamp-fill) 48%, #000)">${escapeHTML(t)}</text>
-    </svg>`;
+/** Un sigiliu cu textul dat, în forma, ceara și marginea alese de tine (js/ui/seal.js). */
+function sealSVG(text = null, { cls = "", label = "" } = {}) {
+    return sealArt(userSeal(), { text, cls, label });
 }
 
 /** Sigiliul tău pe butonul Eu (bara de sus) și în profil. */
-function renderSealChrome() {
-    const letter = sealLetter();
-    const key = `${letter}`;
+const sealKey = () => JSON.stringify(userSeal()) + sealLetter();
+function renderSealChrome(force = false) {
+    const key = sealKey();
     const face = document.querySelector("#me-btn > .me-btn-face");
-    if (face && face.dataset.seal !== key) { face.dataset.seal = key; face.innerHTML = sealSVG(letter, { cls: "me-seal" }); }
+    if (face && (force || face.dataset.seal !== key)) { face.dataset.seal = key; face.innerHTML = sealArt(userSeal(), { cls: "me-seal" }); }
     const me = $("me-initials");
-    if (me && me.dataset.seal !== key) { me.dataset.seal = key; me.innerHTML = sealSVG(letter, { cls: "me-seal-big" }); }
+    if (me && (force || me.dataset.seal !== key)) { me.dataset.seal = key; me.innerHTML = sealArt(userSeal(), { cls: "me-seal-big" }); }
 }
 
 /** Azi: sigiliul tău lângă salut, cu câte sigilii ai strâns. Atins, te duce la colecție (Eu). */
-function renderAziSeal() {
+function renderAziSeal(force = false) {
     const el = $("azi-seal");
     if (!el) return;
     const got = ACHIEVEMENTS.filter(a => state.achievements[a.key]).length;
     el.hidden = false;
     el.setAttribute("aria-label", `Sigiliile tale: ${got} din ${ACHIEVEMENTS.length}`);
-    const key = `${sealLetter()}|${got}`;
-    if (el.dataset.key === key) return;
+    const key = `${sealKey()}|${got}`;
+    if (!force && el.dataset.key === key) return;
     el.dataset.key = key;
-    el.innerHTML = `${sealSVG(sealLetter(), { cls: "azi-seal-svg" })}<span class="azi-seal-n">${got}<small>/${ACHIEVEMENTS.length}</small></span>`;
+    el.innerHTML = `${sealArt(userSeal(), { cls: "azi-seal-svg" })}<span class="azi-seal-n">${got}<small>/${ACHIEVEMENTS.length}</small></span>`;
 }
 
 /* ---------- vibrația și clinchetul ---------- */
@@ -177,7 +142,7 @@ function nextCelebration() {
     box.setAttribute("role", "status");
     box.innerHTML = `
         <div class="moment-card">
-            <div class="moment-seal">${sealSVG(c.seal, { cls: "moment-svg" })}<i class="moment-ring" aria-hidden="true"></i></div>
+            <div class="moment-seal">${c.own ? sealArt(userSeal(), { cls: "moment-svg" }) : sealSVG(c.seal, { cls: "moment-svg" })}<i class="moment-ring" aria-hidden="true"></i></div>
             <div class="moment-text"><b>${escapeHTML(c.title)}</b>${c.sub ? `<span>${escapeHTML(c.sub)}</span>` : ""}</div>
         </div>`;
     document.body.appendChild(box);

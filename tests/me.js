@@ -31,7 +31,7 @@ w.localStorage.setItem("pro_calendar_db_v4", JSON.stringify({
 w.localStorage.setItem("pro_simulator_db_v4", JSON.stringify({ active: "s1", selected: "Fizica", scenarios: [{ id: "s1", name: "Scenariul 1", hypo: { Fizica: [{ id: "h1", val: 9, type: "Test" }] } }, { id: "s2", name: "Plan B", hypo: {} }] }));
 w.localStorage.setItem("pro_settings_db_v4", JSON.stringify({ appearance: { accent: "blue" } }));
 w.localStorage.setItem("pro_purtare_db_v4", JSON.stringify({ grades: {}, lastModule: "2026-1" }));
-w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,buddySVG,palReact,palMoodForGrade,switchTab,get buddyRest(){return buddyPoke.rest},get metrics(){return metrics},get sim(){return sim},get alerts(){return alerts}};");
+w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,buddySVG,palReact,palMoodForGrade,switchTab,userSeal,get buddyRest(){return buddyPoke.rest},get metrics(){return metrics},get sim(){return sim},get alerts(){return alerts}};");
 const T = w.__t, $ = id => w.document.getElementById(id), q = s => w.document.querySelector(s), qa = s => [...w.document.querySelectorAll(s)];
 const click = el => { if (!el) throw new Error("no element"); el.dispatchEvent(new w.MouseEvent("click", { bubbles: true })); };
 const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.exitCode = 1; };
@@ -93,5 +93,25 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   await new Promise(r => setTimeout(r, 120));
   assert(q("#side-pal .buddy")?.dataset.mood === "happy", "…and goes back to the everyday face");
   assert(T.palMoodForGrade(3) === "sad" && T.palMoodForGrade(7) === "thinking" && T.palMoodForGrade(9) === "happy", "mood per grade");
+
+  // atelierul sigiliului: formele blocate nu se pot alege; alegerea se salvează și apare pe butonul Eu
+  T.switchTab("tab-setari");
+  Object.keys(T.state.achievements).forEach(k => { T.state.achievements[k] = false; }); T.state.achievements.first_grade = true;
+  click(q('[data-action="seal-workshop"]'));
+  assert($("seal-workshop") && q('.sw-opt[data-key="scut"]').disabled && !q('.sw-opt[data-key="floare"]').disabled, "workshop: the shield is locked at 1 seal, the flower is open");
+  click(q('.sw-opt[data-group="shape"][data-key="floare"]')); click(q('.sw-kind[data-key="symbol"]')); click(q('.sw-ico[data-key="luna"]'));
+  assert(q(".sw-ico[data-key=\"luna\"]").classList.contains("is-on") && q('.sw-opt[data-key="floare"]').classList.contains("is-on"), "workshop: choices show as selected");
+  click($("action-modal-confirm"));
+  assert(T.state.settings.seal.shape === "floare" && T.state.settings.seal.kind === "symbol" && T.state.settings.seal.symbol === "luna" && q("#me-btn .seal") && q("#me-initials .seal"), "workshop: the seal is saved and shown on the Eu button and the profile");
+  T.state.settings.seal = { ...T.state.settings.seal, shape: "stea" };
+  assert(T.userSeal().shape === "ceara", "a shape that is not unlocked falls back to the default");
+  // poreclă, rând sub salut, ordinea din Azi
+  $("set-nickname").value = "Pana"; $("set-nickname").dispatchEvent(new w.Event("change", { bubbles: true }));
+  $("set-motto").value = "Media 9 până în iunie"; $("set-motto").dispatchEvent(new w.Event("change", { bubbles: true }));
+  click(q('input[data-card="azi-week"]'));
+  click(q('[data-action="azi-card-move"][data-card="azi-plan"][data-dir="-1"]'));
+  T.switchTab("tab-dashboard");
+  assert(/, Pana\.$/.test(txt("h-dashboard")) && txt("azi-motto") === "Media 9 până în iunie" && !$("azi-motto").hidden, "nickname in the greeting, motto under it");
+  assert($("azi-week").classList.contains("is-user-off") && T.state.settings.aziLayout.order.indexOf("azi-plan") < T.state.settings.aziLayout.order.indexOf("azi-todo") && $("azi-plan").style.order, "Azi: hidden card stays hidden, moved card gets its new order");
   console.log(process.exitCode ? "SOME FAILED" : "ALL PASSED");
 })();
