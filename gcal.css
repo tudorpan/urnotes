@@ -430,3 +430,24 @@ body.style-app #cal-body .gc-ghost-grip::after { content: ""; position: absolute
     body.style-app .gc-qc.is-sheet .gc-qc-select { height: 32px; }
     body.style-app .gc-qc.is-sheet .gc-qc-foot { margin-top: 6px; }
 }
+
+/* telefon: formularul pe tot ecranul, cât timp scrii (urmează spațiul de deasupra tastaturii) */
+body.style-app .gc-qc-head, body.style-app .gc-qc-headsave { display: none; }
+body.style-app .gc-qc.is-sheet.is-full { top: var(--vv-top, 0px) !important; bottom: auto; height: var(--vv-h, 100dvh); max-height: none; overflow-y: auto; overscroll-behavior: contain;
+    padding: 0 16px 16px; border-radius: 0; animation: none; box-shadow: none; }
+body.style-app .gc-qc.is-full .gc-qc-tools { position: sticky; top: 0; z-index: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; min-height: 52px; margin: 0 -16px 6px; padding: 6px 12px; background: inherit; border-bottom: 1px solid var(--gc-line); }
+body.style-app .gc-qc.is-full .gc-qc-grab { display: none; }
+body.style-app .gc-qc.is-full .gc-qc-tools .gc-ibtn { order: 0; width: 36px; height: 36px; }
+body.style-app .gc-qc.is-full .gc-qc-head { display: block; order: 1; font: 600 16px var(--font-ui); text-align: center; }
+body.style-app .gc-qc.is-full .gc-qc-headsave { display: inline-flex; order: 2; min-width: 88px; justify-content: center; border-radius: 18px; }
+body.style-app .gc-qc.is-full .gc-qc-foot .btn-primary { display: none; }
+body.style-app .gc-qc.is-full .gc-qc-foot { justify-content: flex-start; }
+body.style-app .gc-qc.is-full .gc-qc-repeat { display: grid; }
+body.style-app .gc-qc.is-full .gc-qc-title { font-size: 22px; margin-top: 6px; }
+body.style-app .gc-qc.is-full .gc-qc-types { flex-wrap: wrap; overflow: visible; margin: 0 0 8px; padding: 0; }
+body.style-app.qc-full .mobile-bottom-nav { visibility: hidden; }
+/* iOS mărește pagina dacă un câmp are text sub 16px: pe telefon, toate câmpurile au 16px */
+@media (max-width: 640px) {
+    body.style-app .gc-qc :is(input, select, textarea) { font-size: 16px !important; }
+    body.style-app .gc-qc.is-sheet .gc-qc-field input { height: 34px; }
+}

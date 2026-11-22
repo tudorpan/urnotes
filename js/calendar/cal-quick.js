@@ -47,11 +47,13 @@ function renderQuickCreate() {
     }
     const d = parseDateKey(qc.date);
     const dayLabel = `${WEEKDAY_LONG[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()].toLowerCase()}`;
-    box.className = `gc-qc gc-${EVENT_TYPE_CLASS[qc.type] || "personal"}`;
+    box.className = `gc-qc gc-${EVENT_TYPE_CLASS[qc.type] || "personal"}${qc.full ? " is-full" : ""}`;
     box.innerHTML = `
         <div class="gc-qc-tools">
             <span class="gc-qc-grab" aria-hidden="true"></span>
             <button type="button" class="gc-ibtn" data-action="qc-close" aria-label="Închide">${icon("x")}</button>
+            <b class="gc-qc-head">Eveniment nou</b>
+            <button type="button" class="btn btn-primary btn-sm gc-qc-headsave" data-action="qc-save">Salvează</button>
         </div>
         <input type="text" id="qc-title" class="gc-qc-title" maxlength="100" autocomplete="off" placeholder="${escapeHTML(qc.subject ? autoEventTitle(qc.type, qc.subject) : "Adaugă titlu")}" value="${escapeHTML(qc.title)}" aria-label="Titlu">
         <div class="gc-qc-types" role="group" aria-label="Tipul">
@@ -81,6 +83,7 @@ function renderQuickCreate() {
             <button type="button" class="btn btn-primary btn-sm" data-action="qc-save">Salvează</button>
         </div>`;
     placeQuickCreate(box);
+    if (qc.full) qcFitViewport();
     document.body.classList.add("qc-open");
     if (box.classList.contains("is-sheet") && typeof calFit === "function") calFit();
     drawQcGhost();
@@ -94,10 +97,12 @@ function renderQuickCreate() {
             if (gr.bottom > sheetTop - 12 || gr.top < sr.top) sc.scrollTop += gr.top - sr.top - Math.max(8, (room - gr.height) / 2);
         }
     }
-    if (!box.contains(document.activeElement)) $("qc-title")?.focus({ preventScroll: true });
+    // pe telefon nu deschidem tastatura singuri (ar acoperi foaia); pe calculator scrii direct titlul
+    if (!box.classList.contains("is-sheet") && !box.contains(document.activeElement)) $("qc-title")?.focus({ preventScroll: true });
 }
 
 function placeQuickCreate(box) {
+    if (!box) return;
     box.classList.remove("is-sheet");
     box.style.left = box.style.top = "";
     const r = qc.rect || qc.anchor?.getBoundingClientRect?.();
@@ -216,6 +221,12 @@ function qcDragEnd() {
 function closeQuickCreate(restoreFocus = true) {
     const box = $("gc-qc");
     qc.open = false;
+    if (qc.full) {
+        qc.full = false;
+        document.body.classList.remove("qc-full");
+        // iOS împinge pagina în sus când apare tastatura: o aducem înapoi, cu bara de sus la vedere
+        requestAnimationFrame(() => window.scrollTo(0, 0));
+    }
     if (document.body.classList.contains("qc-open")) {
         document.body.classList.remove("qc-open");
         if (typeof calFit === "function") calFit();
@@ -268,7 +279,36 @@ function quickCreateMore() {
     openEventModal(v);
 }
 
+/* Pe telefon: când atingi un câmp, foaia devine un formular pe tot ecranul (ca în aplicația Google), cu bara lui sus
+   (× · Eveniment nou · Salvează), și urmează spațiul lăsat de tastatură, așa că vezi ce scrii și restul câmpurilor. */
+function qcGoFull() {
+    const box = $("gc-qc");
+    if (!box || !box.classList.contains("is-sheet") || qc.full) return;
+    qc.full = true;
+    box.classList.add("is-full");
+    document.body.classList.add("qc-full");
+    qcFitViewport();
+}
+function qcFitViewport() {
+    const box = $("gc-qc");
+    if (!box || !qc.full) return;
+    const vv = window.visualViewport;
+    const top = vv ? vv.offsetTop : 0, h = vv ? vv.height : window.innerHeight;
+    box.style.setProperty("--vv-top", `${Math.round(top)}px`);
+    box.style.setProperty("--vv-h", `${Math.round(h)}px`);
+    // câmpul în care scrii rămâne la vedere în formular
+    const f = document.activeElement;
+    if (f && box.contains(f) && f.scrollIntoView) f.scrollIntoView({ block: "nearest" });
+}
+
 function bindQuickCreate() {
+    document.addEventListener("focusin", event => {
+        if (qc.open && event.target.closest?.("#gc-qc") && event.target.matches("input, select, textarea")) qcGoFull();
+    });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", qcFitViewport);
+        window.visualViewport.addEventListener("scroll", qcFitViewport);
+    }
     document.addEventListener("input", event => {
         if (!qc.open || !event.target.closest?.("#gc-qc")) return;
         readQuickCreate();
