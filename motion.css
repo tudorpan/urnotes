@@ -164,3 +164,20 @@ body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, 
 .sw-bg.sw-ok.is-armed { background: var(--ok, #1A6B2D); }
 .sw-bg.sw-tint { background: color-mix(in srgb, var(--tint, #0058B8) 70%, #888); }
 .sw-bg.sw-tint.is-armed { background: var(--tint, #0058B8); }
+
+/* tras cu mouse-ul (notițe, orar): ce ridici se micșorează puțin, iar locul unde ajunge se deschide lin.
+   După lăsare, js/ui/fluid.js (flipMove) alunecă totul în locurile noi. */
+.nb { transition: box-shadow .16s ease, opacity .16s ease, transform .16s ease; }
+.nb.is-dragging { transform: scale(.98); }
+.nb.drop-before { box-shadow: 0 -3px 0 var(--accent-color); }
+.nb.drop-after { box-shadow: 0 3px 0 var(--accent-color); }
+.tt-cell.is-lifted, .tt-tap.is-lifted { opacity: .4; transform: scale(.96); transition: opacity .16s ease, transform .16s ease; }
+.tt-row.is-drop::before { animation: ttDropLine .16s cubic-bezier(.2, .8, .2, 1) both; transform-origin: center; }
+@keyframes ttDropLine { from { transform: scaleX(.3); opacity: 0; } }
+.tt-col { transition: border-color .16s ease, background-color .16s ease; }
+@media (prefers-reduced-motion: reduce) {
+    .nb, .tt-col { transition: none; }
+    .nb.is-dragging, .tt-cell.is-lifted, .tt-tap.is-lifted { transform: none; }
+    .tt-row.is-drop::before { animation: none; }
+}
+.tt-card.tt-flip .tt-row { animation: none; }

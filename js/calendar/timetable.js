@@ -75,6 +75,7 @@ function closeTimetable({ save = true } = {}) {
 function renderTimetable(focus = "", { reveal = "" } = {}) {
     const box = $("tt-card");
     if (!box || !tt.draft) return;
+    if (!tt.flipping) box.classList.remove("tt-flip");
     // Redesenăm tot, dar păstrăm unde ai derulat (altfel fiecare atingere te-ar arunca sus)
     const keep = {
         week: box.querySelector(".tt-week")?.scrollTop || 0,
@@ -167,7 +168,8 @@ function renderTimetable(focus = "", { reveal = "" } = {}) {
     if (taps) taps.scrollTop = keep.taps;
     if (reveal && week) ttReveal(week, box.querySelector(reveal));
     // altă zi: lista ei alunecă din partea în care ai mers
-    if (keep.day && keep.day !== String(day) && typeof slideIn === "function") slideIn(box.querySelector(".tt-col.is-active .tt-list"), Number(day) - Number(keep.day));
+    // (nu și după ce ai tras o oră acolo: atunci orele alunecă singure în locurile noi)
+    if (keep.day && keep.day !== String(day) && !tt.flipping && typeof slideIn === "function") slideIn(box.querySelector(".tt-col.is-active .tt-list"), Number(day) - Number(keep.day));
     if (focus) box.querySelector(focus)?.focus({ preventScroll: true });
 }
 
@@ -284,6 +286,9 @@ document.addEventListener("dragstart", event => {
     const cell = event.target.closest?.("#tt-overlay .tt-cell");
     if (!tap && !cell) return;
     tt.drag = tap ? { mat: tap.dataset.mat } : { day: Number(cell.dataset.day), i: Number(cell.dataset.i) };
+    const r = (tap || cell).getBoundingClientRect();
+    ttDragFrom = { dx: event.clientX - r.left, dy: event.clientY - r.top }; // unde l-ai apucat
+    (tap || cell).classList.add("is-lifted");
     event.dataTransfer.effectAllowed = tap ? "copy" : "move";
     event.dataTransfer.setData("text/plain", tap ? tap.dataset.mat : "");
     $("tt-overlay").classList.add("is-dragging");
@@ -303,23 +308,37 @@ document.addEventListener("drop", event => {
     tt.drag = null;
     if (!target || !tt.draft) return;
     event.preventDefault();
-    if (drag.mat) {
-        if (!ttInsert(target.day, target.index, drag.mat)) { renderTimetable(); return; }
-    } else {
-        const from = ttList(drag.day);
-        const [mat] = from.splice(drag.i, 1);
-        if (!mat) return;
-        let index = target.index;
-        if (drag.day === target.day && drag.i < index) index -= 1;
-        if (!ttInsert(target.day, index, mat)) { from.splice(drag.i, 0, mat); renderTimetable(); return; }
-    }
-    tt.day = target.day;
-    tt.sel = null;
-    renderTimetable();
+    const mat = drag.mat || ttList(drag.day)[drag.i];
+    if (!mat) return;
+    // orele alunecă în locurile noi, iar cea lăsată se așază vizibil (fără intrarea obișnuită a rândurilor)
+    const card = $("tt-card");
+    card?.classList.add("tt-flip"); // rămâne până la următoarea redesenare (scoasă mai devreme, ar porni din nou intrarea)
+    tt.flipping = true;
+    let landAt = null;
+    try { flipMove("#tt-overlay .tt-cell", ttCellKey, () => {
+        if (drag.mat) {
+            if (!ttInsert(target.day, target.index, drag.mat)) { renderTimetable(); return; }
+            landAt = target.index;
+        } else {
+            const from = ttList(drag.day);
+            from.splice(drag.i, 1);
+            let index = target.index;
+            if (drag.day === target.day && drag.i < index) index -= 1;
+            if (!ttInsert(target.day, index, mat)) { from.splice(drag.i, 0, mat); renderTimetable(); return; }
+            landAt = index;
+        }
+        tt.day = target.day;
+        tt.sel = null;
+        renderTimetable();
+    }, { land: () => landAt === null ? null : `${target.day}|${mat}#${ttList(target.day).slice(0, landAt).filter(m => m === mat).length}`, from: ttDragFrom && { left: event.clientX - ttDragFrom.dx, top: event.clientY - ttDragFrom.dy } }); }
+    finally { tt.flipping = false; }
 });
+const ttCellKey = el => `${el.dataset.day}|${(tt.draft?.[el.dataset.day] || [])[Number(el.dataset.i)] || ""}`;
+let ttDragFrom = null;
 document.addEventListener("dragend", () => {
     tt.drag = null;
     $("tt-overlay")?.classList.remove("is-dragging");
+    document.querySelectorAll("#tt-overlay .is-lifted").forEach(n => n.classList.remove("is-lifted"));
     document.querySelectorAll("#tt-overlay .is-drop").forEach(n => n.classList.remove("is-drop"));
 });
 

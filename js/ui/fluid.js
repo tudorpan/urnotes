@@ -157,6 +157,47 @@ function slideIn(el, dir) {
     clearTimeout(el._slideT);
     el._slideT = setTimeout(() => el.classList.remove("slide-from-l", "slide-from-r", "slide-up"), 450);
 }
+
+/* ---------- după ce tragi ceva: elementele alunecă din locul vechi în cel nou (FLIP) ----------
+   `sel` alege elementele, `key` le recunoaște după redesenare, `change` redesenează.
+   Cele care n-au existat înainte apar cu un mic „pop”; `land` e cheia celui lăsat, care se așază vizibil. */
+const FLIP_EASE = "cubic-bezier(.2, .8, .2, 1)";
+function flipKeys(sel, key) {
+    const map = new Map(), seen = new Map();
+    document.querySelectorAll(sel).forEach(el => {
+        const k = key(el);
+        const n = seen.get(k) || 0;
+        seen.set(k, n + 1);
+        map.set(`${k}#${n}`, el); // dubluri (aceeași materie de două ori): a câta e
+    });
+    return map;
+}
+function flipMove(sel, key, change, { land = null, from = null } = {}) {
+    const can = !reduceMotion() && typeof Element !== "undefined" && Element.prototype.animate;
+    const before = new Map();
+    if (can) flipKeys(sel, key).forEach((el, k) => before.set(k, el.getBoundingClientRect()));
+    change();
+    if (!can) return;
+    const landKey = typeof land === "function" ? land() : land; // „cheie#n” = exact al n-lea; altfel toate cu cheia
+    flipKeys(sel, key).forEach((el, k) => {
+        const r = el.getBoundingClientRect();
+        if (!r.width && !r.height) return;
+        const isLand = landKey !== null && landKey !== undefined && (String(landKey).includes("#") ? k === landKey : k.startsWith(`${landKey}#`));
+        const old = isLand && from ? from : before.get(k);
+        if (old) {
+            const dx = old.left - r.left, dy = old.top - r.top;
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && !isLand) return;
+            el.animate(isLand
+                ? [{ transform: `translate(${dx}px, ${dy}px) scale(1.04)`, boxShadow: "0 14px 30px -10px rgba(0,0,0,.4)" },
+                   { transform: "none", boxShadow: "0 0 0 0 rgba(0,0,0,0)" }]
+                : [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }],
+                { duration: isLand ? 340 : 280, easing: FLIP_EASE });
+        } else {
+            el.animate([{ transform: "scale(.9)", opacity: 0 }, { transform: "scale(1.03)", opacity: 1, offset: .6 }, { transform: "none", opacity: 1 }],
+                { duration: 320, easing: FLIP_EASE });
+        }
+    });
+}
 document.addEventListener("click", event => {
     const el = event.target.closest?.("[data-action]");
     if (!el) return;

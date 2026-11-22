@@ -451,3 +451,22 @@ body.style-app.qc-full .mobile-bottom-nav { visibility: hidden; }
     body.style-app .gc-qc :is(input, select, textarea) { font-size: 16px !important; }
     body.style-app .gc-qc.is-sheet .gc-qc-field input { height: 34px; }
 }
+
+/* trasul unui eveniment: originalul se estompează, iar o umbră arată din 15 în 15 minute unde ajunge (ca la Google) */
+body.style-app #cal-body .cal-ev { transition: opacity .18s ease, transform .18s ease, filter .18s ease; }
+body.style-app #cal-body .cal-ev.dragging { opacity: .35; transform: scale(.97); filter: saturate(.6); }
+body.style-app #cal-body .gc-drop-ghost { position: absolute; left: 3px; right: 6px; z-index: 6; padding: 3px 7px; border-radius: 6px; pointer-events: none;
+    background: color-mix(in srgb, var(--gc, var(--tint)) 88%, transparent); color: #fff; font: 600 11px/1.3 var(--font-ui); font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 0 1px var(--sheet), 0 14px 28px -10px rgba(0, 0, 0, .45);
+    transition: top .11s cubic-bezier(.2, .8, .2, 1); animation: gcDropIn .16s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes gcDropIn { from { opacity: 0; transform: scale(.94); } }
+body.style-app #cal-body .drop-target { transition: background-color .15s ease, outline-color .15s ease; }
+/* blocul nou (Fără titlu) alunecă între sferturile de oră în loc să sară; ridicat, crește puțin */
+body.style-app #cal-body .gc-ghost-block { transition: box-shadow .15s ease, top .09s cubic-bezier(.2, .8, .2, 1), height .09s cubic-bezier(.2, .8, .2, 1), transform .15s ease; }
+body.style-app #cal-body .gc-ghost-block.is-dragging { transform: scale(1.02); }
+@media (prefers-reduced-motion: reduce) {
+    body.style-app #cal-body .gc-drop-ghost, body.style-app #cal-body .gc-ghost-block, body.style-app #cal-body .cal-ev { transition: none; animation: none; }
+}
+body.style-app #cal-body .gc-drop-ghost { display: flex; flex-direction: column; overflow: hidden; }
+body.style-app #cal-body .gc-drop-ghost b { font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .gc-drop-ghost span { font-weight: 500; opacity: .95; }

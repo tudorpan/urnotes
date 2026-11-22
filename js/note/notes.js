@@ -210,14 +210,15 @@ function nbAdd(id) {
 }
 
 /** Mută un bloc înainte de alt bloc (sau la sfârșit, dacă beforeId lipsește). */
-function nbMove(mat, id, beforeId) {
+function nbMove(mat, id, beforeId, dropAt = null) {
     const blocks = nbBlocks(mat), from = nbFind(mat, id);
     if (from < 0 || id === beforeId) return;
     const [b] = blocks.splice(from, 1);
     const to = beforeId ? nbFind(mat, beforeId) : blocks.length;
     blocks.splice(to < 0 ? blocks.length : to, 0, b);
     nbSave();
-    nbRerender(mat);
+    // blocurile alunecă în locurile noi, iar cel mutat se așază vizibil
+    flipMove(`.nb-editor[data-mat="${CSS.escape(mat)}"] .nb`, el => el.dataset.id, () => nbRerender(mat), { land: id, from: dropAt });
 }
 
 // o linie despărțitoare selectată se șterge cu Backspace / Delete
@@ -265,7 +266,7 @@ document.addEventListener("drop", event => {
     const t = nbDropTarget(event);
     if (!t) return;
     event.preventDefault();
-    nbMove(nbDrag.mat, nbDrag.id, t.before?.dataset.id);
+    nbMove(nbDrag.mat, nbDrag.id, t.before?.dataset.id, { left: event.clientX - 12, top: event.clientY - 12 }); // din locul unde l-ai lăsat
 });
 document.addEventListener("dragend", () => {
     nbDrag = null;

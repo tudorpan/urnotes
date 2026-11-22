@@ -656,20 +656,36 @@ function bindCalendarEvents() {
     if (!body) return;
     let dragging = null;
 
-    // trage un eveniment pe altă zi (oricare mod: grilă, rândul „toată ziua”, lună, listă)
+    // trage un eveniment pe altă zi (oricare mod: grilă, rândul „toată ziua”, lună, listă).
+    // În grila cu ore, o umbră arată din 15 în 15 minute unde ajunge; la lăsare, blocul se așază acolo animat.
+    const clearDrag = () => {
+        body.querySelectorAll(".drop-target").forEach(el => el.classList.remove("drop-target"));
+        body.querySelectorAll(".gc-drop-ghost").forEach(el => el.remove());
+    };
+    const dropMin = (col, y, d = dragging) => Math.max(0, Math.min(24 * 60 - d.dur, Math.round((y - col.getBoundingClientRect().top - d.grab) / HOUR_PX * 4) * 15));
     body.addEventListener("dragstart", event => {
         const card = event.target.closest?.(".cal-ev");
         if (!card) return;
-        dragging = { id: card.dataset.id, date: card.dataset.date };
-        ui.cal.grabOffset = card.classList.contains("gc-ev-block") ? event.clientY - card.getBoundingClientRect().top : 0;
+        const r = card.getBoundingClientRect();
+        const block = card.classList.contains("gc-ev-block");
+        const found = findEvent(card.dataset.id);
+        dragging = {
+            id: card.dataset.id, date: card.dataset.date,
+            timed: block && found && !found.ev.repeat,           // primește și ora nouă
+            grab: block ? event.clientY - r.top : 0, grabX: event.clientX - r.left, grabY: event.clientY - r.top,
+            h: r.height, dur: block ? Math.max(15, Math.round(r.height / HOUR_PX * 4) * 15) : 60,
+            title: found?.ev.title || "",
+            cls: [...card.classList].find(c => /^gc-(?!ev)/.test(c)) || ""
+        };
+        ui.cal.grabOffset = dragging.grab;
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", card.dataset.id);
-        card.classList.add("dragging");
+        requestAnimationFrame(() => card.classList.add("dragging")); // după ce browserul a făcut poza pentru cursor
         closeEvPop(false);
     });
     body.addEventListener("dragend", event => {
         event.target.closest?.(".cal-ev")?.classList.remove("dragging");
-        body.querySelectorAll(".drop-target").forEach(el => el.classList.remove("drop-target"));
+        clearDrag();
         dragging = null;
     });
     body.addEventListener("dragover", event => {
@@ -677,24 +693,44 @@ function bindCalendarEvents() {
         if (!dragging || !col) return;
         event.preventDefault();
         body.querySelectorAll(".drop-target").forEach(el => el !== col && el.classList.remove("drop-target"));
+        if (dragging.timed && col.classList.contains("gc-col")) {
+            let g = body.querySelector(".gc-drop-ghost");
+            if (g && g.parentElement !== col) { g.remove(); g = null; }
+            if (!g) {
+                g = document.createElement("div");
+                g.className = `gc-drop-ghost ${dragging.cls}`;
+                g.setAttribute("aria-hidden", "true");
+                col.appendChild(g);
+            }
+            const m = dropMin(col, event.clientY);
+            if (g.dataset.m !== String(m)) {
+                g.dataset.m = String(m);
+                g.style.top = `${m / 60 * HOUR_PX}px`;
+                g.style.height = `${Math.max(20, dragging.h)}px`;
+                g.innerHTML = `<b>${escapeHTML(dragging.title)}</b><span>${minToHM(m)} – ${minToHM(Math.min(24 * 60 - 1, m + dragging.dur))}</span>`;
+            }
+            col.classList.remove("drop-target");
+            return;
+        }
+        body.querySelectorAll(".gc-drop-ghost").forEach(el => el.remove());
         col.classList.add("drop-target");
     });
     body.addEventListener("drop", event => {
         const col = event.target.closest?.("[data-drop]");
         if (!dragging || !col) return;
         event.preventDefault();
-        const { id, date } = dragging;
+        const d = dragging;
         dragging = null;
-        // în grila cu ore, un eveniment unic primește și ora unde l-ai lăsat (rotunjită la un sfert de oră)
-        if (col.classList.contains("gc-col")) {
-            const found = findEvent(id);
-            if (found && !found.ev.repeat) {
-                const min = Math.max(0, Math.min(23 * 60 + 45, Math.round((event.clientY - col.getBoundingClientRect().top - (ui.cal.grabOffset || 0)) / HOUR_PX * 4) * 15));
-                moveEventTime(id, date, col.dataset.day, minToHM(min));
-                return;
-            }
-        }
-        moveOccurrence(id, date, col.dataset.day);
+        const ghost = body.querySelector(".gc-drop-ghost");
+        const from = ghost ? ghost.getBoundingClientRect() : { left: event.clientX - d.grabX, top: event.clientY - d.grabY };
+        clearDrag();
+        const to = col.dataset.day;
+        // celelalte evenimente își fac loc alunecând, iar cel mutat se așază din locul unde l-ai lăsat
+        flipMove("#cal-body .cal-ev", el => `${el.dataset.id}|${el.dataset.date}`, () => {
+            // în grila cu ore, un eveniment unic primește și ora unde l-ai lăsat (rotunjită la un sfert de oră)
+            if (d.timed && col.classList.contains("gc-col")) moveEventTime(d.id, d.date, to, minToHM(dropMin(col, event.clientY, d)));
+            else moveOccurrence(d.id, d.date, to);
+        }, { land: `${d.id}|${to}`, from });
     });
 
     // un loc gol, ca la Google: în grilă, atingi o oră (sau tragi cu mouse-ul peste mai multe) și se deschide fereastra
