@@ -146,3 +146,21 @@ body.style-app.dark-mode .tl-drops { fill: var(--tint-text, #4DA3FF); }
 /* cu ecranul de încărcare, pagina e deja gata dedesubt: deschiderea din mijloc arată pagina întreagă, fără carduri care mai urcă */
 body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tl { display: none !important; } }
+
+/* glisări (js/ui/swipe.js): sub ce tragi apare culoarea și numele acțiunii */
+.toast { touch-action: none; }
+:is(.alert-card, .cal-att-row, .cat-row-wrap, #notif-panel .drawer-card) { touch-action: pan-y; }
+#cal-body, #cal-body * { touch-action: pan-y; }
+.sw-active { position: relative; z-index: 1; will-change: transform; }
+.sw-bg { position: absolute; z-index: 0; display: flex; align-items: center; padding: 0 20px; border-radius: 12px; color: #fff; font: 600 14px var(--font-ui, system-ui); pointer-events: none; transition: background-color .15s ease; }
+.sw-bg span { display: inline-flex; align-items: center; gap: 6px; transform: scale(.92); opacity: .75; transition: transform .18s cubic-bezier(.3, 1.5, .5, 1), opacity .15s ease; }
+.sw-bg.is-armed span { transform: scale(1.05); opacity: 1; }
+.sw-bg .ico { width: 18px; height: 18px; }
+.sw-bg.sw-left { justify-content: flex-end; }
+.sw-bg.sw-right { justify-content: flex-start; }
+.sw-bg.sw-risk { background: color-mix(in srgb, var(--risk, #C0000F) 75%, #888); }
+.sw-bg.sw-risk.is-armed { background: var(--risk, #C0000F); }
+.sw-bg.sw-ok { background: color-mix(in srgb, var(--ok, #1A6B2D) 70%, #888); }
+.sw-bg.sw-ok.is-armed { background: var(--ok, #1A6B2D); }
+.sw-bg.sw-tint { background: color-mix(in srgb, var(--tint, #0058B8) 70%, #888); }
+.sw-bg.sw-tint.is-armed { background: var(--tint, #0058B8); }

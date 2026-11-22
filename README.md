@@ -82,6 +82,18 @@ Ca Google Calendar (`js/calendar/calendar-view.js`, `js/calendar/cal-quick.js`, 
 - Eveniment nou, ca la Google: atingi un loc gol (sau tragi cu mouse-ul peste mai multe ore, sau „Creează”) și se deschide o fereastră mică acolo (pe telefon, o foaie de jos): titlu, tip, ziua și ora (sau „toată ziua”), materia (ghicită din orar) și repetarea; „Mai multe opțiuni” deschide formularul întreg. În calendar apare pe loc un bloc „(Fără titlu)” care se schimbă cât scrii; în grila cu ore îl tragi (altă oră sau altă zi) și îl lungești de marginea de jos, din 15 în 15 minute, cu mouse-ul sau cu degetul. Pe telefon foaia e scurtă și nu deschide singură tastatura, iar grila se derulează ca blocul să stea deasupra ei; când atingi un câmp, foaia devine un formular pe tot ecranul, cu bara lui sus (× · Eveniment nou · Salvează), care urmează spațiul lăsat de tastatură (`visualViewport`), așa că vezi ce scrii și restul câmpurilor. Câmpurile au 16px, ca iOS să nu mărească pagina. „+”-ul din bara de jos rămâne foaia obișnuită de adăugat din toată aplicația.
 - Atingi un eveniment: fereastra cu detalii (Notă, Făcut, editează, șterge). Pe calculator, tragi un eveniment pe altă zi; în grila cu ore, unul care nu se repetă primește și ora unde l-ai lăsat.
 
+### Glisări și taste scurte
+
+Ca pe iPhone (`js/ui/swipe.js`, stilurile `sw-*` din `motion.css`); sub ce tragi apare culoarea și numele acțiunii, iar peste prag telefonul vibrează scurt (unde se poate):
+- un mesaj de jos: îl tragi în orice parte sau în jos și pleacă (merge și cu mouse-ul);
+- o notificare din clopoțel: stânga sau dreapta o ascunde, cu „Anulează”; panoul întreg se închide trăgându-l spre dreapta;
+- un eveniment trecut din Calendar: dreapta = Făcut / Fără notă, stânga = Notă;
+- o materie din Note: spre stânga deschide nota rapidă la ea;
+- calendarul (Zi, 3 zile, Săptămână, Lună): stânga / dreapta merge la următoarea / anterioara;
+- foile de jos (formularele, eveniment nou din Calendar, detaliile unui eveniment, „Adaugă”): le tragi în jos ca să se închidă (`js/ui/phone.js`).
+
+Tasta `?` (sau „Taste scurte și gesturi” din meniul modului din Calendar) deschide foaia cu toate tastele scurte și gesturile.
+
 ### Mișcarea și gesturile
 
 - Mișcare curată (`motion.css`): lentila de sub fila aleasă alunecă cu un mic arc, iar iconița sare ușor; în segmente (Materii / Progres / Ce-ar fi dacă, ținta din configurare) bucata aleasă alunecă, chiar și de la o pagină la alta (`glideAll()` din `js/ui/fluid.js`); la o filă nouă, cardurile urcă puțin, unul după altul; calendarul, materia următoare și secțiunile vin din partea în care mergi; foile urcă, ferestrele apar din mijloc, butoanele se lasă sub deget, comutatoarele se lungesc când le apeși. Nimic nu se animă la pornire; cu „reducere mișcare” din sistem totul se oprește.

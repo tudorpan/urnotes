@@ -32,6 +32,7 @@ const ACTIONS = {
         try { localStorage.setItem(CAL_WEEKENDS_KEY, ui.cal.weekends ? "1" : "0"); } catch (_) { /* fără stocare */ }
         renderCalendar();
     },
+    "shortcuts": () => { closeCalMenu?.(); openShortcuts(); },
     "qc-close": () => closeQuickCreate(),
     "qc-type": el => { if (!QC_TYPES.includes(el.dataset.type)) return; readQuickCreate(); qc.type = el.dataset.type; renderQuickCreate(); document.querySelector(`#gc-qc [data-type="${CSS.escape(qc.type)}"]`)?.focus(); },
     "qc-save": () => saveQuickCreate(),
@@ -230,6 +231,7 @@ function bindEvents() {
     bindCatalogEvents();
     bindCalendarEvents();
     bindQuickCreate();
+    bindSwipes();
     bindPurtareEvents();
     $("stats-sort")?.addEventListener("change", event => {
         ui.statsSort = STATS_SORTS[event.target.value] ? event.target.value : "attention";

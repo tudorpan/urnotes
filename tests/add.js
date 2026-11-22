@@ -117,5 +117,11 @@ click(q("#action-modal-cancel") || q("[data-action=\"modal-close\"]"));
   const book = q('.as-item[data-mat="Chimie"]');
   book.dispatchEvent(new w.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert(T.ui.activeTab === "tab-dashboard" && w.document.querySelector(".qg-pop, .qg, #qg, [class*=quick-grade]"), "right-click on a book opens the quick grade, not the subject");
-  console.log(process.exitCode ? "SOME FAILED" : "ALL PASSED");
+  // „?”: foaia cu tastele scurte și gesturile
+nav("tab-dashboard");
+w.document.dispatchEvent(new w.KeyboardEvent("keydown", { key: "?", bubbles: true }));
+assert(!$("action-modal").hidden && /Taste scurte și gesturi/.test($("action-modal").textContent) && qa("#action-modal .sc-row").length >= 18 && /Glisezi o notificare/.test($("action-modal").textContent), "'?' opens the shortcuts and gestures sheet");
+click(q("#action-modal-confirm"));
+assert($("action-modal").hidden, "'Gata' closes it");
+console.log(process.exitCode ? "SOME FAILED" : "ALL PASSED");
 })();

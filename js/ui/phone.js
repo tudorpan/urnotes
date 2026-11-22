@@ -8,7 +8,10 @@ function bindSheetDrag() {
         { root: "action-modal", card: ".modal-card", scroller: "#action-modal-body", close: () => closeActionModal(), allowed: () => !cloud.asking,
           fade: (el, p) => { el.style.backgroundColor = p === null ? "" : `rgba(15, 23, 42, ${(0.3 * (1 - p)).toFixed(3)})`; } },
         { root: "quick-add", card: ".quick-add-card", close: () => closeQuickAdd(),
-          fade: (el, p) => { const b = el.querySelector(".quick-add-backdrop"); if (b) b.style.opacity = p === null ? "" : String(1 - p); } }
+          fade: (el, p) => { const b = el.querySelector(".quick-add-backdrop"); if (b) b.style.opacity = p === null ? "" : String(1 - p); } },
+        // din Calendar: foaia de eveniment nou (cea scurtă, nu formularul pe tot ecranul) și detaliile unui eveniment
+        { root: "gc-qc", self: true, when: el => el.classList.contains("is-sheet") && !el.classList.contains("is-full"), close: () => closeQuickCreate(false), fade: () => {} },
+        { root: "gc-pop", self: true, when: el => el.classList.contains("is-sheet"), close: () => closeEvPop(false), fade: () => {} }
     ];
     let drag = null;
     const reset = d => {
@@ -21,8 +24,8 @@ function bindSheetDrag() {
         const t = event.touches[0];
         for (const sheet of SHEETS) {
             const root = $(sheet.root);
-            const card = root && !root.hidden ? root.querySelector(sheet.card) : null;
-            if (!card || !card.contains(event.target)) continue;
+            const card = root && !root.hidden ? (sheet.self ? root : root.querySelector(sheet.card)) : null;
+            if (!card || !card.contains(event.target) || (sheet.when && !sheet.when(card))) continue;
             const r = card.getBoundingClientRect();
             // doar când e foaie lipită de marginea de jos (pe ecrane mari e fereastră în mijloc)
             if (r.bottom < innerHeight - 4 || r.width < innerWidth - 4) return;
@@ -185,7 +188,7 @@ function bindCatMenu() {
     const menu = $("cat-menu");
     if (!list || !menu) return;
     const rowAt = event => {
-        const row = event.target.closest?.(".cat-row") || document.elementFromPoint?.(event.clientX, event.clientY)?.closest(".cat-row");
+        const row = event.target.closest?.(".cat-row") || (Number.isFinite(event.clientX) && Number.isFinite(event.clientY) ? document.elementFromPoint?.(event.clientX, event.clientY)?.closest(".cat-row") : null);
         return row && list.contains(row) && state.subjects[row.dataset.mat] ? row : null;
     };
     const open = event => {

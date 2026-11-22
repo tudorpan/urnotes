@@ -327,6 +327,7 @@ function bindShellEvents() {
         const quick = { n: "Notă", t: "Test", h: "Temă" }[k.toLowerCase()];
         if (quick) { event.preventDefault(); ccOpenGlobal({ type: quick }); }
         if (k === "/") { event.preventDefault(); openPalette?.(); }
+        if (k === "?") { event.preventDefault(); openShortcuts(); }
     }, true);
 
     // Închide meniul „Adaugă” la redimensionare (poziția lui depinde de buton).
@@ -429,4 +430,29 @@ function withUndo(message, mutate, { afterUndo = null } = {}) {
     pendingUndo = token;
     token.toast = showToast(message, { action: "Anulează", onAction: token.run, duration: UNDO_MS });
     token.toast?.addEventListener("toast-gone", () => { if (pendingUndo === token) pendingUndo = null; });
+}
+
+/* ==================== „?”: toate tastele scurte, pe o foaie ==================== */
+const SHORTCUTS = [
+    ["Oriunde", [["N", "Notă nouă"], ["T", "Test nou"], ["H", "Temă nouă"], ["Ctrl K sau /", "Caută"], ["Ctrl Z", "Anulează ultima schimbare"], ["Esc", "Închide fereastra"], ["?", "Tastele scurte"]]],
+    ["Calendar", [["D · X · W · M · A", "Zi · 3 zile · Săptămână · Lună · Program"], ["J / K sau ← / →", "Înapoi / înainte"], ["T", "Azi"], ["C", "Eveniment nou"], ["E", "Editează evenimentul deschis"], ["Delete", "Șterge evenimentul deschis"]]],
+    ["Pe telefon", [["Glisezi un mesaj", "Îl închizi"], ["Glisezi o notificare", "O ascunzi (cu Anulează)"], ["Glisezi un eveniment trecut", "Dreapta: făcut · stânga: notă"], ["Glisezi o materie spre stânga", "Notă nouă la ea"], ["Glisezi calendarul", "Ziua / săptămâna / luna următoare"], ["Tragi o foaie în jos", "O închizi"]]]
+];
+function openShortcuts() {
+    openModal({
+        title: "Taste scurte și gesturi",
+        layout: "dialog",
+        confirmText: "Gata",
+        cancelText: "",
+        guestOk: true,
+        body: SHORTCUTS.map(([group, rows]) => `
+            <h3 class="sc-group">${escapeHTML(group)}</h3>
+            <dl class="sc-list">${rows.map(([key, what]) => {
+                // gesturile sunt text; tastele, căsuțe
+                const keys = /[a-zăâîșț]{3,}/.test(key) && !/^(Delete|Ctrl|Esc)/.test(key) && !/sau/.test(key) ? `<span class="sc-gesture">${escapeHTML(key)}</span>`
+                    : key.split(" ").map(p => /^(sau|·|\/)$/.test(p) ? `<span>${escapeHTML(p)}</span>` : `<kbd>${escapeHTML(p)}</kbd>`).join(" ");
+                return `<div class="sc-row"><dt>${keys}</dt><dd>${escapeHTML(what)}</dd></div>`;
+            }).join("")}</dl>`).join(""),
+        onConfirm: () => closeActionModal()
+    });
 }
