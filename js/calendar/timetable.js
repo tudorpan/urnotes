@@ -158,7 +158,7 @@ function renderTimetable(focus = "", { reveal = "" } = {}) {
             </div>
             <div class="tt-taps">
                 ${subjects.map(m => `<button type="button" class="tt-tap" data-action="tt-tap" data-mat="${escapeHTML(m)}" draggable="true" style="${subjectStyle(m)}" title="${escapeHTML(m)}" ${full && sel === null ? "disabled" : ""}>
-                    <i aria-hidden="true">${escapeHTML(subjectInitials(m))}</i><span>${escapeHTML(shortSubjectName(m))}</span></button>`).join("")}
+                    <i aria-hidden="true">${subjectGlyph(m)}</i><span>${escapeHTML(shortSubjectName(m))}</span></button>`).join("")}
             </div>
         </div>`;
     box.dataset.day = String(day);

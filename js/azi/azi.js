@@ -538,6 +538,7 @@ function homeSubjectsHTML() {
         return `<button type="button" class="as-item ${state}" data-action="open-subject" data-mat="${escapeHTML(mat)}"
             style="${subjectStyle(mat)}; --pct: ${(avg * 10).toFixed(1)}%" aria-label="${escapeHTML(aria)}">
             <span class="as-fill" aria-hidden="true"></span>
+            <span class="as-ico" aria-hidden="true">${subjectGlyph(mat)}</span>
             <span class="as-avg" aria-hidden="true">${has ? (Number.isInteger(avg) ? avg : avg.toFixed(2)) : "–"}</span>
             <span class="as-name" aria-hidden="true">${escapeHTML(label)}</span>
             ${standing.key === "risk" ? '<span class="as-flag" aria-hidden="true">risc</span>' : ""}

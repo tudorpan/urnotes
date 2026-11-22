@@ -34,7 +34,7 @@ function renderSideTree() {
     const shown = shortList && !sideOpen.all ? featured : names;
     const row = m => `
         <button type="button" class="side-sub ${m === openMat ? "is-active" : ""}" data-action="side-subject" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" ${m === openMat ? 'aria-current="page"' : ""}>
-            <span class="side-sub-dot" aria-hidden="true"></span><span class="side-sub-emoji" aria-hidden="true">${subjectEmoji(m)}</span><span class="side-sub-name">${escapeHTML(m)}</span>${state.subjects[m].priority ? `<span class="side-sub-star" title="prioritară" aria-label="prioritară">★</span>` : ""}${risk(m) ? `<span class="side-sub-risk" title="la risc">!</span>` : ""}
+            <span class="side-sub-dot side-sub-ico" aria-hidden="true">${subjectGlyph(m)}</span><span class="side-sub-emoji" aria-hidden="true">${subjectEmoji(m)}</span><span class="side-sub-name">${escapeHTML(m)}</span>${state.subjects[m].priority ? `<span class="side-sub-star" title="prioritară" aria-label="prioritară">★</span>` : ""}${risk(m) ? `<span class="side-sub-risk" title="la risc">!</span>` : ""}
         </button>`;
     subs.innerHTML = names.length
         ? shown.map(row).join("") + (shortList ? `<button type="button" class="side-sub side-all" data-action="side-toggle" data-key="all" aria-expanded="${Boolean(sideOpen.all)}">${sideOpen.all ? "Doar prioritare și la risc" : `Toate materiile (${names.length})`}</button>` : "")

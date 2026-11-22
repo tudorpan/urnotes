@@ -289,7 +289,7 @@ function renderCatalogList() {
         return `<div class="cat-row-wrap">
             <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""} ${hasGrades ? "" : "is-empty"}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
                 style="${subjectStyle(mat)}; --pct: ${hasGrades ? (d.exactAvg * 10).toFixed(1) : 0}%; --n: ${Math.min(sub.grades.length, 12)}" ${selected ? 'aria-current="true"' : ""}>
-                <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span><span class="subj-emoji" aria-hidden="true">${subjectEmoji(mat)}</span>
+                <span class="subj-chip" aria-hidden="true">${subjectGlyph(mat)}</span><span class="subj-emoji" aria-hidden="true">${subjectEmoji(mat)}</span>
                 <span class="cat-row-main">
                     <span class="cat-row-name">${sub.priority ? '<span class="cat-star" aria-label="prioritară">★</span>' : ""}${escapeHTML(mat)}</span>
                     <span class="cat-row-meta">${escapeHTML(meta)}${sub.excludeFromGPA ? ' · <span class="cat-tag">nu intră în medie</span>' : ""}${inProgramme(mat) ? "" : ' · <span class="cat-tag is-warn">în afara programei</span>'}</span>
@@ -354,7 +354,7 @@ function renderCatalogDetail() {
         <div class="glass-card cat-detail-card" style="${subjectStyle(mat)}">
             <button type="button" class="btn btn-text cat-back" data-action="cat-back">← Toate materiile</button>
 
-            <button type="button" class="page-emoji subj-emoji-btn" data-action="emoji-pick" data-mat="${safeMat}" aria-haspopup="dialog" aria-label="Schimbă pictograma materiei" title="Schimbă pictograma">${subjectEmoji(mat)}</button>
+            <button type="button" class="page-emoji subj-emoji-btn" data-action="emoji-pick" data-mat="${safeMat}" aria-haspopup="dialog" aria-label="Schimbă pictograma materiei" title="Schimbă pictograma">${subjectGlyph(mat, "sic-big")}</button>
             <header class="cat-detail-head">
                 <div class="cat-detail-title-wrap">
                     <div class="cat-title-row">

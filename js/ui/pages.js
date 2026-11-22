@@ -58,11 +58,12 @@ function openEmojiPicker(btn) {
     pop.id = "emoji-pop";
     pop.setAttribute("role", "dialog");
     pop.setAttribute("aria-label", "Alege o pictogramă");
-    const cur = subjectEmoji(mat);
+    const cur = subjectIconKey(mat);
+    // pictogramele desenate pentru materii (js/ui/subject-icons.js); „Automată” = cea găsită după nume
     pop.innerHTML = `
         <div class="emoji-pop-head"><span>Pictogramă</span>
             <button type="button" class="btn btn-text btn-sm" data-action="emoji-set" data-mat="${escapeHTML(mat)}" data-emoji="">Automată</button></div>
-        <div class="emoji-grid">${EMOJI_CHOICES.map(e => `<button type="button" class="emoji-opt ${e === cur ? "is-on" : ""}" data-action="emoji-set" data-mat="${escapeHTML(mat)}" data-emoji="${e}" aria-label="${e}">${e}</button>`).join("")}</div>`;
+        <div class="emoji-grid sic-grid" style="${subjectStyle(mat)}">${Object.entries(SUBJECT_ICONS).map(([k, ic]) => `<button type="button" class="emoji-opt sic-opt ${k === cur ? "is-on" : ""}" data-action="emoji-set" data-mat="${escapeHTML(mat)}" data-emoji="i:${k}" aria-label="${escapeHTML(ic.label)}" title="${escapeHTML(ic.label)}" aria-pressed="${k === cur}">${subjectIconSVG(k)}</button>`).join("")}</div>`;
     document.body.appendChild(pop);
     const r = btn.getBoundingClientRect();
     const w = pop.offsetWidth, h = pop.offsetHeight;

@@ -15,7 +15,7 @@ function boot(ls = {}) {
     class FakeDate extends Real { constructor(...a) { if (a.length === 0) super(now); else super(...a); } static now() { return now; } }
     window.Date = FakeDate; })()`);
   for (const [k, v] of Object.entries(ls)) w.localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v));
-  w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,saveState,switchTab,sanitizeNotes,openSubjectInCatalog,applyAppearanceSettings,subjectEmoji,nbMove,get metrics(){return metrics}};");
+  w.eval(require("./app_src")(dir) + "\n;window.__t={state,ui,refresh,saveState,switchTab,sanitizeNotes,openSubjectInCatalog,applyAppearanceSettings,subjectEmoji,nbMove,SUBJECT_ICONS,subjectIconSVG,subjectIconKey,get metrics(){return metrics}};");
   const T = w.__t, $ = id => w.document.getElementById(id), q = s => w.document.querySelector(s), qa = s => [...w.document.querySelectorAll(s)];
   const click = el => { if (!el) throw new Error("no element"); el.dispatchEvent(new w.MouseEvent("click", { bubbles: true })); };
   const press = (el, k) => el.dispatchEvent(new w.KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));
@@ -106,17 +106,20 @@ const DATA = {
   assert(!q("#tab-plan .page-emoji") && q("#h-plan .page-ico use")?.getAttribute("href") === "#i-timer", "pages get a line icon, not an emoji");
   T.switchTab("tab-dashboard");
   assert(T.subjectEmoji("Fizică") === "⚛️" && T.subjectEmoji("Educație fizică și sport") === "⚽" && T.subjectEmoji("Ceva nou") === "📄", "automatic subject emoji");
-  assert(q('#side-subjects [data-mat="Fizică"] .side-sub-emoji')?.textContent === "⚛️", "sidebar shows subject emoji");
+  assert(q('#side-subjects [data-mat="Fizică"] .side-sub-ico svg.sic'), "sidebar shows the subject's drawn icon");
   assert(!q(".side-ws"), "no Notion workspace header in the sidebar (the Notion style was removed)");
   T.openSubjectInCatalog("Fizică");
   assert(q(".cat-props") && /Media/.test(q(".cat-props").textContent) && /Ore pe săptămână/.test(q(".cat-props").textContent), "subject page shows Notion-style properties");
   assert(/Note\s*›\s*\S*\s*Fizică/u.test($("topbar-crumb").textContent), "breadcrumb: Note › Fizică");
   click(q(".subj-emoji-btn"));
   assert($("emoji-pop") && qa(".emoji-opt").length > 30, "clicking the icon opens the emoji picker");
-  click(q('.emoji-opt[data-emoji="🔭"]'));
-  assert(T.state.subjects["Fizică"].icon === "🔭" && !$("emoji-pop") && q(".subj-emoji-btn").textContent.trim() === "🔭" && q('#side-subjects [data-mat="Fizică"] .side-sub-emoji').textContent === "🔭", "picking an emoji sets it everywhere");
+  assert(qa(".sic-opt").length === Object.keys(T.SUBJECT_ICONS).length && q('.sic-opt[data-emoji="i:fizica"]').classList.contains("is-on"), "the picker shows the drawn subject icons, with the automatic one selected");
+  click(q('.emoji-opt[data-emoji="i:astronomie"]'));
+  const isAstro = sel => (q(sel)?.innerHTML || "").includes("M6.7 13.7"); // conturul planetei
+  assert(T.state.subjects["Fizică"].icon === "i:astronomie" && !$("emoji-pop") && isAstro(".subj-emoji-btn") && isAstro('#side-subjects [data-mat="Fizică"] .side-sub-ico'), "picking an icon sets it everywhere");
   click(q(".subj-emoji-btn")); click(q('.emoji-pop [data-emoji=""]'));
-  assert(!("icon" in T.state.subjects["Fizică"]) && q(".subj-emoji-btn").textContent.trim() === "⚛️", "'Automată' resets the icon");
+  assert(!("icon" in T.state.subjects["Fizică"]) && T.subjectIconKey("Fizică") === "fizica", "'Automată' resets the icon");
+  assert(T.subjectIconKey("Limba și literatura română") === "romana" && T.subjectIconKey("Educație fizică și sport") === "sport" && T.subjectIconKey("Limba engleză") === "engleza" && T.subjectIconKey("TIC") === "tic" && T.subjectIconKey("Ceva nou") === "", "subjects find their icon by name (diacritics ignored)");
   T.state.subjects["Fizică"].icon = "<img src=x>"; T.refresh();
   assert(!q(".side-sub-emoji img") && T.subjectEmoji("Fizică") === "⚛️", "unsafe icon values are ignored");
   delete T.state.subjects["Fizică"].icon;

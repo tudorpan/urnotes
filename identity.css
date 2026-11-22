@@ -172,3 +172,38 @@ body.style-app .azi-seal-n small { font-size: 11px; color: var(--ink-3); }
     body.style-app .azi-seal { grid-column: 2; grid-row: 1; align-self: start; margin-top: 18px; }
     body.style-app .azi-seal-svg { width: 50px; height: 50px; }
 }
+
+/* ---------- pictogramele materiilor (js/ui/subject-icons.js): în culoarea materiei, pe un pătrățel nuanțat ---------- */
+.sic { display: block; width: 1em; height: 1em; flex: none; }
+.sic-initials { font: 700 0.62em/1 var(--font-ui); letter-spacing: -0.01em; }
+body.style-app .cat-row .subj-chip { font-size: 20px; color: color-mix(in srgb, var(--subj, var(--ink-3)) 72%, var(--ink)); background: color-mix(in srgb, var(--subj, var(--ink-3)) 16%, var(--sheet)); border-radius: 10px; }
+body.style-app.dark-mode .cat-row .subj-chip { color: color-mix(in srgb, var(--subj, var(--ink-3)) 70%, #fff); background: color-mix(in srgb, var(--subj, var(--ink-3)) 20%, var(--sheet)); }
+body.style-app .cat-row .subj-chip .sic-initials { font-size: 13px; }
+/* Azi › Materiile tale: pictograma în loc de punct */
+body.style-app .as-item::before { display: none; }
+body.style-app .as-item .as-ico { order: 0; display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 9px; font-size: 17px;
+    color: color-mix(in srgb, var(--subj, var(--ink-3)) 72%, var(--ink)); background: color-mix(in srgb, var(--subj, var(--ink-3)) 16%, var(--sheet)); }
+body.style-app.dark-mode .as-item .as-ico { color: color-mix(in srgb, var(--subj, var(--ink-3)) 70%, #fff); background: color-mix(in srgb, var(--subj, var(--ink-3)) 20%, var(--sheet)); }
+body.style-app .as-item .as-ico .sic-initials { font-size: 11px; }
+/* meniul lateral: pictograma mică, în culoarea materiei */
+body.style-app .side-sub-ico { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 0; background: none; font-size: 16px; color: color-mix(in srgb, var(--subj) 75%, var(--ink)); }
+body.style-app .side-sub-ico .sic-initials { font-size: 10px; }
+/* Orar: pictograma albă pe cerculețul materiei */
+body.style-app .tt-tap i { font-size: 16px; }
+body.style-app .tt-tap i .sic-initials { font-size: 12px; }
+@media (max-width: 760px) { body.style-app .tt-tap i { font-size: 14px; } }
+@media (max-width: 760px) { body.style-app .tt-tap i .sic { display: none; } }
+/* pagina materiei: pictograma mare, atinsă = alegi alta */
+body.style-app .cat-detail-card .page-emoji.subj-emoji-btn { display: grid; place-items: center; width: 58px; height: 58px; margin: 6px 0 4px; padding: 0; border: 0; border-radius: 16px; cursor: pointer; font-size: 32px;
+    color: color-mix(in srgb, var(--subj, var(--ink-3)) 72%, var(--ink)); background: color-mix(in srgb, var(--subj, var(--ink-3)) 16%, var(--sheet)); transition: transform .2s ease; }
+body.style-app.dark-mode .cat-detail-card .page-emoji.subj-emoji-btn { color: color-mix(in srgb, var(--subj, var(--ink-3)) 70%, #fff); background: color-mix(in srgb, var(--subj, var(--ink-3)) 22%, var(--sheet)); }
+body.style-app .cat-detail-card .page-emoji.subj-emoji-btn:active { transform: scale(.94); }
+body.style-app .subj-emoji-btn .sic-initials { font-size: 20px; }
+/* alegătorul */
+.emoji-pop { position: fixed; z-index: 3000; width: min(340px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: var(--sheet); box-shadow: var(--shadow-pop), 0 0 0 .5px var(--rule); animation: mPop .2s cubic-bezier(.32, .72, 0, 1) both; }
+.emoji-pop-head { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 8px; font: 600 15px/1.2 var(--font-ui); color: var(--ink); }
+.sic-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-height: 320px; overflow-y: auto; }
+.sic-opt { display: grid; place-items: center; aspect-ratio: 1; padding: 0; border: 0; border-radius: 12px; background: var(--fill); color: var(--ink); font-size: 24px; cursor: pointer; transition: background-color .15s ease, transform .15s ease; }
+.sic-opt:hover { background: var(--fill-2); }
+.sic-opt:active { transform: scale(.92); }
+.sic-opt.is-on { color: color-mix(in srgb, var(--subj, var(--tint)) 72%, var(--ink)); background: color-mix(in srgb, var(--subj, var(--tint)) 18%, var(--sheet)); box-shadow: inset 0 0 0 2px var(--subj, var(--tint)); }
