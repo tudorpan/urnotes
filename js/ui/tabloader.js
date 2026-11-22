@@ -1,10 +1,10 @@
-/* urNotes · Ecranul scurt dintre file (0,9 s), în felul iOS:
-   pagina se topește într-o ceață adâncă, pe marginile ecranului curge o lumină moale (albastru, violet, roz, chihlimbar),
-   apoi ceața se risipește și pagina nouă, deja gata dedesubt, intră în focus.
-   Nu întârzie nimic și nu oprește atingerile; nu apare la pornire, nici cu „reducere mișcare”, nici în testele automate. */
+/* urNotes · Ecranul scurt dintre file (0,95 s): pe un fond plin, trei picături mici se rotesc una în jurul alteia,
+   se unesc într-una și pocnesc; în clipa aceea pagina se deschide din mijloc spre margini.
+   Pagina nouă se desenează dedesubt în tot acest timp: nu întârzie nimic și nu oprește atingerile.
+   Nu apare la pornire, nici cu „reducere mișcare”, nici în testele automate. */
 "use strict";
 
-const TAB_LOADER_MS = 900;
+const TAB_LOADER_MS = 950;
 
 function tabLoaderEl() {
     let el = document.getElementById("tab-loader");
@@ -13,8 +13,23 @@ function tabLoaderEl() {
     el.id = "tab-loader";
     el.className = "tl";
     el.setAttribute("aria-hidden", "true");
-    // două straturi de lumină: o aură largă și moale, și un fir subțire, mai clar, chiar pe margine
-    el.innerHTML = `<i class="tl-glow tl-glow-wide"></i><i class="tl-glow tl-glow-line"></i>`;
+    // filtrul lipește picăturile când se ating (ca apa), fără să le strice forma rotundă
+    el.innerHTML = `
+        <svg class="tl-svg" viewBox="-30 -30 60 60" width="84" height="84" focusable="false">
+            <defs>
+                <filter id="tl-goo" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b"/>
+                    <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/>
+                </filter>
+            </defs>
+            <g class="tl-drops" filter="url(#tl-goo)">
+                <g class="tl-orbit">
+                    <g><circle class="tl-dot" r="4.6"/></g>
+                    <g transform="rotate(120)"><circle class="tl-dot" r="4.6"/></g>
+                    <g transform="rotate(240)"><circle class="tl-dot" r="4.6"/></g>
+                </g>
+            </g>
+        </svg>`;
     document.body.appendChild(el);
     return el;
 }

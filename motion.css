@@ -103,42 +103,46 @@ body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-nex
     .cc-head { touch-action: none; }
 }
 
-/* ecranul scurt dintre file (js/ui/tabloader.js), 0,9 s, în felul iOS:
-   0 %      ceața adâncă vine pe loc (chiar în cadrul în care se schimbă pagina), lumina apare pe margini
-   0–56 %   lumina curge încet în jurul ecranului
-   56–100 % ceața se risipește (mai puțină ceață, apoi transparență) și pagina nouă intră în focus */
-@property --tl-a { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
-@property --tl-blur { syntax: "<length>"; inherits: false; initial-value: 0px; }
-.tl { position: fixed; inset: 0; z-index: 990; pointer-events: none; visibility: hidden; opacity: 0;
-    --tl-paper: color-mix(in srgb, var(--paper, #F2F2F7) 62%, transparent);
-    background: var(--tl-paper);
-    -webkit-backdrop-filter: blur(var(--tl-blur)) saturate(170%); backdrop-filter: blur(var(--tl-blur)) saturate(170%); }
-body.style-app.dark-mode .tl { --tl-paper: color-mix(in srgb, var(--paper, #000) 55%, transparent); }
-.tl.is-on { visibility: visible; animation: tlFog .9s linear both; }
-@keyframes tlFog {
-    0% { opacity: 1; --tl-blur: 36px; }
-    56% { opacity: 1; --tl-blur: 36px; animation-timing-function: cubic-bezier(.45, 0, .2, 1); }
-    100% { opacity: 0; --tl-blur: 0px; }
+/* ecranul scurt dintre file (js/ui/tabloader.js), 0,95 s:
+   0–55 %   trei picături fac o tură liniștită una în jurul alteia și alunecă spre mijloc
+   52–64 %  s-au unit: picătura se umflă ușor
+   64–72 %  pocnește
+   64–100 % fondul se deschide din mijloc, cu marginea moale, iar pagina apare dedesubt */
+@property --tl-r { syntax: "<length>"; inherits: false; initial-value: -80px; }
+.tl { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; pointer-events: none; visibility: hidden; background: var(--paper, #F2F2F7);
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px));
+    mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px)); }
+.tl.is-on { visibility: visible; animation: tlOpen .95s linear both; }
+.tl-svg { overflow: visible; }
+.tl-drops { fill: var(--tint, #0058B8); }
+body.style-app.dark-mode .tl-drops { fill: var(--tint-text, #4DA3FF); }
+.tl-drops, .tl-orbit, .tl-dot { transform-box: view-box; transform-origin: 0 0; }
+.tl.is-on .tl-orbit { animation: tlOrbit .95s linear both; }
+.tl.is-on .tl-dot { animation: tlDot .95s linear both; }
+.tl.is-on .tl-drops { animation: tlPop .95s linear both; }
+@keyframes tlOpen {
+    0% { opacity: 0; --tl-r: -80px; }
+    6% { opacity: 1; }
+    64% { --tl-r: -80px; animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
+    100% { opacity: 1; --tl-r: 62vmax; }
 }
-
-/* lumina de pe margini: un gradient conic care se rotește, decupat ca o ramă de-a lungul ecranului */
-.tl-glow { position: absolute; inset: 0; border-radius: var(--tl-radius, 0px);
-    background: conic-gradient(from var(--tl-a) at 50% 50%, #0A84FF, #5E5CE6, #BF5AF2, #FF375F, #FF9F0A, #FFD60A, #34C7FF, #0A84FF);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
-.tl-glow-wide { padding: 18px; filter: blur(22px); opacity: .9; }
-.tl-glow-line { padding: 2px; filter: blur(2px); opacity: .8; }
-.tl.is-on .tl-glow { animation: tlLight .9s linear both; }
-@keyframes tlLight {
-    0% { --tl-a: 0deg; opacity: 0; animation-timing-function: cubic-bezier(.2, .7, .3, 1); }
-    20% { opacity: .95; animation-timing-function: linear; }
-    62% { opacity: .95; animation-timing-function: cubic-bezier(.45, 0, .3, 1); }
-    100% { --tl-a: 300deg; opacity: 0; }
+@keyframes tlOrbit {
+    0% { transform: rotate(-40deg); animation-timing-function: cubic-bezier(.45, 0, .4, 1); }
+    55% { transform: rotate(320deg); }
+    100% { transform: rotate(320deg); }
 }
-/* pe telefon, rama urmează colțurile rotunjite ale ecranului */
-@media (max-width: 640px) { .tl { --tl-radius: 46px; } .tl-glow-wide { padding: 16px; } }
-body.style-app.dark-mode .tl-glow-wide { opacity: 1; }
-
+@keyframes tlDot {
+    0% { transform: translateY(-12px) scale(.3); opacity: 0; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
+    12% { transform: translateY(-12px) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.5, 0, .5, 1); }
+    52% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(0) scale(1); }
+}
+@keyframes tlPop {
+    0%, 52% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
+    62% { transform: scale(1.4); opacity: 1; animation-timing-function: cubic-bezier(.6, 0, .9, .5); }
+    72% { transform: scale(2.3); opacity: 0; }
+    100% { transform: scale(2.3); opacity: 0; }
+}
 /* cu ecranul de încărcare, pagina e deja gata dedesubt: deschiderea din mijloc arată pagina întreagă, fără carduri care mai urcă */
 body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tl { display: none !important; } }
