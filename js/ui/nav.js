@@ -35,8 +35,7 @@ function switchTab(tabId) {
         document.body.classList.add("page-in");
         if (typeof showTabLoader === "function") showTabLoader();
         clearTimeout(switchTab.pageInT);
-        // cu ecranul de încărcare, cardurile urcă abia când el pleacă
-        switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), document.body.classList.contains("tl-on") ? 1000 : 520);
+        switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), 520);
     }
     document.body.dataset.page = tabId;
     document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));

@@ -1,10 +1,10 @@
-/* urNotes · Ecranul scurt dintre file (0,65 s): pe un fond plin, trei picături mici se rotesc una în jurul alteia,
+/* urNotes · Ecranul scurt dintre file (0,95 s): pe un fond plin, trei picături mici se rotesc una în jurul alteia,
    se unesc într-una și pocnesc; în clipa aceea pagina se deschide din mijloc spre margini.
    Pagina nouă se desenează dedesubt în tot acest timp: nu întârzie nimic și nu oprește atingerile.
    Nu apare la pornire, nici cu „reducere mișcare”, nici în testele automate. */
 "use strict";
 
-const TAB_LOADER_MS = 650;
+const TAB_LOADER_MS = 950;
 
 function tabLoaderEl() {
     let el = document.getElementById("tab-loader");

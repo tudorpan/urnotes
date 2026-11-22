@@ -103,49 +103,46 @@ body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-nex
     .cc-head { touch-action: none; }
 }
 
-/* ecranul scurt dintre file (js/ui/tabloader.js), 0,65 s:
-   0–60 %   trei picături se rotesc una în jurul alteia și se apropie
-   60–70 %  s-au unit: picătura se umflă puțin
-   70–76 %  pocnește
-   70–100 % fondul se deschide din mijloc (o gaură rotundă care crește), iar pagina apare dedesubt */
-@property --tl-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+/* ecranul scurt dintre file (js/ui/tabloader.js), 0,95 s:
+   0–55 %   trei picături fac o tură liniștită una în jurul alteia și alunecă spre mijloc
+   52–64 %  s-au unit: picătura se umflă ușor
+   64–72 %  pocnește
+   64–100 % fondul se deschide din mijloc, cu marginea moale, iar pagina apare dedesubt */
+@property --tl-r { syntax: "<length>"; inherits: false; initial-value: -80px; }
 .tl { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; pointer-events: none; visibility: hidden; background: var(--paper, #F2F2F7);
-    -webkit-mask: radial-gradient(circle at 50% 50%, transparent calc(var(--tl-r) - 1px), #000 var(--tl-r));
-    mask: radial-gradient(circle at 50% 50%, transparent calc(var(--tl-r) - 1px), #000 var(--tl-r)); }
-.tl.is-on { visibility: visible; animation: tlOpen .65s linear both; }
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px));
+    mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px)); }
+.tl.is-on { visibility: visible; animation: tlOpen .95s linear both; }
 .tl-svg { overflow: visible; }
 .tl-drops { fill: var(--tint, #0058B8); }
 body.style-app.dark-mode .tl-drops { fill: var(--tint-text, #4DA3FF); }
 .tl-drops, .tl-orbit, .tl-dot { transform-box: view-box; transform-origin: 0 0; }
-.tl.is-on .tl-orbit { animation: tlOrbit .65s linear both; }
-.tl.is-on .tl-dot { animation: tlDot .65s linear both; }
-.tl.is-on .tl-drops { animation: tlPop .65s linear both; }
+.tl.is-on .tl-orbit { animation: tlOrbit .95s linear both; }
+.tl.is-on .tl-dot { animation: tlDot .95s linear both; }
+.tl.is-on .tl-drops { animation: tlPop .95s linear both; }
 @keyframes tlOpen {
-    0% { opacity: 0; --tl-r: 0px; }
-    5% { opacity: 1; }
-    70% { --tl-r: 0px; animation-timing-function: cubic-bezier(.3, .6, .2, 1); }
-    100% { opacity: 1; --tl-r: 125vmax; }
+    0% { opacity: 0; --tl-r: -80px; }
+    6% { opacity: 1; }
+    64% { --tl-r: -80px; animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
+    100% { opacity: 1; --tl-r: 62vmax; }
 }
-/* se rotesc una în jurul alteia, tot mai repede */
 @keyframes tlOrbit {
-    0% { transform: rotate(-60deg); animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
-    60% { transform: rotate(540deg); }
-    100% { transform: rotate(540deg); }
+    0% { transform: rotate(-40deg); animation-timing-function: cubic-bezier(.45, 0, .4, 1); }
+    55% { transform: rotate(320deg); }
+    100% { transform: rotate(320deg); }
 }
-/* fiecare picătură alunecă spre mijloc, unde se lipesc într-una */
 @keyframes tlDot {
-    0% { transform: translateY(-13px) scale(.4); opacity: 0; animation-timing-function: ease-out; }
-    10% { transform: translateY(-12px) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.6, 0, .8, .5); }
-    58% { transform: translateY(0) scale(1); }
+    0% { transform: translateY(-12px) scale(.3); opacity: 0; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
+    12% { transform: translateY(-12px) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.5, 0, .5, 1); }
+    52% { transform: translateY(0) scale(1); }
     100% { transform: translateY(0) scale(1); }
 }
-/* picătura unită se umflă puțin și pocnește */
 @keyframes tlPop {
-    0%, 58% { transform: scale(1); opacity: 1; animation-timing-function: ease-out; }
-    67% { transform: scale(1.45); opacity: 1; animation-timing-function: cubic-bezier(.5, 0, 1, .6); }
-    74% { transform: scale(2.4); opacity: 0; }
-    100% { transform: scale(2.4); opacity: 0; }
+    0%, 52% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
+    62% { transform: scale(1.4); opacity: 1; animation-timing-function: cubic-bezier(.6, 0, .9, .5); }
+    72% { transform: scale(2.3); opacity: 0; }
+    100% { transform: scale(2.3); opacity: 0; }
 }
-/* cardurile paginii urcă după ce pleacă stratul */
-body.tl-on.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation-delay: .44s; }
+/* cu ecranul de încărcare, pagina e deja gata dedesubt: deschiderea din mijloc arată pagina întreagă, fără carduri care mai urcă */
+body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tl { display: none !important; } }
