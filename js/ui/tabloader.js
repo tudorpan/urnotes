@@ -18,15 +18,15 @@ function tabLoaderEl() {
         <svg class="tl-svg" viewBox="-30 -30 60 60" width="84" height="84" focusable="false">
             <defs>
                 <filter id="tl-goo" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b"/>
-                    <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2.6" result="b"/>
+                    <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/>
                 </filter>
             </defs>
             <g class="tl-drops" filter="url(#tl-goo)">
                 <g class="tl-orbit">
-                    <g><circle class="tl-dot" r="4.6"/></g>
-                    <g transform="rotate(120)"><circle class="tl-dot" r="4.6"/></g>
-                    <g transform="rotate(240)"><circle class="tl-dot" r="4.6"/></g>
+                    <g><circle class="tl-dot tl-dot1" r="5.2"/></g>
+                    <g transform="rotate(128)"><circle class="tl-dot tl-dot2" r="4.3"/></g>
+                    <g transform="rotate(236)"><circle class="tl-dot tl-dot3" r="3.6"/></g>
                 </g>
             </g>
         </svg>`;
