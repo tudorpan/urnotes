@@ -26,14 +26,17 @@ function switchTab(tabId) {
     // O pagină nouă începe de sus, cu titlul ei vizibil sub bară (nu la jumătatea derulării paginii anterioare).
     if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
 
-    document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
+    const showTab = () => document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
+    const deferred = changed && switchTab.tapped && document.body.dataset.page && !/jsdom/i.test(navigator.userAgent || "") && !reduceMotion();
+    if (!deferred) showTab(); // altfel pagina nouă apare abia când e desenată (sub tranziție), ca să nu fie așezată de două ori
 
     // Patru secțiuni (Azi, Note, Calendar, Plan) + Eu; paginile cu file (Progres, Ce-ar fi dacă, Examene) aprind secțiunea lor
     const group = TABS[tabId]?.group;
     // o estompare scurtă la schimbarea filei, dar nu la prima pagină de la pornire
+    let covered = false; // ecranul de tranziție acoperă pagina: o putem desena puțin mai târziu
     if (changed && document.body.dataset.page) {
         document.body.classList.add("page-in");
-        if (typeof showTabLoader === "function") showTabLoader();
+        if (typeof showTabLoader === "function") covered = showTabLoader() === true;
         clearTimeout(switchTab.pageInT);
         switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), 520);
     }
@@ -50,12 +53,21 @@ function switchTab(tabId) {
     });
 
     closeQuickAdd({ restoreFocus: false });
-    renderActiveTab();
-    moveNavPill();
-    // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
-    requestAnimationFrame(() => moveNavPill(false));
-    if (typeof queueSidePill === "function") queueSidePill();
-    watchPageTitle();
+    // Atingere pe bara de file: întâi se vede răspunsul (fila aprinsă, ecranul de tranziție), abia apoi se desenează
+    // pagina, dedesubt, cât timp e acoperită. Altfel degetul ar aștepta desenarea până să se întâmple ceva pe ecran.
+    const draw = () => {
+        if (ui.activeTab !== tabId) return; // între timp ai ales altă filă
+        showTab();
+        renderActiveTab();
+        // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
+        requestAnimationFrame(() => moveNavPill(false));
+        if (typeof queueSidePill === "function") queueSidePill();
+        watchPageTitle();
+    };
+    requestAnimationFrame(() => moveNavPill()); // citește poziții: după desenare, nu în mijlocul ei
+    if (deferred && covered) requestAnimationFrame(() => requestAnimationFrame(draw));
+    else draw();
+    switchTab.tapped = false;
 }
 
 /* ---------- mișcare: pagina intră din partea în care mergi, cardurile apar pe rând ---------- */
@@ -84,8 +96,12 @@ function moveNavPill(pop = true) {
     pill.style.opacity = "1";
     pill.style.width = `${btn.offsetWidth}px`;
     pill.style.transform = `translateX(${btn.offsetLeft}px)`;
-    if (pop) { btn.classList.remove("is-pop"); void btn.offsetWidth; }
-    if (pop && !reduceMotion()) btn.classList.add("is-pop");
+    if (pop && !reduceMotion()) {
+        // reia săritura fără să forțeze o nouă așezare a paginii
+        if (btn.classList.contains("is-pop")) btn.getAnimations?.({ subtree: true }).forEach(a => { a.currentTime = 0; a.play(); });
+        else btn.classList.add("is-pop");
+        document.querySelectorAll(".mobile-nav-btn.is-pop").forEach(b => b !== btn && b.classList.remove("is-pop"));
+    }
 }
 
 /** Titlul mare al paginii „urcă” în bara de sus când derulezi (ca în aplicațiile de iPhone). */

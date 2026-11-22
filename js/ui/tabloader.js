@@ -36,10 +36,10 @@ function tabLoaderEl() {
 
 function showTabLoader() {
     if (/jsdom/i.test(navigator.userAgent || "") || reduceMotion()) return;
+    // pornește de la capăt dacă elevul schimbă repede filele: unul nou în locul celui vechi
+    // (fără să forțeze browserul să recalculeze pagina, cum ar face scoaterea și punerea la loc a clasei)
+    document.getElementById("tab-loader")?.classList.contains("is-on") && document.getElementById("tab-loader").remove();
     const el = tabLoaderEl();
-    // pornește de la capăt dacă elevul schimbă repede filele
-    el.classList.remove("is-on");
-    void el.offsetWidth;
     el.classList.add("is-on");
     document.body.classList.add("tl-on");
     clearTimeout(showTabLoader.t);
@@ -47,4 +47,5 @@ function showTabLoader() {
         el.classList.remove("is-on");
         document.body.classList.remove("tl-on");
     }, TAB_LOADER_MS);
+    return true;
 }
