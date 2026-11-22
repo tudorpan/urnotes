@@ -379,3 +379,54 @@ body.style-app .gc-fab { display: none; }
     body.style-app.dark-mode .gc-fab { background: #2C2C2E; }
 }
 body.style-app .gc-qc-date b { color: var(--ink); font-size: 14px; }
+
+/* blocul nou se poate trage (mută) și lungi (marginea de jos), din 15 în 15 minute */
+body.style-app #cal-body .gc-ghost-block { pointer-events: auto; cursor: grab; touch-action: none; transition: box-shadow .15s ease; }
+body.style-app #cal-body .gc-ghost-block.is-dragging { cursor: grabbing; box-shadow: 0 0 0 1px var(--sheet), 0 14px 28px -8px rgba(0, 0, 0, .45); animation: none; }
+body.style-app #cal-body .gc-ghost-block.is-short { flex-direction: row; align-items: center; gap: 6px; }
+body.style-app #cal-body .gc-ghost-grip { position: absolute; left: 0; right: 0; bottom: -4px; height: 12px; cursor: ns-resize; touch-action: none; }
+body.style-app #cal-body .gc-ghost-grip::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 22px; height: 3px; margin-left: -11px; border-radius: 2px; background: rgba(255, 255, 255, .85); }
+@media (pointer: coarse) { body.style-app #cal-body .gc-ghost-grip { height: 22px; bottom: -10px; } body.style-app #cal-body .gc-ghost-grip::after { bottom: 10px; width: 28px; height: 4px; margin-left: -14px; } }
+
+/* coloana din stânga încape în ecran: mai strânsă, iar dacă tot nu încape, pleacă legătura dublă „Orarul meu” (e și în meniul modului) */
+@media (min-width: 1001px) {
+    body.style-app .gcal-side { gap: 12px; }
+    body.style-app .gc-create { height: 48px; padding: 0 20px 0 14px; border-radius: 14px; font-size: 14.5px; }
+    body.style-app .gc-create .ico { width: 22px; height: 22px; }
+    body.style-app .gc-mini { padding: 0 2px; }
+    body.style-app .gc-mini-d { width: 26px; height: 26px; font-size: 11.5px; }
+    body.style-app .gc-mini-wd { line-height: 20px; }
+    body.style-app .gc-mini-grid { row-gap: 1px; }
+    body.style-app .gc-side-title { margin: 0 0 2px 8px; font-size: 13px; color: var(--ink-2); }
+    body.style-app .gc-layers { display: grid; grid-template-columns: 1fr 1fr; column-gap: 2px; }
+    body.style-app .gc-layers .gc-side-title { grid-column: 1 / -1; }
+    body.style-app .gc-layer { gap: 8px; padding: 4px 6px; font-size: 13px; line-height: 1.2; }
+    body.style-app .gc-layer i { width: 16px; height: 16px; }
+    body.style-app .gc-attn .cal-attn { padding: 10px; }
+    body.style-app .gc-attn .cal-att-row { padding: 4px 0; gap: 4px; }
+    body.style-app .gc-attn .cal-att-actions .btn { height: 28px; padding: 0 10px; font-size: 12.5px; }
+    body.style-app .gc-sidelink { padding: 4px 8px; font-size: 13.5px; }
+    body.style-app .gcal-side.is-tight .gc-sidelink { display: none; }
+    body.style-app .gcal-side.is-tight .cal-att-row:nth-child(n+2), body.style-app .gcal-side.is-tight .cal-attn-more { display: none; }
+    body.style-app .gcal-side.is-tighter .gc-attn .cal-attn-list, body.style-app .gcal-side.is-tighter .gc-attn .cal-tip .btn { display: none; }
+    body.style-app .gcal-side.is-tighter .gc-attn .cal-attn-title { margin: 0; }
+}
+
+/* telefon: foaia de eveniment nou e scurtă, ca grila (și blocul de tras) să rămână la vedere deasupra ei */
+@media (max-width: 640px) {
+    body.style-app.qc-open .gc-attn { display: none !important; }
+    body.style-app .gc-qc.is-sheet { padding: 6px 14px calc(12px + env(safe-area-inset-bottom)); }
+    body.style-app .gc-qc.is-sheet .gc-qc-tools { min-height: 26px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-tools .gc-ibtn { width: 30px; height: 30px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-title { margin-bottom: 8px; padding: 2px 0 6px; font-size: 19px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-types { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 6px; padding: 0 14px 2px; scrollbar-width: none; }
+    body.style-app .gc-qc.is-sheet .gc-qc-types::-webkit-scrollbar { display: none; }
+    body.style-app .gc-qc.is-sheet .gc-qc-type { flex: none; height: 30px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-row { padding: 4px 0; gap: 10px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-when { gap: 6px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-date b { padding: 5px 8px; font-size: 13.5px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-field input { height: 30px; font-size: 13.5px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-repeat { display: none; }
+    body.style-app .gc-qc.is-sheet .gc-qc-select { height: 32px; }
+    body.style-app .gc-qc.is-sheet .gc-qc-foot { margin-top: 6px; }
+}

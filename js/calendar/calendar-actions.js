@@ -703,9 +703,9 @@ function bindCalendarEvents() {
     let sweep = null;
     body.addEventListener("pointerdown", event => {
         const col = event.target.closest?.(".gc-col");
-        if (!col || event.button !== 0 || event.pointerType === "touch" || event.target.closest("button, .cal-ev")) return;
-        const start = Math.floor(slotMin(col, event.clientY) / 30) * 30;
-        sweep = { col, start, end: start + 30, moved: false, y: event.clientY };
+        if (!col || event.button !== 0 || event.pointerType === "touch" || event.target.closest("button, .cal-ev, .gc-ghost")) return;
+        const start = slotMin(col, event.clientY);
+        sweep = { col, start, end: start + 15, moved: false, y: event.clientY };
     });
     body.addEventListener("pointermove", event => {
         if (!sweep) return;
@@ -714,7 +714,7 @@ function bindCalendarEvents() {
         const m = slotMin(sweep.col, event.clientY);
         const a = Math.min(sweep.start, m), b = Math.max(sweep.start + 15, m + 15);
         Object.assign(qc, { open: true, date: sweep.col.dataset.day, allDay: false, time: minToHM(a), end: minToHM(b) });
-        drawQcGhost();
+        if (document.querySelector(".gc-ghost-block")) placeQcGhost(); else drawQcGhost();
     });
     window.addEventListener("pointerup", event => {
         if (!sweep) return;

@@ -555,11 +555,21 @@ function calCreate(anchor = null) {
 function calFit() {
     const g = document.querySelector(".gcal");
     if (!g || !g.offsetParent) return;
+    if (window.scrollY) window.scrollTo({ top: 0, behavior: "instant" });
     const nav = document.querySelector(".mobile-bottom-nav");
     const navTop = nav && getComputedStyle(nav).display !== "none" ? nav.getBoundingClientRect().top : window.innerHeight;
     const bottom = window.innerHeight - navTop + (navTop < window.innerHeight ? 10 : 16);
     const h = Math.max(380, Math.floor(window.innerHeight - g.getBoundingClientRect().top - bottom));
     g.style.height = `${h}px`;
+    requestAnimationFrame(calFitSide);
+}
+/** Coloana din stânga trebuie să se vadă toată: dacă nu încape, scoate pe rând ce e dublat sau mai puțin important. */
+function calFitSide() {
+    const side = document.querySelector(".gcal-side");
+    if (!side || !side.offsetParent) return;
+    side.classList.remove("is-tight", "is-tighter");
+    if (side.scrollHeight > side.clientHeight + 1) side.classList.add("is-tight");
+    if (side.scrollHeight > side.clientHeight + 1) side.classList.add("is-tighter");
 }
 window.addEventListener("resize", () => { if (ui.activeTab === "tab-calendar") { calFit(); if (ui.cal.view === "month") renderMonthView(); } });
 

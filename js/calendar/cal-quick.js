@@ -71,7 +71,7 @@ function renderQuickCreate() {
             </div>
         </div>
         <div class="gc-qc-row">${icon("book")}<select id="qc-subject" class="gc-qc-select" aria-label="Materia">${qcSubjectsHTML()}</select></div>
-        <div class="gc-qc-row">${icon("repeat")}<select id="qc-repeat" class="gc-qc-select" aria-label="Repetare">
+        <div class="gc-qc-row gc-qc-repeat">${icon("repeat")}<select id="qc-repeat" class="gc-qc-select" aria-label="Repetare">
             <option value="" ${!qc.repeat ? "selected" : ""}>Nu se repetă</option>
             <option value="1" ${qc.repeat === "1" ? "selected" : ""}>În fiecare săptămână, ${escapeHTML(WEEKDAY_LONG[d.getDay()].toLowerCase())}</option>
             <option value="2" ${qc.repeat === "2" ? "selected" : ""}>La două săptămâni</option>
@@ -81,7 +81,19 @@ function renderQuickCreate() {
             <button type="button" class="btn btn-primary btn-sm" data-action="qc-save">Salvează</button>
         </div>`;
     placeQuickCreate(box);
+    document.body.classList.add("qc-open");
+    if (box.classList.contains("is-sheet") && typeof calFit === "function") calFit();
     drawQcGhost();
+    // pe telefon foaia acoperă jumătatea de jos: grila se derulează ca blocul nou să rămână deasupra ei, la îndemână
+    if (box.classList.contains("is-sheet")) {
+        const g = document.querySelector(".gc-ghost-block"), sc = $("gc-scroll");
+        if (g && sc) {
+            // poziția finală a foii (cât urcă, animația o ține încă jos)
+            const sheetTop = window.innerHeight - box.offsetHeight, gr = g.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+            const room = sheetTop - sr.top;
+            if (gr.bottom > sheetTop - 12 || gr.top < sr.top) sc.scrollTop += gr.top - sr.top - Math.max(8, (room - gr.height) / 2);
+        }
+    }
     if (!box.contains(document.activeElement)) $("qc-title")?.focus({ preventScroll: true });
 }
 
@@ -104,36 +116,110 @@ function placeQuickCreate(box) {
     box.style.top = `${top}px`;
 }
 
-/** Blocul „(Fără titlu)”: în grilă la oră, în rândul „toată ziua” sau în ziua din lună / listă. */
+/** Blocul „(Fără titlu)”: în grilă la oră, în rândul „toată ziua” sau în ziua din lună / listă.
+    În grilă îl poți trage (mută ora sau ziua) și îl poți lungi de marginea de jos, din 15 în 15 minute. */
 function drawQcGhost() {
     document.querySelectorAll(".gc-ghost").forEach(g => g.remove());
     if (!qc.open) return;
     const cls = `gc-${EVENT_TYPE_CLASS[qc.type] || "personal"}`;
-    const label = escapeHTML(qc.title.trim() || (qc.subject ? autoEventTitle(qc.type, qc.subject) : "(Fără titlu)"));
-    const s = hmToMin(qc.time), e = hmToMin(qc.end);
+    const s = hmToMin(qc.time);
     const col = document.querySelector(`#cal-body .gc-col[data-day="${qc.date}"]`);
     if (!qc.allDay && col && s !== null) {
         const g = document.createElement("div");
         g.className = `gc-ghost gc-ghost-block ${cls}`;
-        const end = e !== null && e > s ? e : s + EV_MIN_DEFAULT;
-        g.style.top = `${s / 60 * HOUR_PX}px`;
-        g.style.height = `${Math.max(22, (end - s) / 60 * HOUR_PX - 2)}px`;
-        g.innerHTML = `<b>${label}</b><span>${minToHM(s)} – ${minToHM(end)}</span>`;
+        g.innerHTML = `<b></b><span></span><i class="gc-ghost-grip" aria-hidden="true"></i>`;
         col.appendChild(g);
+        placeQcGhost(g);
         return;
     }
     const cell = document.querySelector(`#cal-body .gc-adcell[data-day="${qc.date}"], #cal-body .gc-mcell[data-day="${qc.date}"] .gc-mevs, #cal-body .gc-sday[data-day="${qc.date}"] .gc-sitems`);
     if (cell) {
         const g = document.createElement("div");
         g.className = `gc-ghost gc-ghost-chip ${cls}`;
-        g.innerHTML = `<b>${label}</b>`;
+        g.innerHTML = `<b>${qcGhostLabel()}</b>`;
         cell.prepend(g);
+    }
+}
+const qcGhostLabel = () => escapeHTML(qc.title.trim() || (qc.subject ? autoEventTitle(qc.type, qc.subject) : "(Fără titlu)"));
+/** Așază blocul din grilă după ora de început și de sfârșit din fereastră (fără să-l refacă, ca să nu se piardă trasul). */
+function placeQcGhost(g = document.querySelector(".gc-ghost-block")) {
+    if (!g) return;
+    const s = hmToMin(qc.time), e = hmToMin(qc.end);
+    const end = e !== null && e > s ? e : s + EV_MIN_DEFAULT;
+    g.style.top = `${s / 60 * HOUR_PX}px`;
+    g.style.height = `${Math.max(20, (end - s) / 60 * HOUR_PX - 2)}px`;
+    g.querySelector("b").innerHTML = qcGhostLabel();
+    g.querySelector("span").textContent = `${minToHM(s)} – ${minToHM(end)}`;
+    g.classList.toggle("is-short", end - s <= 30);
+}
+
+/* trasul blocului: mijlocul îl mută (și pe altă zi), marginea de jos îl lungește; totul din 15 în 15 minute */
+let qcDrag = null;
+function qcDragStart(event) {
+    const g = event.target.closest?.(".gc-ghost-block");
+    if (!g || !qc.open || event.button > 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const s0 = hmToMin(qc.time), e0 = hmToMin(qc.end) ?? s0 + EV_MIN_DEFAULT;
+    qcDrag = { mode: event.target.closest(".gc-ghost-grip") ? "resize" : "move", y0: event.clientY, s0, e0, moved: false, scroller: $("gc-scroll") };
+    g.classList.add("is-dragging");
+}
+function qcDragMove(event) {
+    if (!qcDrag) return;
+    event.preventDefault();
+    const d = qcDrag;
+    // aproape de marginea grilei, aceasta se derulează singură
+    const sr = d.scroller?.getBoundingClientRect();
+    if (sr) {
+        if (event.clientY < sr.top + 28) d.scroller.scrollTop -= 10;
+        else if (event.clientY > sr.bottom - 28) d.scroller.scrollTop += 10;
+    }
+    const col = document.querySelector(`#cal-body .gc-col[data-day="${qc.date}"]`);
+    if (!col) return;
+    const step = m => Math.round(m / 15) * 15;
+    const y = event.clientY - col.getBoundingClientRect().top;
+    const atMin = y / HOUR_PX * 60;
+    if (d.mode === "resize") {
+        const e = Math.min(24 * 60, Math.max(d.s0 + 15, step(atMin)));
+        qc.end = minToHM(Math.min(e, 24 * 60 - 1));
+    } else {
+        const len = d.e0 - d.s0;
+        if (d.grab === undefined) d.grab = (d.y0 - col.getBoundingClientRect().top) / HOUR_PX * 60 - d.s0;
+        const s = Math.max(0, Math.min(24 * 60 - len, step(atMin - d.grab)));
+        qc.time = minToHM(s);
+        qc.end = minToHM(Math.min(24 * 60 - 1, s + len));
+        // pe altă coloană: altă zi
+        const under = document.elementsFromPoint(event.clientX, event.clientY).find(el => el.classList?.contains("gc-col"));
+        if (under && under.dataset.day !== qc.date) {
+            qc.date = under.dataset.day;
+            under.appendChild(document.querySelector(".gc-ghost-block"));
+        }
+    }
+    d.moved = true;
+    placeQcGhost();
+    // fereastra arată ora pe loc
+    if ($("qc-time")) $("qc-time").value = qc.time;
+    if ($("qc-end")) $("qc-end").value = qc.end;
+}
+function qcDragEnd() {
+    if (!qcDrag) return;
+    const moved = qcDrag.moved;
+    qcDrag = null;
+    const g = document.querySelector(".gc-ghost-block");
+    g?.classList.remove("is-dragging");
+    if (moved) {
+        qc.rect = g?.getBoundingClientRect() || qc.rect;
+        renderQuickCreate();
     }
 }
 
 function closeQuickCreate(restoreFocus = true) {
     const box = $("gc-qc");
     qc.open = false;
+    if (document.body.classList.contains("qc-open")) {
+        document.body.classList.remove("qc-open");
+        if (typeof calFit === "function") calFit();
+    }
     document.querySelectorAll(".gc-ghost").forEach(g => g.remove());
     if (!box) return;
     box.remove();
@@ -224,4 +310,8 @@ function bindQuickCreate() {
         closeQuickCreate(false);
     });
     window.addEventListener("resize", () => { if (qc.open) placeQuickCreate($("gc-qc")); });
+    document.addEventListener("pointerdown", qcDragStart, true);
+    window.addEventListener("pointermove", qcDragMove, { passive: false });
+    window.addEventListener("pointerup", qcDragEnd);
+    window.addEventListener("pointercancel", qcDragEnd);
 }
