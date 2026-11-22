@@ -314,7 +314,7 @@ function qcFitViewport() {
 /* Calendarul nu se derulează niciodată ca pagină: dacă iOS a împins-o în sus pentru tastatură, o aducem înapoi
    după ce tastatura a plecat (bara de sus rămâne mereu la vedere). */
 function calUnshift() {
-    if (document.body.dataset.page !== "calendar" || qc.full) return;
+    if (document.body.dataset.page !== "tab-calendar" || qc.full) return;
     const a = document.activeElement;
     if (a && a.matches?.("input, textarea, select, [contenteditable='true']")) return;
     if (window.scrollY || document.documentElement.scrollTop || (window.visualViewport?.offsetTop || 0) > 0) window.scrollTo(0, 0);
@@ -348,6 +348,10 @@ function bindQuickCreate() {
         if (qc.open && event.target.closest?.("#gc-qc") && event.target.matches("input, select, textarea")) qcGoFull();
     });
     document.addEventListener("focusout", () => setTimeout(calUnshift, 350));
+    // orice altceva care împinge pagina calendarului (un deget tras pe bară, revenirea în aplicație): înapoi sus
+    let unshiftT = 0;
+    window.addEventListener("scroll", () => { clearTimeout(unshiftT); unshiftT = setTimeout(calUnshift, 160); }, { passive: true });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(calUnshift, 100); });
     if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", () => { qcFitViewport(); clearTimeout(bindQuickCreate._t); bindQuickCreate._t = setTimeout(calUnshift, 250); });
         window.visualViewport.addEventListener("scroll", qcFitViewport);

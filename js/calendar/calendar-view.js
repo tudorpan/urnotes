@@ -78,7 +78,8 @@ function renderCalendar() {
     renderCalOverview();
     // grila păstrează ora la care erai când schimbi ziua sau săptămâna (ca la Google); prima dată începe puțin înainte de 8
     const oldScroll = $("gc-scroll")?.scrollTop;
-    const keepScroll = ui.cal.renderedKey ? oldScroll : null;
+    const grid = v => ["day", "3day", "week"].includes(v);
+    const keepScroll = ui.cal.renderedKey && grid(ui.cal.renderedKey.split("|")[0]) && grid(ui.cal.view) ? oldScroll : null;
     calFit();
     if (ui.cal.view === "month") renderMonthView();
     else if (ui.cal.view === "schedule") renderScheduleView();
