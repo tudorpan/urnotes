@@ -102,3 +102,26 @@ body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-nex
     .cc-grab { display: block; width: 36px; height: 5px; margin: 6px auto 0; border-radius: 99px; background: var(--fill-2, rgba(118, 118, 128, .3)); flex: none; }
     .cc-head { touch-action: none; }
 }
+
+/* ecranul scurt dintre file (js/ui/tabloader.js): un strat de sticlă mată și trei picături care se topesc într-una */
+.tl { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; pointer-events: none; opacity: 0; visibility: hidden;
+    background: color-mix(in srgb, var(--paper, #F2F2F7) 55%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%); }
+.tl.is-on { visibility: visible; animation: tlVeil .62s ease both; }
+.tl-svg { overflow: visible; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .14)); }
+.tl-d1 { fill: var(--tint, #0058B8); }
+.tl-d2 { fill: #34AADC; }
+.tl-d3 { fill: #AF52DE; }
+.tl-core { fill: color-mix(in srgb, var(--tint, #0058B8) 70%, #AF52DE); }
+.tl-orbit, .tl-core, .tl-shine { transform-box: view-box; transform-origin: 60px 60px; }
+.tl.is-on .tl-orbit { animation: tlOrbit .62s cubic-bezier(.55, .05, .35, 1) both; }
+.tl.is-on .tl-core { animation: tlCore .62s cubic-bezier(.3, .7, .3, 1) both; }
+.tl.is-on .tl-shine { animation: tlCore .62s cubic-bezier(.3, .7, .3, 1) both; }
+@keyframes tlVeil { 0% { opacity: 0; } 14% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+/* picăturile se rotesc și se strâng spre mijloc, unde se lipesc */
+@keyframes tlOrbit { 0% { transform: rotate(-40deg) scale(.6); opacity: 0; } 16% { opacity: 1; transform: rotate(10deg) scale(1); } 74% { transform: rotate(270deg) scale(.12); } 100% { transform: rotate(300deg) scale(0); } }
+/* miezul crește cât le adună, se umflă puțin și pocnește */
+@keyframes tlCore { 0% { transform: scale(.3); } 62% { transform: scale(1.2); } 76% { transform: scale(1.55); } 88% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0); opacity: 0; } }
+/* cardurile paginii urcă după ce pleacă stratul */
+body.tl-on.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation-delay: .4s; }
+@media (prefers-reduced-motion: reduce) { .tl { display: none !important; } }

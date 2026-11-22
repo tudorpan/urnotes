@@ -33,8 +33,10 @@ function switchTab(tabId) {
     // o estompare scurtă la schimbarea filei, dar nu la prima pagină de la pornire
     if (changed && document.body.dataset.page) {
         document.body.classList.add("page-in");
+        if (typeof showTabLoader === "function") showTabLoader();
         clearTimeout(switchTab.pageInT);
-        switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), 520);
+        // cu ecranul de încărcare, cardurile urcă abia când el pleacă
+        switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), document.body.classList.contains("tl-on") ? 1000 : 520);
     }
     document.body.dataset.page = tabId;
     document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));

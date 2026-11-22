@@ -28,6 +28,8 @@ function init() {
     initBuddyLook();
     initCloud();
     initReminders();
+    // pagina de la pornire e deja „pe ecran”: prima schimbare de filă are tranziția și ecranul scurt, ca toate celelalte
+    if (!document.body.dataset.page) document.body.dataset.page = ui.activeTab;
     hideSplash();
     scheduleChartJs();
     // Cu conturi, configurarea vine după alegerea de pe ecranul de autentificare.
