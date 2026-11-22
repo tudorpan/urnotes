@@ -181,3 +181,7 @@ body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, 
     .tt-row.is-drop::before { animation: none; }
 }
 .tt-card.tt-flip .tt-row { animation: none; }
+
+/* ieșirea (js/ui/fluid.js, leaveGhost / leaveRemove): copia care pleacă nu-și mai joacă intrarea și nu se poate atinge */
+:is(.is-leaving, .is-leaving *):not(#_):not(#__) { animation: none !important; transition: none !important; pointer-events: none !important; }
+.is-leaving .stg:not(#_):not(#__) { opacity: 1 !important; }

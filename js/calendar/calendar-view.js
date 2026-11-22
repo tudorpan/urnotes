@@ -486,7 +486,7 @@ function closeEvPop(restoreFocus = true) {
     const pop = $("gc-pop");
     if (!pop) return;
     const back = ui.cal.pop?.anchor;
-    pop.remove();
+    leaveRemove(pop);
     ui.cal.pop = null;
     if (restoreFocus && back && document.contains(back)) back.focus({ preventScroll: true });
 }

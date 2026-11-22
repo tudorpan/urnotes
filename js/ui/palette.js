@@ -67,6 +67,7 @@ function openPalette() {
 function closePalette({ restore = true } = {}) {
     const box = $("palette");
     if (!box || box.hidden) return;
+    leaveGhost(box, { card: ".palette-card", backdrop: ".palette-backdrop" });
     box.hidden = true;
     document.body.classList.remove("palette-open");
     if (restore && pal.returnFocus && document.contains(pal.returnFocus)) pal.returnFocus.focus();

@@ -237,7 +237,7 @@ function closeQuickCreate(restoreFocus = true) {
     }
     document.querySelectorAll(".gc-ghost").forEach(g => g.remove());
     if (!box) return;
-    box.remove();
+    leaveRemove(box);
     if (restoreFocus && qc.anchor && document.contains(qc.anchor)) qc.anchor.focus({ preventScroll: true });
 }
 
@@ -324,18 +324,22 @@ function bindQuickCreate() {
     // formularul devine pe tot ecranul ÎNAINTE ca iOS să deschidă tastatura: câmpul atins e deja sus, deci iOS nu mai
     // are motiv să împingă pagina în sus ca să-l arate
     // (formularul se rearanjează sub deget, așa că la ridicarea degetului punem noi cursorul în câmpul atins)
-    let wantField = null;
+    // (doar la o atingere scurtă, nu când tragi foaia în jos pornind de pe un câmp)
+    let wantField = null, fx = 0, fy = 0;
     const fieldAt = event => qc.open && event.target.closest?.("#gc-qc")
         ? event.target.closest("input:not([type=checkbox]):not([type=radio]), select, textarea") : null;
     document.addEventListener("touchstart", event => {
         const f = fieldAt(event);
-        wantField = f && !qc.full ? f : null;
-        if (wantField) qcGoFull();
+        wantField = f && !qc.full && event.touches.length === 1 ? f : null;
+        if (wantField) { fx = event.touches[0].clientX; fy = event.touches[0].clientY; }
     }, { passive: true, capture: true });
     document.addEventListener("touchend", event => {
         const f = wantField;
         wantField = null;
-        if (!f || !document.contains(f) || document.activeElement === f) return;
+        const t = event.changedTouches?.[0];
+        if (!f || !document.contains(f) || !t || Math.hypot(t.clientX - fx, t.clientY - fy) > 10) return;
+        qcGoFull();
+        if (document.activeElement === f) return;
         event.preventDefault(); // altfel atingerea ar cădea pe ce a ajuns acum sub deget
         f.focus({ preventScroll: true });
         if (f.tagName === "SELECT" && f.showPicker) { try { f.showPicker(); } catch (_) { /* nu peste tot */ } }

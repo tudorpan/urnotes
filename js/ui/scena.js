@@ -69,38 +69,7 @@ if (typeof showToast === "function") {
     }, { passive: true });
 })();
 
-/* ==================== telefon: foaia „Adaugă” se trage în jos ca să se închidă ==================== */
-(() => {
-    let y0 = 0, dy = 0, t0 = 0, host = null;
-    document.addEventListener("pointerdown", e => {
-        if (e.pointerType === "mouse" || !phoneWidth()) return;
-        const head = e.target.closest?.(".cc-head, .cc-grab");
-        if (!head || e.target.closest("button")) return;
-        host = $("cc-overlay-host");
-        y0 = e.clientY; dy = 0; t0 = Date.now();
-        host.style.transition = "none";
-    }, { passive: true });
-    document.addEventListener("pointermove", e => {
-        if (!host) return;
-        dy = Math.max(0, e.clientY - y0);
-        host.style.transform = `translateY(${dy}px)`;
-    }, { passive: true });
-    const end = () => {
-        if (!host) return;
-        const h = host, fast = dy / Math.max(1, Date.now() - t0) > 0.6;
-        host = null;
-        h.style.transition = "transform .22s cubic-bezier(.2, .8, .2, 1)";
-        if (dy > 120 || (fast && dy > 40)) {
-            h.style.transform = "translateY(110%)";
-            setTimeout(() => { h.style.transform = ""; h.style.transition = ""; ccCloseOverlay(); }, 200);
-        } else {
-            h.style.transform = "";
-            setTimeout(() => { h.style.transition = ""; }, 230);
-        }
-    };
-    document.addEventListener("pointerup", end, { passive: true });
-    document.addEventListener("pointercancel", end, { passive: true });
-})();
+/* foaia „Adaugă” (Ce adaugi?) se trage în jos ca să se închidă: js/ui/phone.js (bindSheetDrag), ca toate foile */
 
 /* ==================== ții apăsat pe o carte de pe raft: pui o notă direct ==================== */
 (() => {

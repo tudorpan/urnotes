@@ -44,7 +44,7 @@ body.style-app a, body.style-app .btn-link { color: var(--tint-text); }
 /* ---------- fără mascotă și fără decoruri ---------- */
 body.style-app :is(.azi-buddy, .side-pal, .page-pal, .nav-pal, .pal-level, .buddy-poke, .toast-pal, .me-preview, .pal-only, svg.buddy, [data-pal-mood], .pal-card, .pal-kinds, .plan-setup-buddy, .setup-buddy, #setup-buddy) { display: none !important; }
 body.style-app .azi-head h2::after, body.style-app .home-tile::after, body.style-app .home-tile.is-hero::after { display: none; }
-body.style-app :is(.home-tile, .cat-sum, .glass-card, .azi-next, .insight, .plan-setup) { transform: none !important; }
+body.style-app :is(.home-tile, .cat-sum, .glass-card:not(.modal-card), .azi-next, .insight, .plan-setup) { transform: none !important; }
 body.style-app .me-barcode { display: none; }
 
 /* ---------- titluri mari, ca în aplicațiile iPhone ---------- */

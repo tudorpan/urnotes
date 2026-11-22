@@ -52,7 +52,7 @@ function placeQuickGrade() {
 function closeQuickGrade({ focus = false } = {}) {
     const pop = $("quick-grade");
     if (!pop) return;
-    pop.remove();
+    leaveRemove(pop);
     quickGrade.anchor?.classList.remove("is-open");
     if (focus && quickGrade.anchor && document.contains(quickGrade.anchor)) quickGrade.anchor.focus();
 }

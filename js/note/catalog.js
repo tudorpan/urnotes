@@ -667,6 +667,7 @@ function openCatMenu(mat, x, y, returnFocus = null) {
 function closeCatMenu({ restoreFocus = true } = {}) {
     const menu = $("cat-menu");
     if (!menu || menu.hidden) return;
+    leaveGhost(menu);
     menu.hidden = true;
     const back = catMenu.returnFocus;
     catMenu.returnFocus = null;

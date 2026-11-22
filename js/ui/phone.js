@@ -7,6 +7,9 @@ function bindSheetDrag() {
     const SHEETS = [
         { root: "action-modal", card: ".modal-card", scroller: "#action-modal-body", close: () => closeActionModal(), allowed: () => !cloud.asking,
           fade: (el, p) => { el.style.backgroundColor = p === null ? "" : `rgba(15, 23, 42, ${(0.3 * (1 - p)).toFixed(3)})`; } },
+        // foaia mare „Ce adaugi?” (butonul + din mijloc): se trage de oriunde, nu doar de mâner
+        { root: "cc-overlay", card: ".cc-overlay-host", scroller: ".cc-scroll", close: () => ccCloseOverlay(),
+          fade: (el, p) => { const b = el.querySelector(".cc-overlay-backdrop"); if (b) b.style.opacity = p === null ? "" : String(1 - p); } },
         { root: "quick-add", card: ".quick-add-card", close: () => closeQuickAdd(),
           fade: (el, p) => { const b = el.querySelector(".quick-add-backdrop"); if (b) b.style.opacity = p === null ? "" : String(1 - p); } },
         // din Calendar: foaia de eveniment nou (cea scurtă, nu formularul pe tot ecranul) și detaliile unui eveniment
@@ -53,6 +56,12 @@ function bindSheetDrag() {
             drag.lastT = Date.now();
             drag.v = 0;
             document.activeElement?.blur?.(); // tastatura coboară odată cu foaia
+            // animația de intrare (cu „fill: both”) ar ține foaia pe loc peste transformarea noastră: o lăsăm să se termine
+            // și să nu mai țină nimic, ca foaia să urmeze degetul
+            drag.card.getAnimations?.().forEach(a => {
+                if (typeof CSSAnimation === "undefined" || !(a instanceof CSSAnimation)) return;
+                try { a.finish(); a.effect.updateTiming({ fill: "none" }); } catch (_) { /* animație infinită: o lăsăm */ }
+            });
         }
         event.preventDefault();
         drag.dy = Math.max(0, t.clientY - drag.y);

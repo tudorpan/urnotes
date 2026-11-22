@@ -208,6 +208,7 @@ function openQuickAdd(anchor) {
 function closeQuickAdd({ restoreFocus = true } = {}) {
     const box = $("quick-add");
     if (!box || box.hidden) return;
+    leaveGhost(box, { card: ".quick-add-card", backdrop: ".quick-add-backdrop" });
     box.hidden = true;
     $("quick-add-btn")?.setAttribute("aria-expanded", "false");
     if (restoreFocus && quickAddReturn && document.contains(quickAddReturn)) quickAddReturn.focus();
@@ -236,6 +237,7 @@ function openNotifPanel() {
 function closeNotifPanel({ restoreFocus = true } = {}) {
     const panel = $("notif-panel");
     if (!panel || panel.hidden) return;
+    leaveGhost(panel, { card: ".drawer-card", backdrop: ".drawer-backdrop" });
     panel.hidden = true;
     if ($("action-modal").hidden) document.body.classList.remove("modal-open");
     if (restoreFocus && notifReturn && document.contains(notifReturn)) notifReturn.focus();

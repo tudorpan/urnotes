@@ -335,7 +335,7 @@ GUEST_OK.add("win-mode");
 window.addEventListener("keydown", event => {
     if (event.key !== "Escape" || event.defaultPrevented) return;
     const inner = [$("np-pop"), $("palette"), $("cc-overlay"), $("tt-overlay"), $("setup"), $("auth"), $("quick-add")]
-        .some(el => el && !el.hidden) || document.querySelector(".cs-open, .emoji-pop, .qg-pop:not([hidden])");
+        .some(el => el && !el.hidden) || document.querySelector(".cs-open, .emoji-pop, .qg-pop:not([hidden]):not(.is-leaving)");
     if (inner) return;
     const notif = $("notif-panel"), modal = $("action-modal");
     if (notif && !notif.hidden) { event.preventDefault(); closeNotifPanel(); return; }

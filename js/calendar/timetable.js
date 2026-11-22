@@ -52,6 +52,7 @@ function closeTimetable({ save = true } = {}) {
     if (!box || box.hidden) return;
     const next = ttClean(tt.draft || {});
     const changed = JSON.stringify(next) !== JSON.stringify(ttClean(state.timetable));
+    leaveGhost(box, { card: ".tt-card", backdrop: ".tt-backdrop" });
     box.hidden = true;
     document.body.classList.remove("tt-open");
     tt.draft = null;

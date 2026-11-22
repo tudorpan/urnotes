@@ -272,3 +272,69 @@ const queueGlide = () => { if (!glideFrame) glideFrame = requestAnimationFrame((
     // bucla de gesturi pornește doar într-un browser adevărat (nu în testele automate, unde ar ține procesul deschis)
     if (!/jsdom/i.test(navigator.userAgent || "")) palIdleTick();
 })();
+
+/* ---------- ieșirea: ce s-a deschis cu o animație se și închide cu una ----------
+   Logica de închidere rămâne imediată (starea, focusul, testele); doar imaginea pleacă animat.
+   leaveGhost(root): o copie inertă a ferestrei rămâne o clipă peste pagină și pleacă (pentru cele care doar se ascund).
+   leaveRemove(el): elementul însuși (fără id, inert) pleacă și apoi e scos (pentru cele care se șterg din pagină).
+   O foaie lipită jos coboară (din locul unde ai lăsat-o cu degetul), un panou lipit în dreapta iese spre dreapta,
+   o fereastră din mijloc se micșorează și se stinge; fundalul se stinge odată cu ea. */
+const LEAVE_MS = 240;
+function leaveCanAnimate() {
+    return !reduceMotion() && typeof Element !== "undefined" && Element.prototype.animate && !/jsdom/i.test(navigator.userAgent || "");
+}
+function leavePlay(root, { card = null, backdrop = null } = {}) {
+    const c = card ? (typeof card === "string" ? root.querySelector(card) : card) : root;
+    const bd = backdrop ? (typeof backdrop === "string" ? root.querySelector(backdrop) : backdrop) : null;
+    const done = [];
+    if (c) {
+        const r = c.getBoundingClientRect(), cs = getComputedStyle(c);
+        const from = cs.transform && cs.transform !== "none" ? cs.transform : "translate(0, 0)";
+        const sheet = r.bottom >= innerHeight - 4 && r.width >= innerWidth - 4;
+        const side = !sheet && r.right >= innerWidth - 4 && r.height >= innerHeight * 0.8 && r.left > 8;
+        const frames = sheet
+            ? [{ transform: from }, { transform: `translateY(${Math.ceil(r.height + 30)}px)` }]
+            : side
+                ? [{ transform: from, opacity: 1 }, { transform: `translateX(${Math.ceil(r.width + 30)}px)`, opacity: 1 }]
+                : [{ transform: from, opacity: Number(cs.opacity) || 1 }, { transform: "scale(.96)", opacity: 0 }];
+        done.push(c.animate(frames, { duration: sheet || side ? LEAVE_MS + 80 : LEAVE_MS - 60, easing: sheet || side ? "cubic-bezier(.32, .72, 0, 1)" : "cubic-bezier(.4, 0, 1, 1)", fill: "forwards" }).finished);
+    }
+    if (bd) {
+        const o = Number(getComputedStyle(bd).opacity);
+        done.push(bd.animate([{ opacity: Number.isFinite(o) ? o : 1 }, { opacity: 0 }], { duration: LEAVE_MS, easing: "ease", fill: "forwards" }).finished);
+    } else if (c !== root) {
+        // fundalul e chiar fereastra (care ține și cardul): stingem doar culoarea și ceața, nu și cardul
+        const rs = getComputedStyle(root);
+        const blur = rs.backdropFilter || rs.webkitBackdropFilter || "none";
+        done.push(root.animate([
+            { backgroundColor: rs.backgroundColor, backdropFilter: blur, webkitBackdropFilter: blur },
+            { backgroundColor: "rgba(0, 0, 0, 0)", backdropFilter: "none", webkitBackdropFilter: "none" }
+        ], { duration: LEAVE_MS, easing: "ease", fill: "forwards" }).finished);
+    }
+    return Promise.all(done).catch(() => {});
+}
+function leaveGhost(root, opts = {}) {
+    if (!root || root.hidden || !leaveCanAnimate()) return;
+    const ghost = root.cloneNode(true);
+    // ce ai scris rămâne vizibil în copie
+    const src = root.querySelectorAll("input, textarea, select"), dst = ghost.querySelectorAll("input, textarea, select");
+    src.forEach((el, i) => { if (dst[i]) { dst[i].value = el.value; if ("checked" in el) dst[i].checked = el.checked; } });
+    ghost.classList.add("is-leaving");
+    ghost.setAttribute("aria-hidden", "true");
+    ghost.inert = true;
+    ghost.querySelectorAll("[id]").forEach(el => el.setAttribute("data-was-id", el.id));
+    // id-urile rămân (pentru stiluri), dar copia stă DUPĂ original, deci $("…") îl găsește tot pe cel adevărat
+    root.after(ghost);
+    leavePlay(ghost, opts).then(() => ghost.remove());
+    setTimeout(() => ghost.isConnected && ghost.remove(), LEAVE_MS + 400);
+}
+function leaveRemove(el, opts = {}) {
+    if (!el) return;
+    if (!leaveCanAnimate()) { el.remove(); return; }
+    el.removeAttribute("id");
+    el.classList.add("is-leaving");
+    el.setAttribute("aria-hidden", "true");
+    el.inert = true;
+    leavePlay(el, opts).then(() => el.remove());
+    setTimeout(() => el.isConnected && el.remove(), LEAVE_MS + 400);
+}

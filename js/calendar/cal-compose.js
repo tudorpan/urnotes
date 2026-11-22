@@ -262,6 +262,7 @@ function ccChooseType(type) {
 function ccCloseOverlay() {
     if (!cc.open) return;
     cc.open = false;
+    leaveGhost($("cc-overlay"), { card: ".cc-overlay-host", backdrop: ".cc-overlay-backdrop" });
     $("cc-overlay").hidden = true;
     $("cc-overlay-host").innerHTML = "";
     document.body.classList.remove("cc-overlay-open");

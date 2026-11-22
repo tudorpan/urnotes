@@ -44,6 +44,7 @@ function closeActionModal() {
     if (!overlay || overlay.hidden) return;
     if (cloud.asking) return; // întrebarea despre date are nevoie de un răspuns (altfel s-ar putea pierde note)
 
+    leaveGhost(overlay, { card: ".modal-card" }); // pleacă animat, ca la deschidere
     overlay.hidden = true;
     document.body.classList.remove("modal-open");
     if (focusRun.it) stopFocus(); // „Renunț” / Escape / fundal: cronometrul se oprește, sesiunea rămâne nebifată
