@@ -224,8 +224,12 @@ function closeQuickCreate(restoreFocus = true) {
     if (qc.full) {
         qc.full = false;
         document.body.classList.remove("qc-full");
+        document.documentElement.classList.remove("qc-lock");
         // iOS împinge pagina în sus când apare tastatura: o aducem înapoi, cu bara de sus la vedere
+        // (încă o dată după ce tastatura s-a închis de tot)
+        document.activeElement?.blur?.();
         requestAnimationFrame(() => window.scrollTo(0, 0));
+        setTimeout(() => window.scrollTo(0, 0), 400);
     }
     if (document.body.classList.contains("qc-open")) {
         document.body.classList.remove("qc-open");
@@ -287,6 +291,7 @@ function qcGoFull() {
     qc.full = true;
     box.classList.add("is-full");
     document.body.classList.add("qc-full");
+    document.documentElement.classList.add("qc-lock"); // pagina din spate nu se mai poate derula cât scrii
     qcFitViewport();
 }
 function qcFitViewport() {
@@ -296,17 +301,51 @@ function qcFitViewport() {
     const top = vv ? vv.offsetTop : 0, h = vv ? vv.height : window.innerHeight;
     box.style.setProperty("--vv-top", `${Math.round(top)}px`);
     box.style.setProperty("--vv-h", `${Math.round(h)}px`);
-    // câmpul în care scrii rămâne la vedere în formular
+    // câmpul în care scrii rămâne la vedere în formular. Derulăm DOAR formularul: scrollIntoView ar împinge și pagina
+    // în sus (iOS), ceea ce mută din nou fereastra vizibilă și formularul fuge de sub degete.
     const f = document.activeElement;
-    if (f && box.contains(f) && f.scrollIntoView) f.scrollIntoView({ block: "nearest" });
+    if (f && box.contains(f) && f !== box) {
+        const br = box.getBoundingClientRect(), fr = f.getBoundingClientRect(), bar = 60;
+        if (fr.bottom > br.bottom - 12) box.scrollTop += fr.bottom - br.bottom + 12;
+        else if (fr.top < br.top + bar) box.scrollTop -= br.top + bar - fr.top;
+    }
+}
+
+/* Calendarul nu se derulează niciodată ca pagină: dacă iOS a împins-o în sus pentru tastatură, o aducem înapoi
+   după ce tastatura a plecat (bara de sus rămâne mereu la vedere). */
+function calUnshift() {
+    if (document.body.dataset.page !== "calendar" || qc.full) return;
+    const a = document.activeElement;
+    if (a && a.matches?.("input, textarea, select, [contenteditable='true']")) return;
+    if (window.scrollY || document.documentElement.scrollTop || (window.visualViewport?.offsetTop || 0) > 0) window.scrollTo(0, 0);
 }
 
 function bindQuickCreate() {
+    // formularul devine pe tot ecranul ÎNAINTE ca iOS să deschidă tastatura: câmpul atins e deja sus, deci iOS nu mai
+    // are motiv să împingă pagina în sus ca să-l arate
+    // (formularul se rearanjează sub deget, așa că la ridicarea degetului punem noi cursorul în câmpul atins)
+    let wantField = null;
+    const fieldAt = event => qc.open && event.target.closest?.("#gc-qc")
+        ? event.target.closest("input:not([type=checkbox]):not([type=radio]), select, textarea") : null;
+    document.addEventListener("touchstart", event => {
+        const f = fieldAt(event);
+        wantField = f && !qc.full ? f : null;
+        if (wantField) qcGoFull();
+    }, { passive: true, capture: true });
+    document.addEventListener("touchend", event => {
+        const f = wantField;
+        wantField = null;
+        if (!f || !document.contains(f) || document.activeElement === f) return;
+        event.preventDefault(); // altfel atingerea ar cădea pe ce a ajuns acum sub deget
+        f.focus({ preventScroll: true });
+        if (f.tagName === "SELECT" && f.showPicker) { try { f.showPicker(); } catch (_) { /* nu peste tot */ } }
+    }, { capture: true });
     document.addEventListener("focusin", event => {
         if (qc.open && event.target.closest?.("#gc-qc") && event.target.matches("input, select, textarea")) qcGoFull();
     });
+    document.addEventListener("focusout", () => setTimeout(calUnshift, 350));
     if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", qcFitViewport);
+        window.visualViewport.addEventListener("resize", () => { qcFitViewport(); clearTimeout(bindQuickCreate._t); bindQuickCreate._t = setTimeout(calUnshift, 250); });
         window.visualViewport.addEventListener("scroll", qcFitViewport);
     }
     document.addEventListener("input", event => {

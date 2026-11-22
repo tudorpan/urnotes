@@ -470,3 +470,5 @@ body.style-app #cal-body .gc-ghost-block.is-dragging { transform: scale(1.02); }
 body.style-app #cal-body .gc-drop-ghost { display: flex; flex-direction: column; overflow: hidden; }
 body.style-app #cal-body .gc-drop-ghost b { font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.style-app #cal-body .gc-drop-ghost span { font-weight: 500; opacity: .95; }
+/* cât scrii în formularul pe tot ecranul, pagina din spate stă pe loc (iOS n-o mai poate împinge în sus) */
+html.qc-lock, html.qc-lock body { overflow: hidden; overscroll-behavior: none; }
