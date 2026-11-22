@@ -44,10 +44,24 @@ const toasts = () => qa(".toast").map(t => t.textContent);
 (async () => {
   await new Promise(r => setTimeout(r, 50));
 /* ==================== Adaugă: întâi ce, apoi formularul ==================== */
-// Calendarul are „Creează”, ca Google Calendar: deschide alegerea tipului
+// În Calendar, „Creează” deschide fereastra lui de eveniment nou (ca Google Calendar), nu foaia obișnuită de adăugat
 nav("tab-calendar");
-click(q('#tab-calendar [data-action="cal-create"]'));
-assert(!$("cc-overlay").hidden && q("#cc-form").dataset.step === "type" && qa(".cc-tile").length === 4, "Calendar 'Creează' opens the type step");
+click(q('#tab-calendar .gc-create'));
+assert($("gc-qc") && $("cc-overlay").hidden && $("qc-title") && qa("#gc-qc .gc-qc-type").length === 6, "Calendar 'Creează' opens its own quick-create card (title, 6 types), not the add sheet");
+click(q('#gc-qc [data-action="qc-type"][data-type="Proiect"]'));
+assert(q('#gc-qc [data-type="Proiect"]').getAttribute("aria-pressed") === "true" && $("qc-allday").checked, "type chips; without a time it's all day");
+$("qc-title").value = "Machetă vulcan"; $("qc-title").dispatchEvent(new w.Event("input", { bubbles: true }));
+assert(/Machetă vulcan/.test(q("#cal-body .gc-ghost")?.textContent || ""), "a placeholder in the calendar follows the title as you type");
+click(q('#gc-qc [data-action="qc-save"]'));
+assert($("gc-qc") && /un proiect e mereu la o materie/.test(toasts().at(-1)), "a project without a subject is refused, the card stays open");
+$("qc-subject").value = "Chimie"; $("qc-subject").dispatchEvent(new w.Event("change", { bubbles: true }));
+click(q('#gc-qc [data-action="qc-save"]'));
+const made = (T.state.calendar["2026-10-08"] || []).find(e => e.title === "Machetă vulcan");
+assert(made && made.type === "Proiect" && made.subject === "Chimie" && !made.time && !$("gc-qc") && !q(".gc-ghost"), "Salvează: an all-day project today, card and placeholder gone");
+assert(q('#cal-body .cal-ev[data-id="' + made.id + '"]'), "…and it shows in the calendar");
+// „+” din bara de jos (sau „Adaugă” din stânga) rămâne foaia obișnuită din toată aplicația
+click(q(".side-add"));
+assert(!$("cc-overlay").hidden && q("#cc-form").dataset.step === "type" && qa(".cc-tile").length === 4, "the app-wide Adaugă still opens the usual sheet");
 click(q('.cc-mini[data-type="Proiect"], .cc-tile[data-type="Proiect"]'));
 assert(!$("cc-overlay").hidden && q("#cc-form").dataset.type === "Proiect" && q("#cc-form").dataset.step === "form", "picking Proiect opens its form");
 assert(q('.cc-subj.is-none.is-on') && !q('.cc-subj.is-on:not(.is-none)'), "event without subject: 'Fără materie' is chosen");
@@ -82,14 +96,20 @@ click(q(".cc-add"));
 const g = T.state.subjects["Chimie"].grades.at(-1);
 assert(g && g.val === 8 && g.type === "Ascultare" && g.date === "2026-10-08" && $("cc-overlay").hidden, "grade saved: 8, Ascultare, today");
 
-// un loc gol dintr-o zi a calendarului (ca la Google): ziua apare sus, iar formularul o păstrează
+// un loc gol dintr-o zi a calendarului (ca la Google): fereastra de eveniment nou, cu ziua aceea
 nav("tab-calendar");
 click(q('[data-action="cal-nav"][data-offset="1"]'));
 click(q('.gc-adcell[data-day="2026-10-12"]'));
-assert(q("#cc-form").dataset.step === "type" && /12 octombrie/.test(q(".cc-ctx").textContent), "a calendar day opens the type step with that day");
-click(q('.cc-tile[data-type="Temă"]'));
-assert(q(".cc-day.is-on")?.dataset.date === "2026-10-12", "the form keeps the day");
-click(q('[data-action="cc-overlay-close"]'));
+assert($("gc-qc") && $("qc-date").value === "2026-10-12" && /Luni, 12 octombrie/.test(q("#gc-qc").textContent) && q('.gc-adcell[data-day="2026-10-12"] .gc-ghost'), "an empty day opens the quick-create on that day, with a placeholder there");
+const tcol = q('.gc-col[data-day="2026-10-13"]');
+click(tcol);
+assert($("qc-date").value === "2026-10-13" && !$("qc-allday").checked && /^\d{2}:\d{2}$/.test($("qc-time").value) && q('.gc-col[data-day="2026-10-13"] .gc-ghost-block'), "an empty hour opens it with a time and a block in the grid");
+$("qc-allday").checked = true; $("qc-allday").dispatchEvent(new w.Event("change", { bubbles: true }));
+assert(!$("qc-time") && q('.gc-adcell[data-day="2026-10-13"] .gc-ghost'), "'Toată ziua' moves the placeholder to the all-day row");
+const qs = $("qc-subject"); qs.value = "Chimie"; qs.dispatchEvent(new w.Event("change", { bubbles: true }));
+click(q('#gc-qc [data-action="qc-more"]'));
+assert(!$("gc-qc") && $("ev-date")?.value === "2026-10-13" && /Chimie/.test(q("#action-modal").textContent), "'Mai multe opțiuni' opens the full form with the day and subject");
+click(q("#action-modal-cancel") || q("[data-action=\"modal-close\"]"));
   // „Anulează” arată cât timp mai ai; clic dreapta pe o carte de pe raft deschide nota rapidă
   const t = T.showToast("Am șters ceva.", { action: "Anulează", onAction: () => {}, duration: 6000 });
   assert(t && t.querySelector(".toast-timer"), "undo toast has a countdown bar");

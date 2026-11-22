@@ -3,9 +3,25 @@
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
 
-const CAL_VIEWS = ["day", "week", "month", "schedule"];
-const CAL_VIEW_LABEL = { day: "Zi", week: "Săptămână", month: "Lună", schedule: "Program" };
-const CAL_VIEW_KEY = { day: "D", week: "W", month: "M", schedule: "A" };
+const CAL_VIEWS = ["day", "3day", "week", "month", "schedule"];
+const CAL_VIEW_LABEL = { day: "Zi", "3day": "3 zile", week: "Săptămână", month: "Lună", schedule: "Program" };
+const CAL_VIEW_KEY = { day: "D", "3day": "X", week: "W", month: "M", schedule: "A" };
+const CAL_WEEKENDS_KEY = "urn_cal_weekends_v1";
+/** „Afișează weekendurile” (ca la Google): fără ele, săptămâna și luna au doar luni–vineri. */
+function calWeekends() {
+    if (ui.cal.weekends === undefined) {
+        try { ui.cal.weekends = localStorage.getItem(CAL_WEEKENDS_KEY) !== "0"; } catch (_) { ui.cal.weekends = true; }
+    }
+    return ui.cal.weekends;
+}
+/** Zilele din grila cu ore, pentru modul curent. */
+function calGridDays() {
+    const v = ui.cal.view;
+    if (v === "day") return [ui.cal.date];
+    if (v === "3day") return [0, 1, 2].map(i => addDays(ui.cal.date, i));
+    const ws = weekStart(ui.cal.date);
+    return Array.from({ length: calWeekends() ? 7 : 5 }, (_, i) => addDays(ws, i));
+}
 /* vechile moduri (Agendă, Tabel, Panou) se deschid ca listă */
 const calViewFrom = v => CAL_VIEWS.includes(v) ? v : v === "agenda" || v === "table" || v === "board" ? "schedule" : "week";
 
@@ -60,13 +76,17 @@ function renderCalendar() {
     renderMiniMonth();
     renderCalLayers();
     renderCalOverview();
-    const keepScroll = ui.cal.renderedKey === `${ui.cal.view}|${ui.cal.date}` ? $("gc-scroll")?.scrollTop : null;
+    // grila păstrează ora la care erai când schimbi ziua sau săptămâna (ca la Google); prima dată începe puțin înainte de 8
+    const oldScroll = $("gc-scroll")?.scrollTop;
+    const keepScroll = ui.cal.renderedKey ? oldScroll : null;
+    calFit();
     if (ui.cal.view === "month") renderMonthView();
     else if (ui.cal.view === "schedule") renderScheduleView();
-    else renderTimeGrid(ui.cal.view === "day" ? [ui.cal.date] : Array.from({ length: 7 }, (_, i) => addDays(weekStart(ui.cal.date), i)));
+    else renderTimeGrid(calGridDays());
     const scroller = $("gc-scroll");
     if (scroller) scroller.scrollTop = keepScroll ?? calFirstScroll();
     ui.cal.renderedKey = `${ui.cal.view}|${ui.cal.date}`;
+    if (typeof qc !== "undefined" && qc.open) drawQcGhost();
     if (typeof cc !== "undefined" && cc.open) document.querySelector(`#cal-body [data-day="${cc.date}"]`)?.classList.add("is-target");
 }
 
@@ -80,8 +100,9 @@ function renderCalToolbar() {
     const d = parseDateKey(ui.cal.date);
     let title;
     if (v === "day") title = `${d.getDate()} ${MONTHS[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
-    else if (v === "week") {
-        const a = parseDateKey(weekStart(ui.cal.date)), b = parseDateKey(addDays(weekStart(ui.cal.date), 6));
+    else if (v === "week" || v === "3day") {
+        const days = calGridDays();
+        const a = parseDateKey(days[0]), b = parseDateKey(days.at(-1));
         title = a.getMonth() === b.getMonth() ? `${MONTHS[a.getMonth()]} ${a.getFullYear()}`
             : a.getFullYear() === b.getFullYear() ? `${MONTH_SHORT[a.getMonth()]} – ${MONTH_SHORT[b.getMonth()]} ${b.getFullYear()}`
             : `${MONTH_SHORT[a.getMonth()]} ${a.getFullYear()} – ${MONTH_SHORT[b.getMonth()]} ${b.getFullYear()}`;
@@ -94,7 +115,7 @@ function renderCalToolbar() {
     // pentru cititoarele de ecran: unde ești față de azi
     const today = getLocalDateKey();
     let cap = "";
-    if (v === "week" || v === "day") {
+    if (v === "week" || v === "day" || v === "3day") {
         const diff = Math.round(daysBetween(weekStart(today), weekStart(ui.cal.date)) / 7);
         cap = diff === 0 ? "Săptămâna aceasta" : diff === 1 ? "Săptămâna viitoare" : diff === -1 ? "Săptămâna trecută"
             : diff > 0 ? `Peste ${plural(diff, "săptămână", "săptămâni")}` : `Acum ${plural(-diff, "săptămână", "săptămâni")}`;
@@ -107,6 +128,8 @@ function renderCalToolbar() {
     const btn = $("gc-viewbtn");
     if (btn) btn.querySelector("span").textContent = CAL_VIEW_LABEL[v];
     document.querySelectorAll("#gc-viewmenu [data-action='cal-view']").forEach(b => b.setAttribute("aria-checked", String(b.dataset.view === v)));
+    const we = $("gc-weekends");
+    if (we) we.setAttribute("aria-checked", String(calWeekends()));
     $("tab-calendar")?.setAttribute("data-view", v);
     const t = $("cal-title-btn");
     if (t) {
@@ -127,7 +150,8 @@ function renderMiniMonth() {
     const last = getLocalDateKey(new Date(base.getFullYear(), base.getMonth() + 1, 0));
     const start = weekStart(first);
     const today = getLocalDateKey();
-    const sel = ui.cal.view === "week" ? [weekStart(ui.cal.date), addDays(weekStart(ui.cal.date), 6)] : [ui.cal.date, ui.cal.date];
+    const gd = ui.cal.view === "week" || ui.cal.view === "3day" ? calGridDays() : [ui.cal.date];
+    const sel = [gd[0], gd.at(-1)];
     const marks = new Set(calOccurrences(start, addDays(start, 41)).map(o => o.date));
     const cells = [];
     for (let i = 0; i < 42; i++) {
@@ -337,10 +361,16 @@ function renderMonthView() {
     const today = getLocalDateKey();
     const links = gradeLinks();
     const occ = calOccurrences(gridStart, gridEnd);
-    const SHOW = 3;
+    const weekends = calWeekends();
+    // câte bare încap într-o zi, după înălțimea reală a grilei (ca la Google: restul devin „încă N”)
+    const rows = Math.round((daysBetween(gridStart, gridEnd) + 1) / 7);
+    const bodyH = $("cal-body").clientHeight || 700;
+    const cellH = (bodyH - 34) / rows;
+    const SHOW = Math.max(1, Math.floor((cellH - 34) / 22));
     const cells = [];
     for (let date = gridStart; date <= gridEnd; date = addDays(date, 1)) {
         const d = parseDateKey(date);
+        if (!weekends && (d.getDay() === 0 || d.getDay() === 6)) continue;
         const items = occ.filter(o => o.date === date).sort((a, b) => (hmToMin(a.ev.time) ?? -1) - (hmToMin(b.ev.time) ?? -1));
         const holiday = layerOn("vacanta") && isHoliday(date);
         const cls = ["gc-mcell", date < first || date > last ? "is-out" : "", date === today ? "is-today" : "", d.getDay() === 0 || d.getDay() === 6 ? "is-weekend" : "", holiday ? "is-holiday" : ""].filter(Boolean).join(" ");
@@ -355,9 +385,10 @@ function renderMonthView() {
                 </div>
             </div>`);
     }
+    const cols = weekends ? 7 : 5;
     $("cal-body").innerHTML = `
-        <div class="gc-month" style="--rows:${cells.length / 7}">
-            <div class="gc-mhead" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 0].map(wd => `<span>${WEEKDAY_SHORT[wd]}</span>`).join("")}</div>
+        <div class="gc-month" style="--rows:${cells.length / cols}; --cols:${cols}">
+            <div class="gc-mhead" aria-hidden="true">${(weekends ? [1, 2, 3, 4, 5, 6, 0] : [1, 2, 3, 4, 5]).map(wd => `<span>${WEEKDAY_SHORT[wd]}</span>`).join("")}</div>
             <div class="gc-mgrid">${cells.join("")}</div>
         </div>`;
 }
@@ -465,7 +496,7 @@ function calNavigate(offset) {
     const d = parseDateKey(ui.cal.date);
     const v = ui.cal.view;
     ui.cal.date = v === "month" ? getLocalDateKey(new Date(d.getFullYear(), d.getMonth() + offset, 1))
-        : addDays(ui.cal.date, offset * (v === "day" ? 1 : v === "week" ? 7 : 30));
+        : addDays(ui.cal.date, offset * (v === "day" ? 1 : v === "3day" ? 3 : v === "week" ? 7 : 30));
     ui.cal.mini = null;
     renderCalendar();
 }
@@ -512,13 +543,25 @@ function toggleCalMenu(force) {
 }
 const closeCalMenu = () => toggleCalMenu(false);
 
-/** Creează: ziua aleasă, dacă se vede; altfel azi. */
-function calCreate() {
+/** Creează (butonul din stânga, „+”-ul de pe telefon sau tasta C): ziua aleasă, dacă se vede; altfel azi. */
+function calCreate(anchor = null) {
     const today = getLocalDateKey();
     const v = ui.cal.view;
-    const visible = v === "day" ? [ui.cal.date, ui.cal.date] : v === "week" ? [weekStart(ui.cal.date), addDays(weekStart(ui.cal.date), 6)] : [ui.cal.date, ui.cal.date];
-    ccPreset({ date: today >= visible[0] && today <= visible[1] ? today : ui.cal.date });
+    const days = v === "day" || v === "3day" || v === "week" ? calGridDays() : [ui.cal.date];
+    openQuickCreate({ date: today >= days[0] && today <= days.at(-1) ? today : ui.cal.date, anchor });
 }
+
+/** Pagina Calendar nu se derulează: calendarul umple ecranul până la bara de jos, iar derularea e doar înăuntrul lui. */
+function calFit() {
+    const g = document.querySelector(".gcal");
+    if (!g || !g.offsetParent) return;
+    const nav = document.querySelector(".mobile-bottom-nav");
+    const navTop = nav && getComputedStyle(nav).display !== "none" ? nav.getBoundingClientRect().top : window.innerHeight;
+    const bottom = window.innerHeight - navTop + (navTop < window.innerHeight ? 10 : 16);
+    const h = Math.max(380, Math.floor(window.innerHeight - g.getBoundingClientRect().top - bottom));
+    g.style.height = `${h}px`;
+}
+window.addEventListener("resize", () => { if (ui.activeTab === "tab-calendar") { calFit(); if (ui.cal.view === "month") renderMonthView(); } });
 
 /* linia de „acum” se mută singură (doar într-un browser adevărat: în teste ar ține procesul deschis) */
 if (!/jsdom/i.test(navigator.userAgent || "")) setInterval(() => {

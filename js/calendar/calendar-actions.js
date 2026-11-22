@@ -372,7 +372,7 @@ function readEventForm() {
     };
 }
 
-function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) {
+function openEventModal({ id = null, date = "", subject = "", type = "", title = "", time = "" } = {}) {
     // Editare
     if (id) {
         const found = findEvent(id);
@@ -401,13 +401,13 @@ function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) 
     const preset = state.subjects[subject] ? subject : "";
     const when = DATE_KEY_RE.test(date) ? date : (preset && nextLessonDate(preset)) || getLocalDateKey();
     // ce vine deja ales (ziua din calendar, materia din orar) nu se mai schimbă după ce scrii
-    const manual = new Set([...(DATE_KEY_RE.test(date) ? ["date"] : []), ...(preset ? ["subject"] : [])]);
-    Object.assign(npForm, { manual, prop: "", autoDate: !DATE_KEY_RE.test(date), presetSubject: preset, presetDate: when, presetTime: "" });
+    const manual = new Set([...(DATE_KEY_RE.test(date) ? ["date"] : []), ...(preset ? ["subject"] : []), ...(time ? ["time", "type"] : [])]);
+    Object.assign(npForm, { manual, prop: "", autoDate: !DATE_KEY_RE.test(date), presetSubject: preset, presetDate: when, presetTime: time });
     openModal({
         layout: "panel",
         title: "Eveniment nou",
         confirmText: "Adaugă",
-        body: eventFormHTML({ type: EVENT_TYPES.includes(type) ? type : "Test", subject: preset, date: when, title: "" }, { autoDate: !DATE_KEY_RE.test(date) }),
+        body: eventFormHTML({ type: EVENT_TYPES.includes(type) ? type : "Test", subject: preset, date: when, title, time }, { autoDate: !DATE_KEY_RE.test(date) }),
         onConfirm: () => {
             const values = readEventForm();
             if (!values) return;
@@ -504,6 +504,28 @@ function moveOccurrence(id, from, to) {
     addActivity(`Ai mutat „${ev.title}” pe ${getDateLabel(to)}.`);
     refresh();
     showToast(`Ai mutat „${ev.title}” pe ${weekdayLabel(to)}.`);
+}
+
+/** Mutare în grila cu ore: un eveniment unic primește ziua și ora noi (ca la Google). */
+function moveEventTime(id, from, to, time) {
+    const found = findEvent(id);
+    if (!found || !DATE_KEY_RE.test(String(to))) return;
+    const { ev, start } = found;
+    if (to !== from && linkedGrade(gradeLinks(), ev, from)) {
+        showToast("⚠️ Evenimentul are deja o notă, așa că rămâne la data lui.");
+        return;
+    }
+    if (to !== start) {
+        const why = realEventProblem(ev, to, ev.id);
+        if (why) { showToast(`⚠️ ${why}`, { duration: 4500 }); return; }
+    }
+    if (to === start && ev.time === time) return;
+    withUndo(`Ai mutat „${ev.title}” ${to === start ? "" : `pe ${weekdayLabel(to)}, `}la ${time}.`, () => {
+        ev.time = time;
+        if (to !== start) moveEventStart(ev, start, to);
+        clearEventAlertMeta(ev);
+        addActivity(`Ai mutat „${ev.title}” pe ${getDateLabel(to)}, la ${time}.`);
+    });
 }
 
 function promptDeleteEvent(id, date) {
@@ -639,6 +661,7 @@ function bindCalendarEvents() {
         const card = event.target.closest?.(".cal-ev");
         if (!card) return;
         dragging = { id: card.dataset.id, date: card.dataset.date };
+        ui.cal.grabOffset = card.classList.contains("gc-ev-block") ? event.clientY - card.getBoundingClientRect().top : 0;
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", card.dataset.id);
         card.classList.add("dragging");
@@ -662,21 +685,61 @@ function bindCalendarEvents() {
         event.preventDefault();
         const { id, date } = dragging;
         dragging = null;
+        // în grila cu ore, un eveniment unic primește și ora unde l-ai lăsat (rotunjită la un sfert de oră)
+        if (col.classList.contains("gc-col")) {
+            const found = findEvent(id);
+            if (found && !found.ev.repeat) {
+                const min = Math.max(0, Math.min(23 * 60 + 45, Math.round((event.clientY - col.getBoundingClientRect().top - (ui.cal.grabOffset || 0)) / HOUR_PX * 4) * 15));
+                moveEventTime(id, date, col.dataset.day, minToHM(min));
+                return;
+            }
+        }
         moveOccurrence(id, date, col.dataset.day);
     });
 
-    // un loc gol: în grilă, la ora atinsă (rotunjită la jumătate de oră); în lună, în ziua aceea
+    // un loc gol, ca la Google: în grilă, atingi o oră (sau tragi cu mouse-ul peste mai multe) și se deschide fereastra
+    // de eveniment nou chiar acolo; în lună sau în rândul „toată ziua”, pentru ziua aceea
+    const slotMin = (col, y) => Math.max(0, Math.min(24 * 60 - 15, Math.floor((y - col.getBoundingClientRect().top) / HOUR_PX * 4) * 15));
+    let sweep = null;
+    body.addEventListener("pointerdown", event => {
+        const col = event.target.closest?.(".gc-col");
+        if (!col || event.button !== 0 || event.pointerType === "touch" || event.target.closest("button, .cal-ev")) return;
+        const start = Math.floor(slotMin(col, event.clientY) / 30) * 30;
+        sweep = { col, start, end: start + 30, moved: false, y: event.clientY };
+    });
+    body.addEventListener("pointermove", event => {
+        if (!sweep) return;
+        if (!sweep.moved && Math.abs(event.clientY - sweep.y) < 6) return;
+        sweep.moved = true;
+        const m = slotMin(sweep.col, event.clientY);
+        const a = Math.min(sweep.start, m), b = Math.max(sweep.start + 15, m + 15);
+        Object.assign(qc, { open: true, date: sweep.col.dataset.day, allDay: false, time: minToHM(a), end: minToHM(b) });
+        drawQcGhost();
+    });
+    window.addEventListener("pointerup", event => {
+        if (!sweep) return;
+        const s = sweep;
+        sweep = null;
+        if (!s.moved) return; // un clic simplu: îl tratează „click” mai jos
+        const ghost = document.querySelector(".gc-ghost");
+        openQuickCreate({ date: s.col.dataset.day, time: qc.time, end: qc.end, rect: ghost?.getBoundingClientRect() });
+        body.dataset.swept = "1";
+        setTimeout(() => delete body.dataset.swept, 0);
+    });
     body.addEventListener("click", event => {
-        if (event.target.closest("button, a, input, .cal-ev")) return;
+        if (body.dataset.swept || event.target.closest("button, a, input, .cal-ev, .gc-ghost")) return;
         const col = event.target.closest(".gc-col");
         if (col) {
-            const y = event.clientY - col.getBoundingClientRect().top;
-            const min = Math.max(0, Math.min(23 * 60 + 30, Math.floor(y / HOUR_PX * 2) * 30));
-            ccPreset({ date: col.dataset.day, time: minToHM(min) });
+            const min = Math.floor(slotMin(col, event.clientY) / 30) * 30;
+            openQuickCreate({ date: col.dataset.day, time: minToHM(min), end: minToHM(min + 60) });
+            const ghost = document.querySelector(".gc-ghost");
+            if (ghost) { qc.rect = ghost.getBoundingClientRect(); placeQuickCreate($("gc-qc")); }
             return;
         }
         const cell = event.target.closest(".gc-mcell, .gc-adcell");
-        if (cell) ccPreset({ date: cell.dataset.day });
+        if (cell) {
+            openQuickCreate({ date: cell.dataset.day, rect: cell.getBoundingClientRect() });
+        }
     });
 
     // fereastra cu detalii și meniul de moduri se închid la un clic în afara lor, la Escape sau după o acțiune

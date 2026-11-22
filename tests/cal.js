@@ -178,6 +178,22 @@ const set = (id, v) => { $(id).value = v; };
   click(q('[data-action="cal-nav"][data-offset="1"]'));
   assert(q(`.cal-col[data-date="${plus(4)}"]`), "day view: › goes to the next day");
   click(q('[data-action="cal-view"][data-view="week"]'));
+  // 3 zile (ca la Google): azi și următoarele două; săgeata merge cu câte 3
+  click(q('[data-action="cal-today"]'));
+  click(q('[data-action="cal-view"][data-view="3day"]'));
+  assert(qa(".cal-col").map(c => c.dataset.date).join() === [today, plus(1), plus(2)].join() && /3 zile/.test($("gc-viewbtn").textContent), "3-day view: today + 2");
+  click(q('[data-action="cal-nav"][data-offset="1"]'));
+  assert(q(".cal-col").dataset.date === plus(3), "3-day view: › moves 3 days");
+  click(q('[data-action="cal-today"]'));
+  // fără weekenduri: săptămâna și luna au doar luni–vineri
+  click(q('[data-action="cal-view"][data-view="week"]'));
+  click(q("#gc-weekends"));
+  assert(qa(".cal-col").length === 5 && q("#gc-weekends").getAttribute("aria-checked") === "false", "'Afișează weekendurile' off: 5 days");
+  click(q('[data-action="cal-view"][data-view="month"]'));
+  assert(qa(".gc-mhead span").length === 5 && qa(".gc-mcell").length % 5 === 0 && !qa(".gc-mcell").some(c => [0, 6].includes(new Date(c.dataset.day + "T12:00").getDay())), "month without weekends");
+  click(q("#gc-weekends"));
+  click(q('[data-action="cal-view"][data-view="week"]'));
+  assert(qa(".cal-col").length === 7, "weekends back");
 
   // orarul: săptămâna colorată (js/calendar/timetable.js)
   const ttOpen = () => !$("tt-overlay").hidden;

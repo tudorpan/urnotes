@@ -50,6 +50,7 @@
     <script src="js/cont/guest.js" defer></script>
     <script src="js/note/grades-subjects.js" defer></script>
     <script src="js/calendar/calendar-actions.js" defer></script>
+    <script src="js/calendar/cal-quick.js" defer></script>
     <script src="js/eu/settings-backup.js" defer></script>
     <script src="js/ui/nav.js" defer></script>
     <script src="js/ui/tabloader.js" defer></script>
@@ -331,10 +332,12 @@
                             <button type="button" class="gc-viewbtn" id="gc-viewbtn" data-action="cal-viewmenu" aria-haspopup="menu" aria-expanded="false" aria-controls="gc-viewmenu"><span>Săptămână</span><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
                             <div class="gc-menu" id="gc-viewmenu" role="menu" aria-label="Mod de afișare" hidden>
                                 <button type="button" role="menuitemradio" data-action="cal-view" data-view="day" aria-checked="false">Zi<kbd>D</kbd></button>
+                                <button type="button" role="menuitemradio" data-action="cal-view" data-view="3day" aria-checked="false">3 zile<kbd>X</kbd></button>
                                 <button type="button" role="menuitemradio" data-action="cal-view" data-view="week" aria-checked="true">Săptămână<kbd>W</kbd></button>
                                 <button type="button" role="menuitemradio" data-action="cal-view" data-view="month" aria-checked="false">Lună<kbd>M</kbd></button>
                                 <button type="button" role="menuitemradio" data-action="cal-view" data-view="schedule" aria-checked="false">Program<kbd>A</kbd></button>
                                 <hr>
+                                <button type="button" role="menuitemcheckbox" id="gc-weekends" data-action="cal-weekends" aria-checked="true"><span class="gc-check" aria-hidden="true"><svg class="ico"><use href="#i-check"/></svg></span>Afișează weekendurile</button>
                                 <button type="button" role="menuitem" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orarul meu</button>
                             </div>
                         </div>
@@ -347,6 +350,7 @@
                         <button type="button" class="gc-sidelink" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orarul meu</button>
                     </aside>
                     <div id="cal-body" class="gcal-body"></div>
+                    <button type="button" class="gc-fab" data-action="cal-create" aria-label="Creează un eveniment"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
                 </div>
             </section>
 

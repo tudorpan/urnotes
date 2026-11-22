@@ -309,10 +309,17 @@ function bindShellEvents() {
         // Ctrl/⌘+K: caută (materii, pagini, evenimente, comenzi), de oriunde
         if ((event.ctrlKey || event.metaKey) && !event.altKey && k.toLowerCase() === "k" && typeof openPalette === "function") { event.preventDefault(); openPalette(); return; }
         if (modalOpen || cc?.open || document.body.classList.contains("tt-open") || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
-        // în Calendar, ca la Google: D / W / M / A schimbă modul, J / K (sau săgețile) merg înainte și înapoi
+        // în Calendar, ca la Google: D / X / W / M / A schimbă modul, J / K (sau săgețile) merg înainte și înapoi,
+        // T = azi, C = eveniment nou; cu detaliile deschise, E = editează, Delete = șterge
         if (ui.activeTab === "tab-calendar" && typeof setCalView === "function") {
-            const view = { d: "day", w: "week", m: "month", a: "schedule" }[k.toLowerCase()];
+            if ($("gc-pop") && ui.cal.pop) {
+                if (k.toLowerCase() === "e") { event.preventDefault(); const { id, date } = ui.cal.pop; closeEvPop(false); openEventModal({ id, date }); return; }
+                if (k === "Delete" || k === "Backspace") { event.preventDefault(); const { id, date } = ui.cal.pop; closeEvPop(false); promptDeleteEvent(id, date); return; }
+            }
+            const view = { d: "day", x: "3day", w: "week", m: "month", a: "schedule" }[k.toLowerCase()];
             if (view) { event.preventDefault(); setCalView(view); return; }
+            if (k.toLowerCase() === "t") { event.preventDefault(); ui.cal.date = getLocalDateKey(); ui.cal.mini = null; renderCalendar(); return; }
+            if (k.toLowerCase() === "c") { event.preventDefault(); calCreate(); return; }
             const step = { j: 1, k: -1, ArrowRight: 1, ArrowLeft: -1 }[k.length === 1 ? k.toLowerCase() : k];
             if (step) { event.preventDefault(); calNavigate(step); return; }
         }

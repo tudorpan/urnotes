@@ -26,7 +26,16 @@ const ACTIONS = {
     "cal-day": el => calJump(el.dataset.date),
     "cal-ev": el => openEvPop(el.dataset.id, el.dataset.date, el),
     "gc-pop-close": () => closeEvPop(),
-    "cal-create": () => calCreate(),
+    "cal-create": el => calCreate(el),
+    "cal-weekends": () => {
+        ui.cal.weekends = !calWeekends();
+        try { localStorage.setItem(CAL_WEEKENDS_KEY, ui.cal.weekends ? "1" : "0"); } catch (_) { /* fără stocare */ }
+        renderCalendar();
+    },
+    "qc-close": () => closeQuickCreate(),
+    "qc-type": el => { if (!QC_TYPES.includes(el.dataset.type)) return; readQuickCreate(); qc.type = el.dataset.type; renderQuickCreate(); document.querySelector(`#gc-qc [data-type="${CSS.escape(qc.type)}"]`)?.focus(); },
+    "qc-save": () => saveQuickCreate(),
+    "qc-more": () => quickCreateMore(),
     "cal-mini": el => { const b = parseDateKey(ui.cal.mini || ui.cal.date); ui.cal.mini = getLocalDateKey(new Date(b.getFullYear(), b.getMonth() + Number(el.dataset.offset), 1)); renderMiniMonth(); },
     "cal-mini-day": el => { ui.cal.date = el.dataset.date; ui.cal.mini = el.dataset.date; ui.cal.miniOpen = false; renderCalendar(); },
     "cal-mini-toggle": () => { ui.cal.miniOpen = !ui.cal.miniOpen; ui.cal.mini = null; renderCalendar(); },
@@ -220,6 +229,7 @@ function bindEvents() {
     bindBackupEvents();
     bindCatalogEvents();
     bindCalendarEvents();
+    bindQuickCreate();
     bindPurtareEvents();
     $("stats-sort")?.addEventListener("change", event => {
         ui.statsSort = STATS_SORTS[event.target.value] ? event.target.value : "attention";

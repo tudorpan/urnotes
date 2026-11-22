@@ -72,12 +72,15 @@ Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul răm
 
 ### Calendarul
 
-Ca Google Calendar (`js/calendar/calendar-view.js`, stilurile din `gcal.css`):
-- Bara de sus: „Azi”, ‹ ›, luna și modul (Zi, Săptămână, Lună, Program). Pe calculator merg și tastele D, W, M, A pentru mod și J / K (sau săgețile) înainte și înapoi.
-- În stânga (pe calculator): „Creează”, calendarul mic, ce a rămas neterminat (teste fără notă, teme nebifate) și „Calendarele mele”, de unde ascunzi testele, temele, proiectele, orele, planul sau vacanțele. Pe telefon, calendarul mic se deschide din titlu.
-- Zi și Săptămână: grila cu orele zilei. Orele din orar sunt blocuri deschise în culoarea materiei (de la 8:00, câte 50 de minute; `state.settings.school.start` le poate muta), evenimentele cu oră sunt blocuri pline, cele fără oră stau în rândul „toată ziua”, iar linia roșie arată ora de acum.
-- Lună: grila cu bare colorate și „încă N”. Program: doar zilele cu ceva, una sub alta.
-- Atingi un eveniment: se deschide fereastra cu detalii (Notă, Făcut, editează, șterge). Atingi un loc gol: adaugi ceva în ziua (și la ora) aceea. Atingi o oră din orar: adaugi un test sau o temă la materia ei. Pe calculator, tragi un eveniment pe altă zi.
+Ca Google Calendar (`js/calendar/calendar-view.js`, `js/calendar/cal-quick.js`, stilurile din `gcal.css`):
+- Bara de sus: „Azi”, ‹ ›, luna și modul: Zi, 3 zile, Săptămână, Lună, Program. Din meniul modului: „Afișează weekendurile” (fără ele, săptămâna și luna au doar luni–vineri) și „Orarul meu”.
+- Taste (pe calculator): D / X / W / M / A pentru mod, J / K sau săgețile înainte și înapoi, T = azi, C = eveniment nou; cu detaliile unui eveniment deschise, E = editează, Delete = șterge.
+- Pagina nu se derulează: calendarul umple ecranul până la bara de jos, iar derularea e doar în el (grila cu ore, lista, coloana din stânga).
+- În stânga (pe calculator): „Creează”, calendarul mic, ce a rămas neterminat și „Calendarele mele”, de unde ascunzi testele, temele, proiectele, orele, planul sau vacanțele. Pe telefon, calendarul mic se deschide din titlu, iar „+”-ul plutitor din dreapta jos creează un eveniment.
+- Zi, 3 zile și Săptămână: grila cu orele zilei. Orele din orar sunt blocuri deschise în culoarea materiei (de la 8:00, câte 50 de minute; `state.settings.school.start` le poate muta), evenimentele cu oră sunt blocuri pline, cele fără oră stau în rândul „toată ziua”, iar linia roșie arată ora de acum.
+- Lună: grila cu bare colorate; câte încap depinde de înălțimea ecranului, restul devin „încă N”. Program: doar zilele cu ceva, una sub alta.
+- Eveniment nou, ca la Google: atingi un loc gol (sau tragi cu mouse-ul peste mai multe ore, sau „Creează”) și se deschide o fereastră mică acolo (pe telefon, o foaie de jos): titlu, tip, ziua și ora (sau „toată ziua”), materia (ghicită din orar) și repetarea; „Mai multe opțiuni” deschide formularul întreg. În calendar apare pe loc un bloc „(Fără titlu)” care se schimbă cât scrii. „+”-ul din bara de jos rămâne foaia obișnuită de adăugat din toată aplicația.
+- Atingi un eveniment: fereastra cu detalii (Notă, Făcut, editează, șterge). Pe calculator, tragi un eveniment pe altă zi; în grila cu ore, unul care nu se repetă primește și ora unde l-ai lăsat.
 
 ### Mișcarea și gesturile
 

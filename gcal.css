@@ -298,3 +298,84 @@ body.style-app #cal-body .gc-ev-block .cal-ev-main > * { max-width: 100%; }
 }
 body.style-app.dark-mode .gc-pop .btn-glass { color: var(--ink); }
 body.style-app #cal-body .gc-scroll:focus-visible { outline: 2px solid var(--tint); outline-offset: -2px; }
+
+/* ==================== pagina nu se derulează: doar calendarul ==================== */
+html:has(body.style-app[data-page="tab-calendar"]), body.style-app[data-page="tab-calendar"] { overflow: hidden; overscroll-behavior: none; }
+body.style-app[data-page="tab-calendar"] { padding-bottom: 0 !important; }
+body.style-app .gcal { grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+body.style-app .gcal-side { position: relative; top: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; margin: -6px -8px 0; padding: 6px 8px 8px; }
+body.style-app .gcal-side::-webkit-scrollbar { display: none; }
+body.style-app .gcal-body { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+body.style-app #cal-body > * { flex: 1; min-height: 0; }
+body.style-app #cal-body .gc-grid { grid-template-rows: auto auto minmax(0, 1fr); height: 100%; }
+body.style-app #cal-body .gc-scroll { max-height: none !important; height: 100%; }
+body.style-app #cal-body .gc-allday { max-height: 132px; overflow-y: auto; }
+body.style-app #cal-body .gc-month { grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+body.style-app #cal-body :is(.gc-mhead, .gc-mgrid) { grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); }
+body.style-app #cal-body .gc-mgrid { grid-auto-rows: minmax(0, 1fr) !important; }
+body.style-app #cal-body .gc-mcell { overflow: hidden; }
+body.style-app #cal-body .gc-mcell:nth-child(7n) { border-right: 1px solid var(--gc-line); }
+body.style-app #cal-body .gc-month[style*="--cols:7"] .gc-mcell:nth-child(7n), body.style-app #cal-body .gc-month[style*="--cols:5"] .gc-mcell:nth-child(5n) { border-right: 0; }
+body.style-app #cal-body .gc-schedule { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 1000px) {
+    body.style-app .gcal { grid-template-rows: auto auto minmax(0, 1fr); }
+    body.style-app .gcal-side { overflow: visible; max-height: none; padding-bottom: 0; }
+}
+
+/* meniul de moduri: bifa pentru weekenduri */
+body.style-app .gc-menu .gc-check { display: grid; place-items: center; width: 18px; height: 18px; border: 2px solid var(--ink-2); border-radius: 4px; }
+body.style-app .gc-menu .gc-check .ico { width: 12px; height: 12px; stroke-width: 3; opacity: 0; color: #fff; }
+body.style-app .gc-menu [aria-checked="true"] .gc-check { border-color: var(--tint); background: var(--tint); }
+body.style-app .gc-menu [aria-checked="true"] .gc-check .ico { opacity: 1; }
+body.style-app .gc-menu #gc-weekends[aria-checked] { background: transparent; color: var(--ink); font-weight: 400; }
+body.style-app .gc-menu #gc-weekends:hover { background: var(--fill); }
+
+/* ==================== evenimentul nou (ca la Google) ==================== */
+body.style-app .gc-qc { position: fixed; z-index: 1450; width: min(420px, calc(100vw - 24px)); padding: 8px 16px 14px; border-radius: 16px; background: var(--sheet); color: var(--ink);
+    box-shadow: 0 0 0 .5px rgba(0, 0, 0, .08), 0 24px 56px -12px rgba(0, 0, 0, .35); animation: gcPop .18s cubic-bezier(.32, .72, 0, 1) both; transform-origin: top left; }
+body.style-app.dark-mode .gc-qc { background: #2C2C2E; box-shadow: 0 0 0 .5px rgba(255, 255, 255, .1), 0 24px 56px -12px rgba(0, 0, 0, .7); }
+body.style-app .gc-qc.is-sheet { left: 0 !important; right: 0; bottom: 0; top: auto !important; width: auto; padding-bottom: calc(18px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; animation: gcUp .28s cubic-bezier(.32, .72, 0, 1) both; }
+body.style-app .gc-qc-tools { display: flex; align-items: center; justify-content: flex-end; margin: 0 -8px 0 0; min-height: 36px; }
+body.style-app .gc-qc-grab { display: none; }
+body.style-app .gc-qc.is-sheet .gc-qc-grab { display: block; width: 36px; height: 5px; margin: 0 auto; border-radius: 3px; background: var(--fill); transform: translateX(18px); }
+body.style-app .gc-qc-title { display: block; width: 100%; margin: 0 0 10px; padding: 6px 0 8px; border: 0; border-bottom: 2px solid var(--gc-line); border-radius: 0; background: transparent; color: var(--ink); font: 400 22px/1.25 var(--font-ui); outline: none; transition: border-color .2s ease; }
+body.style-app .gc-qc-title:focus { border-bottom-color: var(--gc); }
+body.style-app .gc-qc-title::placeholder { color: var(--ink-2); }
+body.style-app .gc-qc-types { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+body.style-app .gc-qc-type { height: 30px; margin: 0; padding: 0 12px; border: 0; border-radius: 15px; background: var(--fill); color: var(--ink); font: 500 13px var(--font-ui); cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+body.style-app .gc-qc-type:hover { background: color-mix(in srgb, var(--gc) 14%, var(--fill)); }
+body.style-app .gc-qc-type[aria-pressed="true"] { background: var(--gc); color: #fff; }
+body.style-app .gc-qc-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 14px; padding: 6px 0; font-size: 14px; }
+body.style-app .gc-qc-row > .ico { width: 18px; height: 18px; color: var(--ink-2); justify-self: center; }
+body.style-app .gc-qc-when { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+body.style-app .gc-qc-field { position: relative; display: inline-flex; align-items: center; }
+body.style-app .gc-qc-field input { height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: var(--fill); color: var(--ink); font: 500 14px var(--font-ui); color-scheme: light dark; }
+body.style-app .gc-qc-date input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+body.style-app .gc-qc-date b { padding: 6px 10px; border-radius: 8px; background: var(--fill); font-weight: 500; white-space: nowrap; pointer-events: none; }
+body.style-app .gc-qc-date:focus-within b { box-shadow: 0 0 0 2px var(--tint); }
+body.style-app .gc-qc-times { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+body.style-app .gc-qc-allday { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
+body.style-app .gc-qc-allday input { width: 16px; height: 16px; accent-color: var(--tint); }
+body.style-app .gc-qc-select { width: 100%; height: 34px; padding: 0 10px; border: 0; border-radius: 8px; background-color: var(--fill); color: var(--ink); font: 400 14px var(--font-ui); }
+body.style-app .gc-qc-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+body.style-app .gc-qc-foot .btn-primary { min-width: 96px; border-radius: 18px; }
+
+/* blocul „(Fără titlu)” din grilă */
+body.style-app #cal-body .gc-ghost-block { position: absolute; left: 3px; right: 6px; z-index: 5; display: flex; flex-direction: column; padding: 3px 7px; border-radius: 6px; background: var(--gc); color: #fff; font: 400 12px/1.3 var(--font-ui);
+    box-shadow: 0 0 0 1px var(--sheet), 0 8px 18px -6px rgba(0, 0, 0, .35); pointer-events: none; animation: gcPop .14s ease-out both; }
+body.style-app #cal-body .gc-ghost-block b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.style-app #cal-body .gc-ghost-block span { font-size: 11px; opacity: .95; }
+body.style-app #cal-body .gc-ghost-chip { padding: 2px 6px; border-radius: 4px; background: var(--gc); color: #fff; font: 500 12px/1.35 var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 10px -4px rgba(0, 0, 0, .35); }
+body.style-app #cal-body .gc-col { user-select: none; -webkit-user-select: none; }
+
+/* „+” plutitor (doar pe telefon), ca butonul colorat din aplicația Google */
+body.style-app .gc-fab { display: none; }
+@media (max-width: 1000px) {
+    body.style-app .gcal { position: relative; }
+    body.style-app .gc-fab { position: absolute; right: 12px; bottom: 12px; z-index: 6; display: grid; place-items: center; width: 56px; height: 56px; margin: 0; padding: 0; border: 0; border-radius: 18px; background: var(--sheet); color: var(--tint-text); cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .14), 0 8px 22px -6px rgba(0, 0, 0, .3); transition: transform .16s ease, box-shadow .2s ease; }
+    body.style-app .gc-fab:active { transform: scale(.94); }
+    body.style-app .gc-fab .ico { width: 26px; height: 26px; stroke-width: 2.4; }
+    body.style-app.dark-mode .gc-fab { background: #2C2C2E; }
+}
+body.style-app .gc-qc-date b { color: var(--ink); font-size: 14px; }
