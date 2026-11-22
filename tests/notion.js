@@ -42,7 +42,7 @@ const DATA = {
   assert(cls() === "style-app", "an old saved style choice changes nothing");
   T.switchTab("tab-setari");
   assert(!$("style-pick") && !w.document.querySelector(".style-card"), "Eu › Aspect: no style picker");
-  assert(w.document.querySelector('meta[name="theme-color"]').content === "#F2F2F7", "the phone status bar takes the background colour");
+  assert(w.document.querySelector('meta[name="theme-color"]').content === (w.document.body.classList.contains('dark-mode') ? "#0B1226" : "#EEF0F6"), "the phone status bar takes the background colour");
   T.switchTab("tab-dashboard");
   assert(!$("azi-subjects").hidden && qa("#azi-subjects .as-item[data-mat]").length === Object.keys(T.state.subjects).length && q("#azi-subjects .as-add"), "Azi › Materiile tale: one item per subject + add");
   const it = qa("#azi-subjects .as-item[data-mat]")[0];

@@ -26,9 +26,8 @@ function celebrate() {
     setTimeout(() => box.remove(), 1500);
 }
 
-/** După orice notă nouă: un 10 merită confetti. */
+/** După orice notă nouă. Un 10 primește sigiliul (stampMoment din js/ui/identity.js, prin noticeMoments), nu confetti. */
 function celebrateGrade(val) {
-    if (Number(val) === 10) celebrate();
     if (typeof palReact === "function") palReact(palMoodForGrade(val)); // Tiți reacționează
 }
 

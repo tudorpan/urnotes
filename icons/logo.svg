@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+<linearGradient id="lg-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1D2A57"/><stop offset="1" stop-color="#0A1124"/></linearGradient>
+<radialGradient id="lg-glow" cx="50%" cy="0%" r="70%"><stop offset="0" stop-color="#F2C879" stop-opacity=".55"/><stop offset=".5" stop-color="#E9B85C" stop-opacity=".12"/><stop offset="1" stop-color="#E9B85C" stop-opacity="0"/></radialGradient>
+<radialGradient id="lg-wax" cx="38%" cy="30%" r="78%"><stop offset="0" stop-color="#F8DDA2"/><stop offset=".55" stop-color="#E4AE4E"/><stop offset="1" stop-color="#9C6C22"/></radialGradient>
+<filter id="lg-sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity=".45"/></filter>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#lg-bg)"/>
+<rect width="512" height="512" rx="112" fill="url(#lg-glow)"/>
+<g filter="url(#lg-sh)"><path d="M409.3 241.7Q418.3 268.0 410.2 294.6Q402.2 321.2 391.9 347.3Q381.5 373.3 356.2 385.5Q330.8 397.6 308.1 416.0Q285.4 434.5 257.4 426.7Q229.4 418.9 202.3 413.4Q175.2 408.0 155.7 388.2Q136.3 368.5 119.6 346.1Q103.0 323.7 100.6 295.8Q98.2 268.0 101.0 240.3Q103.8 212.6 120.7 190.7Q137.7 168.7 154.9 145.6Q172.0 122.5 200.3 117.5Q228.6 112.4 256.3 110.8Q284.0 109.3 307.8 123.1Q331.7 136.9 358.1 148.5Q384.5 160.2 392.4 187.8Q400.3 215.5 409.3 241.7Z" fill="url(#lg-wax)"/></g>
+<circle cx="256" cy="268" r="113.5" fill="none" stroke="#7A5216" stroke-opacity=".5" stroke-width="7"/>
+<circle cx="256" cy="270.5" r="113.5" fill="none" stroke="#FFF3D6" stroke-opacity=".35" stroke-width="2.5"/>
+<g transform="translate(0 3)"><path d="M451 -11 631 -1V28L559 35V385L563 525L553 536L374 512V488L449 477L447 123C408 79 361 52 311 52C252 52 218 84 218 181V385L223 525L212 536L30 515V488L108 476L105 187C104 37 161 -16 258 -16C335 -16 399 27 448 89Z" transform="translate(171.7 338.3) scale(0.255 -0.255)" fill="#FFF3D6" fill-opacity=".4"/></g>
+<path d="M451 -11 631 -1V28L559 35V385L563 525L553 536L374 512V488L449 477L447 123C408 79 361 52 311 52C252 52 218 84 218 181V385L223 525L212 536L30 515V488L108 476L105 187C104 37 161 -16 258 -16C335 -16 399 27 448 89Z" transform="translate(171.7 338.3) scale(0.255 -0.255)" fill="#6E4912"/>
+</svg>

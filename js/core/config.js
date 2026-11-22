@@ -225,7 +225,7 @@ const subjectInitials = mat => { const s = shortSubjectName(mat).replace(/[^\p{L
 const MASCOT_ON = false;
 
 /** Culoarea barei de stare a telefonului (și a barei Safari): peretele raftului, luminos / întunecat. */
-const THEME_BAR = { light: "#F2F2F7", dark: "#000000" };
+const THEME_BAR = { light: "#EEF0F6", dark: "#0B1226" }; // dimineața și cerneala serii (js/ui/identity.js)
 
 const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
 
@@ -235,7 +235,7 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "yellow" },
+    appearance: { theme: "lamp", accent: "yellow", lamp: "aur", sounds: true, haptics: true },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată

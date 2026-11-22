@@ -33,6 +33,20 @@ const ACTIONS = {
         renderCalendar();
     },
     "shortcuts": () => { closeCalMenu?.(); openShortcuts(); },
+    // Azi: sigiliul de lângă salut → Eu › Sigiliile tale
+    "seals-open": () => {
+        switchTab("tab-setari");
+        requestAnimationFrame(() => document.querySelector(".seal-card")?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" }));
+    },
+    // Eu › Lampa ta: culoarea lămpii (lumina de sus, sigiliul, accentele)
+    "set-lamp": el => {
+        if (!requireAccount()) return;
+        state.settings.appearance.lamp = el.dataset.lamp;
+        saveState();
+        applyAppearanceSettings();
+        document.querySelectorAll(".lamp-pick").forEach(b => b.setAttribute("aria-checked", String(b === el)));
+        haptic();
+    },
     "qc-close": () => closeQuickCreate(),
     "qc-type": el => { if (!QC_TYPES.includes(el.dataset.type)) return; readQuickCreate(); qc.type = el.dataset.type; renderQuickCreate(); document.querySelector(`#gc-qc [data-type="${CSS.escape(qc.type)}"]`)?.focus(); },
     "qc-save": () => saveQuickCreate(),
@@ -231,6 +245,7 @@ function bindEvents() {
     bindCatalogEvents();
     bindCalendarEvents();
     bindQuickCreate();
+    bindIdentity(); // lampa după oră, clinchetul și vibrația (js/ui/identity.js)
     bindSwipes();
     bindPurtareEvents();
     $("stats-sort")?.addEventListener("change", event => {

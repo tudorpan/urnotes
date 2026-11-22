@@ -112,8 +112,11 @@ function sanitizeSettings(raw) {
             evals: clampInteger(s.targets.evals, 1, 10000, 30)
         },
         appearance: {
-            theme: pick(s.appearance.theme, ["system", "light", "dark"], "system"),
+            theme: pick(s.appearance.theme, ["lamp", "system", "light", "dark"], "system"),
             accent: pick(s.appearance.accent, Object.keys(ACCENTS), "yellow"),
+            lamp: pick(s.appearance.lamp, Object.keys(LAMPS), "aur"), // culoarea lămpii (js/ui/identity.js)
+            sounds: s.appearance.sounds !== false,
+            haptics: s.appearance.haptics !== false,
             // (densitatea și cursoarele personalizate au fost scoase în v9)
         },
         school: {

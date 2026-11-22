@@ -46,7 +46,7 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   await new Promise(r => setTimeout(r, 50));
   const buddy = () => q("#azi-buddy .buddy")?.dataset.mood, bubble = () => (q("#azi-buddy .buddy-bubble") ? "BUBBLE SHOULD BE GONE" : T.buddyRest.text);
   // implicit: fără nume, mascota „Tiți”; Matematica e la risc (media 4) → îngrijorată
-  assert(txt("h-dashboard") === "Bună dimineața!", "greeting without a name");
+  assert(txt("h-dashboard") === "Bună dimineața.", "greeting without a name");
   assert(buddy() === "starry" && /^Un 10 la Fizica! Bravo, ți-am/.test(bubble()), "fresh 10 wins: " + bubble());
   T.state.subjects.Fizica.grades = [{ val: 9, type: "Test", date: "2026-09-18" }]; T.refresh();
   assert(buddy() === "worried" && /Matematica e la 4\.00/.test(bubble()), "buddy worried about the risk subject: " + bubble());
@@ -60,7 +60,7 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   assert(/Salvat/.test($("settings-status").textContent), "saved automatically ('✓ Salvat')");
   assert(T.state.settings.profile.name === "Tudor Popescu", "name saved (trimmed)");
   nav("tab-dashboard");
-  assert(txt("h-dashboard") === "Bună dimineața, Tudor!", "greeting uses first name");
+  assert(txt("h-dashboard") === "Bună dimineața, Tudor.", "greeting uses first name");
   assert(!q("#azi-buddy .buddy-bubble"), "no speech bubble on Azi");
   // mascota se bucură de un 10 recent (are prioritate)
   T.state.subjects.Chimie.grades.push({ val: 10, type: "Test", date: "2026-10-07" }); T.refresh();
@@ -80,7 +80,7 @@ const nav = tab => click(q(`[data-action="nav"][data-tab="${tab}"]`));
   assert(!$("setup-me-buddy") && !q(".setup-me .pal-kind"), "setup: no mascot to name or pick");
   assert(JSON.parse(w.localStorage.getItem("pro_settings_db_v4")).profile.name === "Ana", "setup names saved immediately");
   click(q('[data-action="setup-skip"]'));
-  assert(txt("h-dashboard") === "Bună dimineața, Ana!" || T.state.settings.profile.name === "Ana", "kept after skipping setup");
+  assert(txt("h-dashboard") === "Bună dimineața, Ana." || T.state.settings.profile.name === "Ana", "kept after skipping setup");
   // backup-ul poartă numele
 
   // fețele mascotei: toate stările se desenează, fiecare cu fața ei; fiecare mascotă are corpul ei

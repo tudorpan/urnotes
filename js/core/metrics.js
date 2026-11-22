@@ -44,9 +44,10 @@ function checkAchievements() {
     // caietul tocmai a venit din cont (alt dispozitiv): realizările se notează, fără mesaje pentru note vechi
     if (typeof cloud !== "undefined" && cloud.applying) return;
     // un singur mesaj, chiar dacă s-au deblocat mai multe deodată (ex. după un import), și puțin după acțiune
-    const msg = fresh.length === 1 ? fresh[0].toast : `🏆 ${fresh.length} realizări noi: ${fresh.map(a => a.label).join(", ")}.`;
-    clearTimeout(checkAchievements.timer);
-    checkAchievements.timer = setTimeout(() => showToast(msg, { duration: 4500 }), 700);
+    // un sigiliu nou se ștampilează (js/ui/identity.js); mai multe deodată (ex. după un import): unul singur, cu toate
+    stampMoment(fresh.length === 1
+        ? { seal: SEAL_MARKS[fresh[0].key] || "★", title: `Sigiliu nou: ${fresh[0].label}`, sub: "Îl găsești în Eu, la Sigiliile tale.", big: true }
+        : { seal: String(fresh.length), title: `${fresh.length} sigilii noi`, sub: fresh.map(a => a.label).join(", "), big: true });
 }
 
 const NONOTE_GROUP_ID = "nonote:group";
@@ -195,6 +196,7 @@ function refresh() {
     if (m) metrics = m;
     safeStep("module", () => checkModuleRollover());
     safeStep("istoric", () => updateHistoryPoint());
+    if (!guest.on) safeStep("momente", () => noticeMoments()); // un 10, o țintă atinsă (js/ui/identity.js)
     if (!guest.on) safeStep("realizări", () => checkAchievements()); // vizitatorii (și caietul de exemplu) nu primesc realizări
     safeStep("coleg", () => checkPalLevel());
     safeStep("plan", () => updatePlan());

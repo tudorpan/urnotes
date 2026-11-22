@@ -1,0 +1,173 @@
+/* urNotes · Identitatea: o cameră de studiu, seara.
+   Cerneală adâncă (albastru de noapte) în loc de negru, o lampă caldă (Aur, Trandafir, Lună sau Jad, la alegere) care dă
+   accentul și lumina din capul ecranului, titluri cu serif (New York pe iPhone și Mac) și cifrele mari tot cu serif.
+   Dimineața (tema luminoasă) e o hârtie rece, palidă; seara (tema întunecată) e camera cu lampa aprinsă.
+   Lumina se schimbă cu ora: data-lamp="morning|day|evening|night" pe <body> (js/ui/identity.js).
+   Se încarcă ultimul: schimbă doar culorile, literele și lumina, nu aranjarea. */
+
+body.style-app {
+    --serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --tint: var(--lamp-fill, #D9A040);
+    --tint-text: var(--lamp-text, #7E5410);
+    --tint-soft: color-mix(in srgb, var(--lamp-fill, #D9A040) 17%, transparent);
+    --on-tint: var(--lamp-on, #14193A);
+    --on-accent-fill: var(--on-tint); --on-yellow: var(--on-tint);
+    --focus: var(--lamp-text, #7E5410);
+    /* dimineața: hârtie rece, cerneală albastră */
+    --paper: #EEF0F6; --sheet: #FFFFFF; --sunken: #E5E8F1;
+    --ink: #121A33; --ink-2: #545C77; --ink-3: #5F6782;
+    --rule: rgba(18, 26, 51, 0.12);
+    --fill: rgba(30, 42, 82, 0.07); --fill-2: rgba(30, 42, 82, 0.12);
+    --shadow-pop: 0 18px 50px -12px rgba(18, 26, 51, 0.28);
+}
+body.style-app.dark-mode {
+    /* seara: cerneala nopții, hârtia caldă sub lampă */
+    --tint: var(--lamp-fill, #E9B85C); --tint-text: var(--lamp-text, #F2C879);
+    --tint-soft: color-mix(in srgb, var(--lamp-fill, #E9B85C) 18%, transparent);
+    --on-tint: var(--lamp-on, #0B1226); --focus: var(--lamp-text, #F2C879);
+    --risk: #FF8C84;
+    --paper: #0B1226; --sheet: #131B35; --sunken: #0B1226;
+    --ink: #EDE8DD; --ink-2: #A5ADC7; --ink-3: #97A0BC;
+    --rule: rgba(237, 232, 221, 0.1);
+    --fill: rgba(160, 176, 226, 0.11); --fill-2: rgba(160, 176, 226, 0.17);
+    --shadow-pop: 0 24px 60px -16px rgba(0, 0, 0, 0.75);
+}
+
+/* ---------- lampa: lumina din capul ecranului, după ora zilei ---------- */
+body.style-app::before {
+    content: ""; position: fixed; inset: 0 0 auto 0; height: min(78vh, 720px); z-index: -1; pointer-events: none;
+    background:
+        radial-gradient(ellipse 70% 62% at 50% -14%, rgba(var(--lamp-glow, 233, 184, 92), var(--lamp-a, 0.16)), transparent 70%),
+        radial-gradient(ellipse 40% 30% at 50% -6%, rgba(var(--lamp-glow, 233, 184, 92), calc(var(--lamp-a, 0.16) * 0.9)), transparent 72%);
+    transition: opacity 1.2s ease;
+}
+/* dimineața lumina e rece și roz-albastră, ziua aproape nu se vede, seara e caldă, noaptea doar un cerc mic */
+body.style-app[data-lamp="morning"] { --lamp-a: 0.13; }
+body.style-app[data-lamp="morning"]::before {
+    background:
+        radial-gradient(ellipse 60% 55% at 22% -12%, rgba(255, 196, 170, 0.22), transparent 70%),
+        radial-gradient(ellipse 70% 60% at 82% -14%, rgba(150, 178, 255, 0.2), transparent 72%);
+}
+body.style-app[data-lamp="day"] { --lamp-a: 0.07; }
+body.style-app[data-lamp="evening"] { --lamp-a: 0.17; }
+body.style-app[data-lamp="night"] { --lamp-a: 0.1; }
+body.style-app.dark-mode[data-lamp="evening"] { --lamp-a: 0.2; }
+body.style-app.dark-mode[data-lamp="night"]::before { height: min(56vh, 520px); }
+
+/* ---------- litere: serif la titluri, la salut și la cifrele mari ---------- */
+body.style-app :is(.page-intro h2, .azi-head h2, .gcal-title, .modal-card h2, #action-modal-title, .wz-title, .splash-name) {
+    font-family: var(--serif); font-weight: 600; letter-spacing: -0.012em;
+}
+body.style-app :is(.page-intro h2, .azi-head h2) { font-size: 36px; line-height: 1.08; }
+body.style-app .azi-head h2 { font-size: clamp(34px, 7vw, 44px); }
+body.style-app .azi-date { letter-spacing: 0.01em; color: var(--tint-text); }
+/* cifrele mari (media, numărătorile din Azi, media unei materii): serif, cu cifre egale */
+body.style-app :is(.home-tile-value, .home-tile.is-hero .home-tile-value, .cat-sum-value, .stat-big, .avg-big, .subj-hero-avg, .azi-avg, .ht-val) {
+    font-family: var(--serif); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; letter-spacing: -0.01em;
+}
+/* marca: numele aplicației cu serif, ca o semnătură; logo-ul e sigiliul */
+body.style-app .brand-name { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+body.style-app .brand-name .brand-ur { color: inherit; }
+
+/* ---------- grupurile: hârtie sub lampă ---------- */
+body.style-app.dark-mode .glass-card, body.style-app.dark-mode :is(.home-tile, .cat-sum) {
+    background: var(--sheet);
+    box-shadow: inset 0 1px 0 rgba(237, 232, 221, 0.05);
+}
+body.style-app:not(.dark-mode) :is(.glass-card, .home-tile, .cat-sum) { box-shadow: 0 1px 2px rgba(18, 26, 51, 0.04), 0 8px 24px -18px rgba(18, 26, 51, 0.25); }
+/* bara de jos și bara de sus: sticlă albastră de noapte */
+body.style-app.dark-mode .mobile-bottom-nav { background: color-mix(in srgb, #131B35 78%, transparent); }
+body.style-app .side-add kbd { background: rgba(11, 18, 38, 0.12); color: var(--on-tint); }
+body.style-app .cc-day.is-on small { color: var(--on-tint); }
+body.style-app :is(.btn-primary, .side-add, .mobile-add) { font-weight: 650; }
+
+/* ---------- sigiliul ---------- */
+.seal { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25)); }
+.seal .seal-t { font-family: var(--serif, Georgia, serif); font-weight: 700; }
+body.style-app #me-btn .me-btn-face { display: grid; place-items: center; width: 100%; height: 100%; }
+body.style-app #me-btn .me-seal { width: 30px; height: 30px; }
+body.style-app #me-btn:has(.me-seal) { background: transparent; border-color: transparent; box-shadow: none; }
+body.style-app .me-initials:has(.seal) { width: 72px; height: 72px; background: none; border-radius: 0; box-shadow: none; color: inherit; }
+body.style-app .me-initials .seal { filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28)); }
+
+/* ---------- Eu: lampa ta ---------- */
+.lamp-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.lamp-pick { display: grid; justify-items: center; gap: 8px; padding: 14px 6px 10px; border: 0; border-radius: 14px; background: var(--fill); color: var(--ink); font: 600 13px/1.2 var(--font-ui); cursor: pointer; transition: background-color .2s ease, transform .2s ease; }
+.lamp-pick i { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--pick) 50%, #fff), var(--pick) 55%, color-mix(in srgb, var(--pick) 60%, #000)); box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); transition: box-shadow .25s ease; }
+.lamp-pick[aria-checked="true"] { background: var(--tint-soft); box-shadow: inset 0 0 0 2px var(--tint); }
+.lamp-pick[aria-checked="true"] i { box-shadow: 0 0 22px 4px color-mix(in srgb, var(--pick) 55%, transparent); }
+.lamp-pick:active { transform: scale(0.96); }
+.lamp-toggle { display: flex; align-items: center; gap: 10px; margin-top: 14px; font: 500 15px/1.3 var(--font-ui); color: var(--ink); }
+.lamp-toggle input { width: 20px; height: 20px; accent-color: var(--tint); }
+
+/* ---------- Eu: sigiliile tale ---------- */
+.seal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 14px 10px; margin: 14px 0 0; padding: 0; list-style: none; }
+.seal-grid li { display: grid; justify-items: center; gap: 6px; text-align: center; font: 500 12px/1.25 var(--font-ui); color: var(--ink-2); }
+.seal-grid li.is-on { color: var(--ink); }
+.seal-grid .seal-item { width: 54px; height: 54px; }
+.seal-empty { display: block; width: 50px; height: 50px; margin: 2px; border-radius: 50%; border: 1.5px dashed color-mix(in srgb, var(--ink-3) 60%, transparent); }
+
+/* ---------- un moment bun: sigiliul se ștampilează ---------- */
+.moment { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 24px; pointer-events: none; /* nu oprește nimic: lucrezi mai departe */
+    background: radial-gradient(circle at 50% 44%, rgba(var(--lamp-glow, 233, 184, 92), 0.26), rgba(var(--lamp-glow, 233, 184, 92), 0.06) 34%, transparent 60%); animation: momentIn .3s ease both; }
+.moment-card { pointer-events: auto; cursor: pointer; display: grid; justify-items: center; gap: 16px; max-width: 320px; text-align: center; }
+.moment-seal { position: relative; width: 132px; height: 132px; animation: momentStamp .62s cubic-bezier(.2, .9, .25, 1.05) both; }
+.moment.is-big .moment-seal { width: 156px; height: 156px; }
+.moment-svg { filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.45)); }
+.moment-ring { position: absolute; inset: 6%; border-radius: 50%; border: 2px solid rgba(var(--lamp-glow, 233, 184, 92), 0.9); opacity: 0; animation: momentRing .9s .24s cubic-bezier(.2, .8, .2, 1) both; pointer-events: none; }
+.moment-text { display: grid; gap: 6px; padding: 14px 20px; border-radius: 18px; background: color-mix(in srgb, var(--sheet) 88%, transparent); box-shadow: var(--shadow-pop); animation: momentText .45s .32s cubic-bezier(.2, .8, .2, 1) both; }
+.moment-text b { font: 600 22px/1.2 var(--serif, Georgia, serif); color: var(--ink); letter-spacing: -0.01em; }
+.moment-text span { font: 500 14px/1.35 var(--font-ui); color: var(--ink-2); }
+.moment.is-out { animation: momentOut .3s ease both; }
+.moment.is-out .moment-seal { animation: momentSealOut .3s ease both; }
+@keyframes momentIn { from { opacity: 0; } }
+@keyframes momentOut { to { opacity: 0; } }
+@keyframes momentStamp {
+    0% { transform: translateY(-46px) scale(1.7) rotate(-14deg); opacity: 0; }
+    45% { transform: translateY(0) scale(0.92) rotate(2deg); opacity: 1; }   /* atinge hârtia */
+    70% { transform: scale(1.04) rotate(-1deg); }
+    100% { transform: none; }
+}
+@keyframes momentRing { 0% { opacity: .9; transform: scale(.8); } 100% { opacity: 0; transform: scale(1.7); } }
+@keyframes momentText { from { opacity: 0; transform: translateY(10px); } }
+@keyframes momentSealOut { to { transform: scale(.9); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+    .moment, .moment-seal, .moment-ring, .moment-text, .moment.is-out, .moment.is-out .moment-seal { animation-duration: .01s; animation-delay: 0s; }
+    body.style-app::before { transition: none; }
+}
+
+/* comutatorul ascuns care face iPhone-ul să vibreze (js/ui/identity.js, haptic) */
+.haptic-switch { position: fixed; left: -100px; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; }
+
+/* ---------- pornirea: sigiliul pe cerneala nopții ---------- */
+body.style-app .splash, .splash { background: #0B1226; }
+.splash .splash-name { color: #EDE8DD; font-family: ui-serif, "New York", "Iowan Old Style", Georgia, serif; font-weight: 600; }
+.splash .splash-tag { color: #A5ADC7; }
+/* logo-ul (sigiliul pe cerneală) își păstrează culorile */
+body.style-app .brand-logo { filter: none; border-radius: 22%; }
+body.style-app.dark-mode .brand-logo { box-shadow: 0 0 0 1px rgba(237, 232, 221, 0.08); }
+body.dark-mode .splash { background: #0B1226; }
+/* mesajele de jos: sticlă albastră de noapte, butonul în culoarea lămpii */
+body.style-app .toast { background: rgba(19, 27, 53, 0.95); color: #EDE8DD; }
+body.style-app .toast .btn, body.style-app .toast button { color: var(--lamp-night, #F2C879); }
+.toast-timer { background: var(--lamp-fill, #E9B85C); }
+/* meniul lateral: aceeași cerneală, puțin mai adâncă; pagina deschisă e luminată de lampă */
+body.style-app.dark-mode .sidebar { background: #0E1530; border-right-color: rgba(237, 232, 221, 0.07); }
+body.style-app:not(.dark-mode) .sidebar { background: #E8EBF3; }
+body.style-app .sidebar .tab-btn.side-link.active, body.style-app .side-nav.has-pill .tab-btn.side-link.active { background: var(--tint-soft); }
+body.style-app .sidebar .tab-btn.side-link.active .ico { color: var(--tint-text); }
+/* bara de sus: nevăzută până derulezi (lumina lămpii rămâne întreagă), apoi sticlă */
+body.style-app .app-bar:not(.is-scrolled) { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+/* Azi: sigiliul tău lângă salut */
+body.style-app .azi-head { position: relative; }
+body.style-app .azi-seal { display: grid; justify-items: center; gap: 4px; flex: none; align-self: center; padding: 4px; border: 0; background: none; color: var(--ink-2); cursor: pointer; border-radius: 16px; transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+body.style-app .azi-seal[hidden] { display: none; }
+body.style-app .azi-seal:active { transform: scale(0.94); }
+body.style-app .azi-seal-svg { width: 58px; height: 58px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3)); }
+body.style-app .azi-seal-n { font: 600 13px/1 var(--serif); color: var(--ink); font-variant-numeric: lining-nums; }
+body.style-app .azi-seal-n small { font-size: 11px; color: var(--ink-3); }
+@media (max-width: 760px) {
+    body.style-app .azi-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+    body.style-app .azi-seal { grid-column: 2; grid-row: 1; align-self: start; margin-top: 18px; }
+    body.style-app .azi-seal-svg { width: 50px; height: 50px; }
+}

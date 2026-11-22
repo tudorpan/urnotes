@@ -60,7 +60,7 @@ body.style-app .gc-mini-d { position: relative; width: 28px; height: 28px; margi
 body.style-app .gc-mini-d:hover { background: var(--fill); }
 body.style-app .gc-mini-d.is-out { color: var(--ink-2); }
 body.style-app .gc-mini-d.is-sel { background: var(--tint-soft); color: var(--tint-text); }
-body.style-app .gc-mini-d.is-today { background: var(--tint); color: #fff; font-weight: 600; }
+body.style-app .gc-mini-d.is-today { background: var(--tint); color: var(--on-tint, #fff); font-weight: 600; }
 body.style-app .gc-mini-d.has-ev::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; background: currentColor; opacity: .55; }
 
 body.style-app .gc-side-title { margin: 0 0 6px 8px; font: 500 14px var(--font-ui); color: var(--ink); }
@@ -101,7 +101,7 @@ body.style-app #cal-body .gc-dnum { display: grid; place-items: center; width: 4
 body.style-app #cal-body .gc-dnum:hover { background: var(--fill); }
 body.style-app #cal-body .gc-dayhead.is-past .gc-dnum { color: var(--ink-2); }
 body.style-app #cal-body .gc-dayhead.is-today .gc-wd { color: var(--tint-text); font-weight: 600; }
-body.style-app #cal-body .gc-dayhead.is-today .gc-dnum { background: var(--tint); color: #fff; font-weight: 500; }
+body.style-app #cal-body .gc-dayhead.is-today .gc-dnum { background: var(--tint); color: var(--on-tint, #fff); font-weight: 500; }
 body.style-app #cal-body .gc-allday { border-bottom: 1px solid var(--gc-line); }
 body.style-app #cal-body .gc-allday .gc-gutter { display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
 body.style-app #cal-body .gc-allday .gc-gutter small { font-size: 10px; color: var(--ink-2); text-align: right; line-height: 1.1; }
@@ -169,7 +169,7 @@ body.style-app #cal-body .gc-mcell:hover { background: color-mix(in srgb, var(--
 body.style-app #cal-body .gc-mnum { align-self: center; min-width: 26px; height: 26px; margin: 0; padding: 0 6px; border: 0; border-radius: 13px; background: transparent; color: var(--ink); font: 500 12px var(--font-ui); cursor: pointer; }
 body.style-app #cal-body .gc-mnum:hover { background: var(--fill); }
 body.style-app #cal-body .gc-mcell.is-out .gc-mnum { color: var(--ink-2); font-weight: 400; }
-body.style-app #cal-body .gc-mcell.is-today .gc-mnum { background: var(--tint); color: #fff; }
+body.style-app #cal-body .gc-mcell.is-today .gc-mnum { background: var(--tint); color: var(--on-tint, #fff); }
 body.style-app #cal-body .gc-mevs { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 body.style-app #cal-body .gc-more { align-self: flex-start; margin: 0; padding: 1px 6px; border: 0; border-radius: 4px; background: none; color: var(--ink); font: 500 12px var(--font-ui); cursor: pointer; }
 body.style-app #cal-body .gc-more:hover { background: var(--fill); }
@@ -183,7 +183,7 @@ body.style-app #cal-body .gc-sdate { display: grid; justify-items: center; gap: 
 body.style-app #cal-body .gc-sdate b { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; font: 400 20px/1 var(--font-ui); transition: background-color .15s ease; }
 body.style-app #cal-body .gc-sdate:hover b { background: var(--fill); }
 body.style-app #cal-body .gc-sdate span { font: 500 11px var(--font-ui); color: var(--ink-2); }
-body.style-app #cal-body .gc-sday.is-today .gc-sdate b { background: var(--tint); color: #fff; }
+body.style-app #cal-body .gc-sday.is-today .gc-sdate b { background: var(--tint); color: var(--on-tint, #fff); }
 body.style-app #cal-body .gc-sday.is-today .gc-sdate span { color: var(--tint-text); }
 body.style-app #cal-body .gc-sitems { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; min-width: 0; }
 body.style-app #cal-body .gc-ev-row { margin: 0; padding: 0; border: 0; border-radius: 8px; background: none; box-shadow: none; }

@@ -595,7 +595,7 @@ function setupWelcomeHTML() {
     const has = Object.keys(state.subjects).length > 0;
     return `
         <div class="wz-hero">
-            <span class="wz-logo" aria-hidden="true"><svg class="brand-logo" viewBox="0 0 64 64"><use href="#i-logo"/></svg></span>
+            <span class="wz-logo" aria-hidden="true"><img class="brand-logo" src="icons/logo.svg" alt="" aria-hidden="true"></span>
             <h2 id="setup-title" tabindex="-1">${has ? "Schimbă clasa sau profilul" : "Bun venit în urNotes"}</h2>
             <p>${has
                 ? "Îți pun materiile noii clase. Notele și materiile pe care le ai rămân neatinse."

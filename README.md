@@ -60,15 +60,18 @@ Aplicația e făcută pentru elev, în jurul zilei lui. Patru secțiuni, la fel 
 Pe telefon, bara de jos are Azi · Note · ＋ · Calendar · Plan, iar „Eu” e avatarul din bara de sus.
 O filă a unei secțiuni se înregistrează cu `hub` (calea „Note › Progres”, fără „înapoi”): `registerTab("tab-…", { …, group: "grades", hub: "tab-catalog" })`; filele se pun în `<nav class="subnav">` din `index.html`. O sub-pagină cu „înapoi” se înregistrează cu `parent`.
 
-### Aspectul
+### Aspectul: o cameră de studiu, seara
 
-Un singur stil (`app.css`, clasa `style-app` pe `<body>`), după aplicațiile Apple: fontul sistemului, titluri mari, liste grupate pe card alb cu colțuri rotunjite, fundal gri deschis și un singur albastru pentru butoane și linkuri.
-Materiile apar doar ca un punct sau un pătrățel în culoarea lor; roșul rămâne pentru „risc”. Modul întunecat e negru cu carduri gri închis.
+Forma vine din aplicațiile Apple (`app.css`, clasa `style-app` pe `<body>`): fontul sistemului, liste grupate pe carduri rotunjite, foi iOS pe telefon.
+Identitatea vine peste ea, din `identity.css` și `js/ui/identity.js`:
 
-- Azi: carduri simple cu cifre, „Materiile tale” ca listă (punct, nume, medie, săgeată), „Acum” cu butoane rotunde pentru notă. Note: rânduri cu inițialele materiei și media în dreapta. Pagina unei materii: titlu mare, notele în cercuri. Calendar: ziua de azi în cerc roșu, evenimentele cu o bară colorată. Eu: profil cu inițialele.
-- Pe telefon: bara de file de jos e translucidă, iar „Adaugă” se deschide ca o foaie iOS.
-- Fără fonturi descărcate; contrastul trece verificarea WCAG AA în ambele moduri.
-- `style.css` + `ui.css` sunt temelia; `tokens.css` și `styles.css` vin peste ele, iar `app.css` le dă aspectul final.
+- **Culori.** Seara (tema întunecată) e cerneala nopții (`#0B1226`) cu hârtie caldă (`#EDE8DD`); dimineața (tema luminoasă) e o hârtie rece, palidă (`#EEF0F6`) cu cerneală albastră. Accentul e lampa.
+- **Lampa.** O lumină caldă în capul ecranului, care se schimbă cu ora (`data-lamp` = morning / day / evening / night pe `<body>`): roz-albastră dimineața, aproape stinsă ziua, caldă seara, un cerc mic noaptea. Culoarea ei se alege din Eu › Lampa ta (Aur, Trandafir, Lună, Jad) și dă și butoanele, linkurile, ziua de azi. Tema implicită, „După lampă”, se întunecă singură de la 18:00 până la 7:00.
+- **Litere.** Titlurile, salutul („Bună seara, Tudor.”) și cifrele mari sunt cu serif (`ui-serif`: New York pe iPhone și Mac), restul cu fontul sistemului.
+- **Sigiliul.** Prima literă a numelui tău într-un sigiliu de ceară în culoarea lămpii: pe butonul Eu, în profil și lângă salutul din Azi (cu câte sigilii ai). Logo-ul aplicației e același sigiliu pe cerneală (`icons/logo.svg`, iconițele PNG generate din el).
+- **Momentele bune.** Un 10, o țintă atinsă sau o realizare nouă: sigiliul se ștampilează în mijlocul ecranului (fără să oprească nimic), cu o vibrație scurtă (și pe iPhone, prin comutatorul nativ ascuns) și un clinchet discret. Ambele se pot opri din Eu › Lampa ta. Realizările sunt colecția din Eu › Sigiliile tale.
+- Fără fonturi descărcate; contrastul trece verificarea WCAG AA în ambele teme și cu toate cele patru lămpi.
+- `style.css` + `ui.css` sunt temelia; `tokens.css`, `styles.css` și `app.css` dau forma, `identity.css` culorile și lumina.
 
 ### Calendarul
 

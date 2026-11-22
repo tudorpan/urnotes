@@ -361,7 +361,8 @@ function renderDashboard() {
     });
     part("salut", () => {
         const first = firstName();
-        setText("h-dashboard", `${greeting(now.getHours())}${first ? `, ${first}` : ""}!`);
+        setText("h-dashboard", `${greeting(now.getHours())}${first ? `, ${first}` : ""}.`);
+        renderAziSeal();
     });
     part("rezumat", () => setText("azi-summary", homeSummary(days, todo)));
     part("colegul", () => renderBuddy(days, todo));

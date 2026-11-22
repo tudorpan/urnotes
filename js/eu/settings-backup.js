@@ -506,7 +506,7 @@ const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 function applyAppearanceSettings() {
     const a = state.settings.appearance;
-    const dark = a.theme === "dark" || (a.theme === "system" && darkQuery.matches);
+    const dark = a.theme === "dark" || (a.theme === "system" && darkQuery.matches) || (a.theme === "lamp" && lampWantsDark());
 
     document.body.classList.toggle("dark-mode", dark);
     document.documentElement.classList.toggle("theme-dark", dark); // bare de derulare și controale native întunecate
@@ -514,5 +514,6 @@ function applyAppearanceSettings() {
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.removeAttribute("media"));
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? THEME_BAR.dark : THEME_BAR.light; }); // peretele raftului
+    applyLamp(dark); // culoarea lămpii și momentul zilei (js/ui/identity.js)
 
 }

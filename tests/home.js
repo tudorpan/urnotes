@@ -40,7 +40,7 @@ const at = (...a) => { w.__setNow(...a); T.ui.home.day = null; T.refresh(); };
   // --- joi dimineața, zi de școală
   assert(T.ui.activeTab === "tab-dashboard" && /Azi/.test(q('[data-action="nav"][data-tab="tab-dashboard"]').textContent), "Azi is the start page (menu label 'Azi')");
   assert(txt("azi-date") === "Joi, 8 octombrie · Modulul 1, săptămâna 5", "date line: weekday, module, week (" + txt("azi-date") + ")");
-  assert(txt("h-dashboard") === "Bună dimineața!", "morning greeting");
+  assert(txt("h-dashboard") === "Bună dimineața.", "morning greeting");
   const sum = txt("azi-summary");
   assert(/Azi ai 3 ore și test la Fizica\./.test(sum) && /Urmează „Teză Matematica”, sâmbătă\./.test(sum) && /Un test așteaptă nota\./.test(sum), "summary: lessons + test, next exam, ungraded (" + sum + ")");
   assert(/Orele de azi/.test(q("#azi-day h3").textContent), "morning shows today's classes");
@@ -90,10 +90,10 @@ const at = (...a) => { w.__setNow(...a); T.ui.home.day = null; T.refresh(); };
 
   // --- după-amiaza: automat ziua următoare
   at(2026, 9, 8, 16, 30);
-  assert(/Orele de mâine/.test(q("#azi-day h3").textContent) && txt("h-dashboard") === "Bună ziua!", "afternoon: tomorrow's classes by default");
+  assert(/Orele de mâine/.test(q("#azi-day h3").textContent) && txt("h-dashboard") === "Bună ziua.", "afternoon: tomorrow's classes by default");
   assert(/^Mâine ai 2 ore\. Urmează „Teză Matematica”, sâmbătă\./.test(txt("azi-summary")), "afternoon summary: tomorrow + next exam, not the morning test (" + txt("azi-summary") + ")");
   at(2026, 9, 8, 20, 0);
-  assert(txt("h-dashboard") === "Bună seara!", "evening greeting");
+  assert(txt("h-dashboard") === "Bună seara.", "evening greeting");
 
   // --- sâmbătă: weekend + evenimentul zilei
   at(2026, 9, 10, 10, 0);

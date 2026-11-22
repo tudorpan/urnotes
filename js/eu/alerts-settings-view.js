@@ -59,12 +59,16 @@ function renderMeInitials(name = state.settings.profile?.name || "") {
     const el = $("me-initials");
     if (!el) return;
     const w = String(name).trim().split(/\s+/).filter(Boolean);
-    el.textContent = w.length ? (w[0][0] + (w[1]?.[0] || "")).toLocaleUpperCase("ro") : "?";
+    // sigiliul tău (js/ui/identity.js): prima literă a numelui, în ceara lămpii
+    el.dataset.seal = sealLetter(name);
+    el.innerHTML = sealSVG(sealLetter(name), { cls: "me-seal-big" });
 }
 document.addEventListener("input", event => { if (event.target.id === "set-name") renderMeInitials(event.target.value); });
 
 function loadSettingsIntoUI() {
     renderMeInitials();
+    renderSealChrome();
+    renderIdentitySettings();
     const themeBtn = $("eu-theme"); // „Eu”: tema dintr-o atingere
     if (themeBtn) {
         const dark = document.body.classList.contains("dark-mode");

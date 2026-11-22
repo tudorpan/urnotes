@@ -389,7 +389,7 @@ function renderAuth(focusId) {
     const titles = { signin: "Intră în cont", signup: "Cont nou", reset: "Resetează parola" };
     $("auth-body").innerHTML = `
         <div class="auth-intro">
-            <svg class="brand-logo auth-logo" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-logo"/></svg>
+            <img class="brand-logo auth-logo" src="icons/logo.svg" alt="" aria-hidden="true">
             <h2 id="auth-title" tabindex="-1">${titles[mode]}</h2>
             <p>${mode === "reset" ? "Îți trimitem pe email un link pentru o parolă nouă." : authUI.reason ? escapeHTML(authUI.reason) : "Notele tale, pe orice telefon sau calculator. Fără cont poți doar să te uiți."}</p>
         </div>

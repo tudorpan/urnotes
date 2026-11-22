@@ -102,7 +102,7 @@ const LOCAL = { "pro_catalog_db_v4": { "Matematica": { ore: 4, target: 10, grade
   A.click(A.q('[data-pick="upload"]'));
   await sleep(30);
   assert(A.$("action-modal").hidden && server.docs["u-ana"] && /Matematica/.test(server.docs["u-ana"].json), "upload → local notes are in the account");
-  assert(A.T.state.settings.profile.name === "Ana Pop" && /, Ana!/.test(A.$("h-dashboard").textContent), "Google name becomes the student's name (greeting)");
+  assert(A.T.state.settings.profile.name === "Ana Pop" && /, Ana\./.test(A.$("h-dashboard").textContent), "Google name becomes the student's name (greeting)");
   await sleep(1700);
   assert(A.T.cloud.status === "synced" && /Ana Pop/.test(A.$("account-chip").textContent) && /Sincronizat/.test(A.$("account-chip").textContent), "chip shows name + Sincronizat");
   assert(!A.$("account-settings").innerHTML.includes("Intră sau") && A.q('#account-settings [data-action="account-signout"]'), "settings card shows signed-in actions");
