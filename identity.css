@@ -333,3 +333,19 @@ body.style-app .azi-seal-svg { width: 46px; height: 46px; filter: none; }
 @media (max-width: 760px) { body.style-app .azi-seal-svg { width: 42px; height: 42px; } }
 /* pe telefon sigiliul tău e deja sus, pe butonul Eu: nu-l mai repetăm lângă salut */
 @media (max-width: 900px) { body.style-app .azi-seal { display: none; } }
+
+/* ---------- bara de jos: fără pastilă în jurul filei alese; fila aleasă se aprinde ----------
+   Pictograma și eticheta devin aurii, pictograma urcă puțin și capătă o lumină caldă dedesubt, ca sub lampă. */
+@media (max-width: 900px) {
+    body.style-app .nav-pill, body.style-app.dark-mode .nav-pill, body.style-app:not(.dark-mode) .nav-pill { display: none !important; }
+    body.style-app .mobile-nav-btn .ico { transition: transform .35s cubic-bezier(.3, 1.4, .5, 1), color .2s ease, filter .25s ease; }
+    body.style-app .mobile-nav-btn span { transition: color .2s ease; }
+    body.style-app .mobile-nav-btn::before { content: ""; position: absolute; left: 50%; top: 6px; width: 46px; height: 34px; border-radius: 50%; pointer-events: none;
+        background: radial-gradient(closest-side, rgba(var(--lamp-glow, 233, 184, 92), .32), rgba(var(--lamp-glow, 233, 184, 92), 0));
+        transform: translateX(-50%) scale(.4); opacity: 0; transition: opacity .25s ease, transform .35s cubic-bezier(.3, 1.4, .5, 1); }
+    body.style-app .mobile-nav-btn.active::before { opacity: 1; transform: translateX(-50%) scale(1); }
+    body.style-app .mobile-nav-btn.active .ico { color: var(--tint-text); transform: translateY(-2px) scale(1.1); stroke-width: 2.1; }
+    body.style-app .mobile-nav-btn.active span { color: var(--tint-text); font-weight: 700; }
+    body.style-app:not(.dark-mode) .mobile-nav-btn.active::before { background: radial-gradient(closest-side, rgba(var(--lamp-glow, 233, 184, 92), .4), rgba(var(--lamp-glow, 233, 184, 92), 0)); }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) { body.style-app .mobile-nav-btn .ico, body.style-app .mobile-nav-btn::before { transition: none; } }
