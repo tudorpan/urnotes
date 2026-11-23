@@ -36,14 +36,24 @@ function init() {
     if (!cloud.configured && shouldOfferSetup()) openSetup(0);
 }
 
-/** Ecranul de pornire pleacă după ce aplicația e gata (cel puțin o clipă, numărată de la deschidere, ca să se vadă post-it-ul). */
+/** Intro-ul pleacă după ce aplicația e gata și după ce s-a jucat (numărat de la deschidere). */
 function hideSplash() {
     const el = $("splash");
     if (!el) return;
     try { sessionStorage.setItem("urn_splash_seen", "1"); } catch (_) { /* fără stocare */ }
-    const quick = matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    setTimeout(() => {
+    // intro-ul (identity.css): întreg ~2,3 s, scurt ~0,7 s, fără mișcare imediat; o atingere îl sare
+    const still = el.classList.contains("is-still") || matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const minMs = still ? 150 : el.classList.contains("is-quick") ? 700 : 2300;
+    let done = false;
+    const open = () => {
+        if (done) return;
+        done = true;
+        // lumina se întinde din bec
+        const b = el.querySelector(".in-bulb")?.getBoundingClientRect();
+        if (b && b.width) { el.style.setProperty("--in-x", `${b.left + b.width / 2}px`); el.style.setProperty("--in-y", `${b.top + b.height / 2}px`); }
         el.classList.add("is-out");
-        setTimeout(() => el.remove(), 450);
-    }, Math.max(0, (quick ? 150 : 650) - performance.now()));
+        setTimeout(() => el.remove(), 900);
+    };
+    el.addEventListener("pointerdown", open, { once: true });
+    setTimeout(open, Math.max(0, minMs - performance.now()));
 }

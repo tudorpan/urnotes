@@ -349,3 +349,63 @@ body.style-app .azi-seal-svg { width: 46px; height: 46px; filter: none; }
     body.style-app:not(.dark-mode) .mobile-nav-btn.active::before { background: radial-gradient(closest-side, rgba(var(--lamp-glow, 233, 184, 92), .4), rgba(var(--lamp-glow, 233, 184, 92), 0)); }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) { body.style-app .mobile-nav-btn .ico, body.style-app .mobile-nav-btn::before { transition: none; } }
+
+/* ---------- intro-ul: lampa se aprinde (index.html #splash, js/core/boot.js hideSplash) ----------
+   0,05 s baza · 0,25 s brațul desenează N-ul · 0,85 s capul cade la locul lui · 1,3 s clic: becul pâlpâie și se aprinde,
+   lumina cade pe masă și scoate numele din întuneric · 1,75 s rândul de dedesubt · apoi lumina se întinde din bec și
+   deschide aplicația. .is-quick = doar aprinderea; .is-still = fără mișcare. */
+@property --in-r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+.splash.intro { background: #0B1226; --in-x: 50%; --in-y: 40%; }
+.splash.intro .splash-inner { gap: 10px; }
+.intro-art { width: min(88vw, 540px); height: auto; overflow: visible; }
+.intro-art .in-base, .intro-art .in-head path { fill: #E9B85C; }
+.intro-art .in-arm { stroke: #E9B85C; }
+.intro-art .in-joint { fill: #C9962F; }
+.intro-art .in-desk { stroke: rgba(237, 232, 221, 0.09); }
+.intro-art .in-bulb { fill: #FFF4DA; }
+.intro-art .in-name { font: 600 70px/1 ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, serif; letter-spacing: -0.015em; }
+.intro-art .in-name-dim { fill: rgba(237, 232, 221, 0.07); }
+.intro-art .in-name-lit { fill: #F6DFA6; }
+.splash.intro .splash-tag { color: #A5ADC7; font: 500 15px/1.3 -apple-system, system-ui, sans-serif; letter-spacing: .01em; }
+.intro-art .in-base { transform-box: fill-box; transform-origin: center; }
+.intro-art .in-head { transform-box: view-box; transform-origin: 232px 78px; }
+.intro-art .in-joint { transform-box: fill-box; transform-origin: center; }
+
+/* întreg */
+.splash.intro .in-base { animation: inBase .32s cubic-bezier(.2, .8, .2, 1) .05s both; }
+.splash.intro .in-arm { stroke-dasharray: 100; animation: inArm .72s cubic-bezier(.65, 0, .35, 1) .22s both; }
+.splash.intro .in-joint { animation: inPop .3s cubic-bezier(.3, 1.6, .5, 1) both; }
+.splash.intro .in-joint:nth-of-type(1) { animation-delay: .5s; }
+.splash.intro .in-joint:nth-of-type(2) { animation-delay: .72s; }
+.splash.intro .in-joint:nth-of-type(3) { animation-delay: .9s; }
+.splash.intro .in-head { animation: inHead .5s cubic-bezier(.3, 1.45, .45, 1) .85s both; }
+.splash.intro .in-bulb { animation: inFlick .36s steps(1, end) 1.3s both; }
+.splash.intro :is(.in-light, .in-name-lit) { animation: inFlick .36s steps(1, end) 1.33s both; }
+.splash.intro .in-name-dim { animation: inFade .5s ease .9s both; }
+.splash.intro .in-desk { animation: inFade .6s ease .1s both; }
+.splash.intro .splash-tag { animation: inTag .5s cubic-bezier(.2, .8, .2, 1) 1.75s both; }
+@keyframes inBase { from { transform: scaleX(0); opacity: 0; } }
+@keyframes inArm { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes inPop { from { transform: scale(0); } }
+@keyframes inHead { from { transform: rotate(-70deg); opacity: 0; } 30% { opacity: 1; } }
+@keyframes inFlick { 0% { opacity: 0; } 18% { opacity: .9; } 32% { opacity: .1; } 50% { opacity: 1; } 64% { opacity: .35; } 78%, 100% { opacity: 1; } }
+@keyframes inFade { from { opacity: 0; } }
+@keyframes inTag { from { opacity: 0; transform: translateY(8px); } }
+
+/* scurt: lampa e deja acolo, doar se aprinde */
+.splash.intro.is-quick :is(.in-base, .in-arm, .in-joint, .in-head, .in-name-dim, .in-desk, .splash-tag) { animation: none; }
+.splash.intro.is-quick .in-bulb { animation: inFlick .3s steps(1, end) .05s both; }
+.splash.intro.is-quick :is(.in-light, .in-name-lit) { animation: inFlick .3s steps(1, end) .08s both; }
+/* fără mișcare */
+.splash.intro.is-still * { animation: none !important; }
+
+/* ieșirea: lumina se întinde din bec și deschide aplicația */
+.splash.intro.is-out {
+    opacity: 1; visibility: visible;
+    -webkit-mask: radial-gradient(circle at var(--in-x) var(--in-y), transparent var(--in-r), #000 calc(var(--in-r) + 1px));
+            mask: radial-gradient(circle at var(--in-x) var(--in-y), transparent var(--in-r), #000 calc(var(--in-r) + 1px));
+    animation: inOpen .62s cubic-bezier(.55, 0, .3, 1) both, inGone .2s linear .58s both;
+}
+@keyframes inOpen { from { --in-r: 0px; } to { --in-r: 150vmax; } }
+@keyframes inGone { to { opacity: 0; visibility: hidden; } }
+.splash.intro.is-still.is-out { -webkit-mask: none; mask: none; animation: inGone .25s ease both; }
