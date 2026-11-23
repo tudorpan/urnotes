@@ -167,13 +167,31 @@
         <div class="splash-inner">
 <svg class="intro-art" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="inBeam" gradientUnits="userSpaceOnUse" x1="272" y1="122" x2="469" y2="332">
-      <stop offset="0" stop-color="#F7D995" stop-opacity=".55"/><stop offset="1" stop-color="#F7D995" stop-opacity=".1"/></linearGradient>
-    <radialGradient id="inPool" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F7D995" stop-opacity=".55"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
-    <mask id="inLit" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="400"><path d="M242.7 149.3 L282.4 332.0 L655.9 332.0 L302.0 95.5 Z" fill="#fff"/></mask>
+    <!-- lumina e calculată în js/ui/intro.js din poziția becului: conul pleacă din gura abajurului, cade pe masă,
+         scade cu distanța; aici sunt doar valorile pentru lampa în repaus (aprinsă, privind numele) -->
+    <radialGradient id="inBeam" gradientUnits="userSpaceOnUse" cx="272" cy="122" r="420">
+      <stop class="in-warm" offset="0" stop-color="#F7D995" stop-opacity=".62"/><stop class="in-warm" offset=".22" stop-color="#F7D995" stop-opacity=".3"/>
+      <stop class="in-warm" offset=".5" stop-color="#F7D995" stop-opacity=".1"/><stop class="in-warm" offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+    <radialGradient id="inPool" cx=".5" cy=".5" r=".5" fx=".3" fy=".5">
+      <stop class="in-warm" offset="0" stop-color="#F7D995" stop-opacity="1"/><stop class="in-warm" offset=".45" stop-color="#F7D995" stop-opacity=".42"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+    <radialGradient id="inHalo"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".9"/><stop offset=".35" stop-color="#FCE3A8" stop-opacity=".35"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+    <radialGradient id="inAmb"><stop offset="0" stop-color="#F7D995" stop-opacity="1"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+    <mask id="inLit" maskUnits="userSpaceOnUse" x="-400" y="-400" width="1600" height="1200">
+      <path class="in-cone-om2" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="#fff" fill-opacity=".25"/>
+      <path class="in-cone-om" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="#fff" fill-opacity=".35"/>
+      <path class="in-cone-m" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="#fff"/></mask>
   </defs>
+  <circle class="in-amb" cx="470" cy="320" r="380" fill="url(#inAmb)"/>
   <path class="in-desk" d="M24 334 H616" stroke-width="2" stroke-linecap="round"/>
-  <g class="in-light"><path d="M242.7 149.3 L282.4 332.0 L655.9 332.0 L302.0 95.5 Z" fill="url(#inBeam)"/><ellipse cx="469" cy="334" rx="177" ry="14" fill="url(#inPool)"/></g>
+  <g class="in-light">
+    <!-- în aer lumina abia se vede (puțin praf); se vede unde cade: pe masă și pe litere -->
+    <path class="in-cone-o2" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="url(#inBeam)" fill-opacity=".05"/>
+    <path class="in-cone-o" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="url(#inBeam)" fill-opacity=".08"/>
+    <path class="in-cone" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="url(#inBeam)" fill-opacity=".13"/>
+    <ellipse class="in-pool" cx="560" cy="334" rx="230" ry="16" fill="url(#inPool)"/>
+    <path class="in-desk-lit" d="M24 334 H616" stroke-width="2" stroke-linecap="round" mask="url(#inLit)"/>
+  </g>
+  <text class="in-name in-shadow" x="452" y="316" text-anchor="middle" mask="url(#inLit)" transform="matrix(1 0 -0.85 0.12 283.9 293.9)">urNotes</text>
   <text class="in-name in-name-dim" x="452" y="316" text-anchor="middle">urNotes</text>
   <text class="in-name in-name-lit" x="452" y="316" text-anchor="middle" mask="url(#inLit)">urNotes</text>
   <g class="in-lamp">
@@ -188,8 +206,8 @@
     </g>
     <circle class="in-joint" cx="232" cy="78" r="7"/>
   </g>
+  <circle class="in-halo" cx="281" cy="132" r="38" fill="url(#inHalo)"/>
 </svg>
-            <small class="splash-tag">notele tale, sub lampă</small>
         </div>
     </div>
     <script>

@@ -2,7 +2,7 @@
    Pe masă, în întuneric: baza apare, brațul desenează N-ul, capul cade și se leagănă, lampa se lasă moale și adoarme
    (respiră). Inspiră, se întinde și cască, se uită în jur, trece cu privirea peste nume, „hm?”, se întoarce brusc spre el
    și se apleacă curioasă. Se ghemuiește, sare de bucurie, aterizează turtită, iar din izbitură becul pâlpâie și se
-   aprinde: lumina scoate „urNotes” din întuneric. Dă din cap mulțumită, apoi se ghemuiește și sare în colțul de sus,
+   aprinde: lumina (calculată ca în realitate, vezi mai jos) scoate „urNotes” din întuneric. Dă din cap mulțumită, apoi se ghemuiește și sare în colțul de sus,
    unde rămâne ca logo (butonul lămpii din antet), în timp ce aplicația apare dedesubt.
 
    Cum e animată, „de mână”: lampa e un mic schelet (baza, două încheieturi, capul), nu o imagine care se rotește.
@@ -116,8 +116,7 @@ const IT = (() => {
         ]),
         baseSX: T([[0, 1], [3190, 1], [3265, 0.94, E.out], [3470, 1, E.io], [3510, 1.1, E.out], [3760, 1, E.settle]]),
         baseSY: T([[0, 1], [3470, 1], [3510, 0.78, E.out], [3760, 1, E.settle]]),
-        dim: T([[2560, 0], [3100, 1, E.soft]]),
-        tag: T([[3900, 0], [4330, 1, E.out]])
+        dim: T([[2560, 0], [3100, 1, E.soft]])
     };
 })();
 /** pâlpâirea becului (trepte, fără curbe: un bec adevărat nu se aprinde lin) */
@@ -157,8 +156,9 @@ function introParts(el) {
     const q = s => el.querySelector(s);
     return {
         art: q(".intro-art"), lamp: q(".in-lamp"), head: q(".in-head"), arm: q(".in-arm"), base: q(".in-base"),
-        bulb: q(".in-bulb"), light: q(".in-light"), mask: q("#inLit path"), lit: q(".in-name-lit"), dim: q(".in-name-dim"),
-        desk: q(".in-desk"), tag: q(".splash-tag"), joints: [...el.querySelectorAll(".in-joint")]
+        bulb: q(".in-bulb"), light: q(".in-light"), cone: q(".in-cone"), coneM: q(".in-cone-m"), coneO: q(".in-cone-o"), coneOM: q(".in-cone-om"), coneO2: q(".in-cone-o2"), coneOM2: q(".in-cone-om2"), pool: q(".in-pool"),
+        beamG: q("#inBeam"), poolG: q("#inPool"), warm: [...el.querySelectorAll(".in-warm")], halo: q(".in-halo"), amb: q(".in-amb"),
+        shadow: q(".in-shadow"), lit: q(".in-name-lit"), dim: q(".in-name-dim"), desk: q(".in-desk"), joints: [...el.querySelectorAll(".in-joint")]
     };
 }
 function introDrawPose(p, pose, drag) {
@@ -169,9 +169,8 @@ function introDrawPose(p, pose, drag) {
     const dx = g.P3[0] - IR.rest[0], dy = g.P3[1] - IR.rest[1];
     const a = pose.head + g.tilt + drag;
     p.head.style.transform = `translate(${f(dx)}px, ${f(dy)}px) rotate(${f(a)}deg)`;
-    const beam = `translate(${f(dx)} ${f(dy)}) rotate(${f(a + 42.25)} 232 78)`; // lumina pleacă din bec, oriunde s-ar uita
-    p.light?.setAttribute("transform", beam);
-    p.mask?.setAttribute("transform", beam);
+    if (intro.light && (intro.light.I * (intro.light.fade ?? 1)) > 0.002) introDrawLight(p, introLightGeo(dx, dy + pose.lift, a), intro.light, introLightGeo(dx, dy + pose.lift, a, 2.5), introLightGeo(dx, dy + pose.lift, a, 5));
+    else introDrawLight(p, null, null);
     p.lamp.style.transform = `translateY(${f(pose.lift)}px)`;
     return g;
 }
@@ -192,11 +191,98 @@ function introDrawFrame(p, t) {
     });
     set(p.head, IT.headIn(t));
     set(p.dim, IT.dim(t));
-    set(p.bulb, introFlicker(t, 3520));
-    const fl = introFlicker(t, 3540);
-    set(p.light, fl); set(p.lit, fl);
-    const tg = IT.tag(t);
-    if (p.tag) { p.tag.style.opacity = tg.toFixed(3); p.tag.style.transform = `translateY(${((1 - tg) * 8).toFixed(2)}px)`; }
+}
+
+/* ---------- lumina, ca în realitate ----------
+   Becul stă în abajur; lumina iese doar prin gura lui, într-un con cu marginile date de pereții abajurului (se întâlnesc
+   într-un vârf virtual, deasupra becului). Razele de margine sunt prelungite până lovesc masa: acolo se face pata de lumină,
+   mai strălucitoare în partea mai apropiată de bec. Strălucirea scade cu distanța (aproximativ cu pătratul ei), marginile
+   sunt moi (penumbră), literele numelui își aruncă umbra pe masă, în direcția opusă becului, iar camera primește puțină
+   lumină difuză. Becul nu sare instant între stins și aprins: filamentul se încălzește și se răcește (o mică întârziere),
+   iar culoarea pornește mai portocalie și se albește pe măsură ce se încălzește. */
+const IL = { desk: 334, apex: [232, 58], mouthL: [192, 138], mouthR: [272, 138], bulb: [232, 138], name: [452, 300], ref: null };
+function introLightGeo(dx, dy, a, spread = 0) {
+    const r = a * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+    const W = ([x, y]) => { const X = x - 232, Y = y - 78; return [232 + X * c - Y * sn + dx, 78 + X * sn + Y * c + dy]; };
+    // spread: conul de penumbră, cu câteva grade mai larg (razele de margine rotite în afară, în jurul vârfului)
+    const turn = ([x, y], deg) => { const k = deg * Math.PI / 180, X = x - IL.apex[0], Y = y - IL.apex[1]; return [IL.apex[0] + X * Math.cos(k) - Y * Math.sin(k), IL.apex[1] + X * Math.sin(k) + Y * Math.cos(k)]; };
+    const apex = W(IL.apex), L = W(turn(IL.mouthL, spread)), R = W(turn(IL.mouthR, -spread)), B = W(IL.bulb);
+    const ray = E => {
+        const vx = E[0] - apex[0], vy = E[1] - apex[1], n = Math.hypot(vx, vy), d = [vx / n, vy / n];
+        if (d[1] > 0.03 && E[1] < IL.desk) { const k = (IL.desk - E[1]) / d[1]; return { hit: true, P: [E[0] + d[0] * k, IL.desk], d }; }
+        return { hit: false, P: [E[0] + d[0] * 1600, E[1] + d[1] * 1600], d };
+    };
+    const rl = ray(L), rr = ray(R);
+    const pts = [L, rl.P];
+    if (rl.hit !== rr.hit) { const far = rl.hit ? rr : rl; pts.push([far.d[0] >= 0 ? 2400 : -1800, IL.desk]); }
+    pts.push(rr.P, R);
+    const ax = B[0] - apex[0], ay = B[1] - apex[1], an = Math.hypot(ax, ay);
+    return { pts, B, rl, rr, dir: [ax / an, ay / an] };
+}
+const introMix = (h1, h2, k) => {
+    const a = parseInt(h1.slice(1), 16), b = parseInt(h2.slice(1), 16);
+    const ch = sh => Math.round(((a >> sh) & 255) + ((((b >> sh) & 255) - ((a >> sh) & 255)) * k));
+    return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
+};
+function introDrawLight(p, g, L, gOuter, gOuter2) {
+    const I = L ? L.I * (L.fade ?? 1) : 0, warm = L ? L.warm : 1;
+    const f = n => n.toFixed(1);
+    const set = (n, o) => { if (n) n.style.opacity = o.toFixed(3); };
+    set(p.bulb, I);
+    if (I <= 0.002 || !g) { [p.light, p.lit, p.halo, p.amb, p.shadow].forEach(n => set(n, 0)); return; }
+    if (!IL.ref) IL.ref = introLightGeo(0, 0, -42.25);
+    const dist = (P, Q) => Math.hypot(P[0] - Q[0], P[1] - Q[1]);
+    const fall = (d, d0, lo, hi) => introClamp((d0 / Math.max(d, 1)) ** 2, lo, hi); // ~ 1/d², față de lampa în repaus
+    const path = G => "M" + G.pts.map(P => `${f(P[0])} ${f(P[1])}`).join(" L") + "Z";
+    const d = path(g), dO = path(gOuter || g), dO2 = path(gOuter2 || gOuter || g);
+    p.coneO2?.setAttribute("d", dO2); p.coneOM2?.setAttribute("d", dO2);
+    p.cone?.setAttribute("d", d); p.coneM?.setAttribute("d", d);
+    p.coneO?.setAttribute("d", dO); p.coneOM?.setAttribute("d", dO);
+    // conul: luminos lângă bec, tot mai slab cu distanța
+    const reach = Math.max(...g.pts.map(P => dist(P, g.B)));
+    p.beamG?.setAttribute("cx", f(g.B[0])); p.beamG?.setAttribute("cy", f(g.B[1]));
+    p.beamG?.setAttribute("r", f(introClamp(reach, 160, 900)));
+    // culoarea: la pornire mai portocalie, apoi caldă-albă
+    const col = introMix("#FFB765", "#F7D995", warm);
+    p.warm.forEach(n => n.setAttribute("stop-color", col));
+    set(p.light, I);
+    // pata de pe masă: între cele două raze care o ating, cu centrul fierbinte spre bec
+    const hitL = g.rl.hit ? g.rl.P[0] : null, hitR = g.rr.hit ? g.rr.P[0] : null;
+    let x1 = hitL ?? (g.rl.d[0] >= 0 ? 2400 : -1800), x2 = hitR ?? (g.rr.d[0] >= 0 ? 2400 : -1800);
+    if (x1 > x2) [x1, x2] = [x2, x1];
+    x1 = Math.max(x1, 24); x2 = Math.min(x2, 640); // pata rămâne pe masă
+    if ((hitL !== null || hitR !== null) && x2 - x1 > 4) {
+        const cx = (x1 + x2) / 2, rx = Math.max(8, (x2 - x1) / 2 + 16);
+        const near = Math.abs(x1 - g.B[0]) + 0.01 < Math.abs(x2 - g.B[0]) ? 0.28 : 0.72;
+        const height = Math.max(4, IL.desk - g.B[1]);
+        p.pool?.setAttribute("cx", f(cx)); p.pool?.setAttribute("rx", f(rx));
+        p.pool?.setAttribute("ry", f(introClamp(7 + rx * 0.06, 7, 26)));
+        p.poolG?.setAttribute("fx", near.toFixed(2));
+        set(p.pool, fall(height, IL.desk - IL.ref.B[1], 0.25, 1.6));
+    } else set(p.pool, 0);
+    // numele: cât de aproape e de bec și dacă e în con (masca o face pe a doua)
+    const nameK = fall(dist(g.B, IL.name), dist(IL.ref.B, IL.name), 0.45, 1.3);
+    set(p.lit, Math.min(1, I * nameK));
+    // umbra literelor: culcată pe masă, dinspre bec spre partea opusă
+    if (g.B[1] < IL.desk - 8) {
+        const k = introClamp((IL.name[0] - g.B[0]) / (IL.desk - g.B[1]), -3, 3);
+        p.shadow?.setAttribute("transform", `matrix(1 0 ${(-k).toFixed(3)} 0.12 ${(IL.desk * k).toFixed(1)} ${(IL.desk * 0.88).toFixed(1)})`);
+        set(p.shadow, 0.55 * I * Math.min(1, nameK));
+    } else set(p.shadow, 0);
+    // strălucirea becului și lumina difuză din cameră
+    p.halo?.setAttribute("cx", f(g.B[0] + g.dir[0] * 12)); p.halo?.setAttribute("cy", f(g.B[1] + g.dir[1] * 12));
+    set(p.halo, I * (0.7 + 0.3 * warm));
+    const poolC = hitL !== null && hitR !== null ? [(hitL + hitR) / 2, IL.desk] : [g.B[0] + g.dir[0] * 180, g.B[1] + g.dir[1] * 180];
+    p.amb?.setAttribute("cx", f(poolC[0])); p.amb?.setAttribute("cy", f(poolC[1]));
+    set(p.amb, 0.07 * I);
+}
+/** intensitatea becului: urmează pâlpâirea cu întârzierea filamentului (se aprinde repede, se stinge mai încet) */
+function introLightStep(L, t, dt) {
+    const target = introFlicker(t, 3520);
+    const tau = target > L.I ? 16 : 42;
+    L.I += (target - L.I) * (1 - Math.exp(-Math.max(0, dt) / tau));
+    if (L.I < 0.001) L.I = 0;
+    L.warm = IE.soft(introLin(t, 3740, 4250));
 }
 
 /* ---------- inerția capului: un arc mic, împins de accelerația încheieturii ---------- */
@@ -218,11 +304,17 @@ function introHeadSpring(state, posAt, t, dtTotal, gain = 1) {
 /* ---------- pornire ---------- */
 function introStart() {
     const el = document.getElementById("splash");
-    if (!el || !el.classList.contains("intro") || el.classList.contains("is-still") || !Element.prototype.animate || !window.requestAnimationFrame) return;
+    if (!el || !el.classList.contains("intro")) return;
+    if (el.classList.contains("is-still") || !Element.prototype.animate || !window.requestAnimationFrame) {
+        // fără mișcare: lampa aprinsă, în repaus, cu lumina calculată la fel
+        if (el.classList.contains("is-still") && el.querySelector(".in-cone")) introDrawLight(introParts(el), introLightGeo(0, 0, -42.25), { I: 1, warm: 1 }, introLightGeo(0, 0, -42.25, 2.5), introLightGeo(0, 0, -42.25, 5));
+        return;
+    }
     intro.el = el;
     intro.t0 = performance.now();
     intro.p = introParts(el);
     intro.spring = { th: 0, v: 0, dir: 0 };
+    intro.light = { I: 0, warm: 0, fade: 1 };
     document.body.classList.add("intro-on");
     // când ajunge linia la fiecare încheietură
     const L = IR.L1 + IR.L2 + IR.L3, th = [IR.L1 / L, (IR.L1 + IR.L2) / L];
@@ -241,6 +333,7 @@ function introStart() {
                 intro.spring.dir = (pose.head + 90) * Math.PI / 180;
                 introHeadSpring(intro.spring, posAt, t, Math.min(50, Math.max(1, t - intro.last)));
             }
+            introLightStep(intro.light, t, t - intro.last);
             intro.last = t;
             introDrawFrame(p, t);
             introDrawPose(p, pose, intro.spring.th);
@@ -271,6 +364,7 @@ function introSkip() {
     intro.skipped = true;
     const t = performance.now() - intro.t0 + intro.jump;
     if (t < INTRO_END) { intro.jump += INTRO_END - t; intro.spring = { th: 0, v: 0, dir: 0 }; intro.last = INTRO_END; }
+    intro.light = { I: 1, warm: 1, fade: 1 };
     introDrawFrame(intro.p, INTRO_END);
     introDrawPose(intro.p, introPose(INTRO_END), 0);
     introMaybeFly();
@@ -288,8 +382,7 @@ function introFly() {
     const fast = intro.skipped;
     const pre = fast ? 90 : 230, dur = fast ? 470 : 820;
     const fade = (node, ms, delay = 0) => node && node.animate([{ opacity: getComputedStyle(node).opacity }, { opacity: 0 }], { duration: ms, delay, fill: "both", easing: "ease" });
-    [p.light, p.lit].forEach(n => fade(n, fast ? 110 : 150));
-    [p.dim, p.desk, p.tag].forEach(n => fade(n, fast ? 170 : 280));
+    [p.dim, p.desk].forEach(n => fade(n, fast ? 170 : 280));
     const target = [...document.querySelectorAll(".lamp-btn .lamp-logo")].find(n => n.getBoundingClientRect().width > 0);
     const finish = () => {
         if (intro.done) return;
@@ -348,6 +441,8 @@ function introFly() {
             const g = introRig(k.lean(tt), k.crouch(tt), k.kink(tt));
             return [(pp[0] + g.P3[0] * ss) / Math.max(ss, 0.2), (pp[1] + (g.P3[1] + k.lift(tt)) * ss) / Math.max(ss, 0.2)];
         };
+        // becul se stinge cât se întoarce capul (cu răcirea filamentului)
+        intro.light.fade = 1 - IE.soft(introLin(ft, 0, fast ? 120 : 180));
         const calm = 1 - introLin(ft, end - dur * 0.35, end); // inerția se stinge înainte de aterizare
         spring.dir = (pose.head + 90) * Math.PI / 180;
         introHeadSpring(spring, posAt, ft, Math.min(50, Math.max(1, ft - last)), 0.5 * calm);
@@ -355,6 +450,7 @@ function introFly() {
         last = ft;
         art.style.transform = `translate(${pos[0].toFixed(2)}px, ${pos[1].toFixed(2)}px) scale(${sc.toFixed(4)})`;
         if (ft >= end) {
+            intro.light.fade = 0;
             introDrawPose(p, { lean: 0, crouch: 0, kink: 0, head: -12, lift: 0 }, 0);
             art.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
             intro.fly = () => {};

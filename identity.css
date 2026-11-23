@@ -364,15 +364,18 @@ body.style-app .azi-seal-svg { width: 46px; height: 46px; filter: none; }
 .intro-art .in-name { font: 600 70px/1 ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, serif; letter-spacing: -0.015em; }
 .intro-art .in-name-dim { fill: rgba(237, 232, 221, 0.07); opacity: 0; }
 .intro-art .in-name-lit { fill: #F6DFA6; opacity: 0; }
-.intro-art .in-light { opacity: 0; }
+.intro-art :is(.in-light, .in-amb, .in-halo, .in-shadow) { opacity: 0; }
+.intro-art .in-shadow { fill: #070C1C; }
+.intro-art .in-desk-lit { stroke: #F7D995; stroke-opacity: .8; fill: none; }
 .intro-art :is(.in-base, .in-joint, .in-head) { opacity: 0; }
 .intro-art .in-lamp { transform-box: view-box; transform-origin: 88px 332px; }
 .intro-art .in-head { transform-box: view-box; transform-origin: 232px 78px; }
 .intro-art :is(.in-base, .in-joint) { transform-box: fill-box; transform-origin: center; }
-.splash.intro .splash-tag { color: #A5ADC7; font: 500 15px/1.3 -apple-system, system-ui, sans-serif; letter-spacing: .01em; opacity: 0; }
 /* fără mișcare: masa luminată, direct */
 .splash.intro.is-still .in-arm { stroke-dashoffset: 0; }
-.splash.intro.is-still :is(.in-base, .in-joint, .in-head, .in-bulb, .in-light, .in-name-lit, .splash-tag) { opacity: 1; }
+.splash.intro.is-still :is(.in-base, .in-joint, .in-head, .in-bulb, .in-light, .in-name-lit, .in-halo) { opacity: 1; }
+.splash.intro.is-still .in-amb { opacity: .07; }
+.splash.intro.is-still .in-shadow { opacity: .55; }
 .splash.intro.is-still .in-head { transform: rotate(-42.25deg); }
 /* cât zboară lampa spre colț, cea din antet așteaptă ascunsă */
 body.intro-on .lamp-btn .lamp-logo { opacity: 0; }
