@@ -33,6 +33,7 @@
     <script src="js/core/config.js" defer></script>
     <script src="js/core/utils.js" defer></script>
     <script src="js/ui/identity.js" defer></script>
+    <script src="js/ui/intro.js" defer></script>
     <script src="js/ui/subject-icons.js" defer></script>
     <script src="js/ui/seal.js" defer></script>
     <script src="js/ui/personal.js" defer></script>
@@ -160,8 +161,8 @@
         <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 01-4 4H4"/></symbol>
     </svg>
     <!-- Ecranul de pornire (o dată pe sesiune): post-it-ul urNotes se lipește, apoi aplicația -->
-    <!-- Intro-ul: lampa se desenează, se aprinde și luminează numele; apoi lumina se întinde și deschide aplicația.
-         Întreg o dată pe zi, scurt (doar aprinderea) la celelalte porniri; o atingere îl sare. — identity.css, js/core/boot.js -->
+    <!-- Intro-ul (~4,5 s, la fiecare pornire): lampa se desenează, se trezește, se uită în jur, vede numele, se aprinde și
+         îl luminează, dă din cap mulțumită, apoi zboară la locul ei din colțul de sus. O atingere îl sare. — js/ui/intro.js -->
     <div id="splash" class="splash intro" aria-hidden="true">
         <div class="splash-inner">
 <svg class="intro-art" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
@@ -171,29 +172,28 @@
     <radialGradient id="inPool" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F7D995" stop-opacity=".55"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
     <mask id="inLit" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="400"><path d="M242.7 149.3 L282.4 332.0 L655.9 332.0 L302.0 95.5 Z" fill="#fff"/></mask>
   </defs>
+  <path class="in-desk" d="M24 334 H616" stroke-width="2" stroke-linecap="round"/>
   <g class="in-light"><path d="M242.7 149.3 L282.4 332.0 L655.9 332.0 L302.0 95.5 Z" fill="url(#inBeam)"/><ellipse cx="469" cy="334" rx="177" ry="14" fill="url(#inPool)"/></g>
   <text class="in-name in-name-dim" x="452" y="316" text-anchor="middle">urNotes</text>
   <text class="in-name in-name-lit" x="452" y="316" text-anchor="middle" mask="url(#inLit)">urNotes</text>
-  <path class="in-desk" d="M24 334 H616" stroke-width="2" stroke-linecap="round"/>
-  <rect class="in-base" x="40" y="322" width="96" height="20" rx="10"/>
-  <path class="in-arm" d="M88 330 V96 L232 250 V78" fill="none" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/>
-  <g class="in-head"><path d="M249.8 75.3 L227.6 95.5 L242.7 149.3 L302.0 95.5 Z"/><ellipse class="in-bulb" cx="272.3" cy="122.4" rx="26" ry="9" transform="rotate(-42.2 272.3 122.4)"/></g>
-  <circle class="in-joint" cx="88" cy="96" r="7"/><circle class="in-joint" cx="232" cy="250" r="7"/><circle class="in-joint" cx="232" cy="78" r="7"/>
+  <g class="in-lamp">
+    <rect class="in-base" x="40" y="322" width="96" height="20" rx="10"/>
+    <path class="in-arm" d="M88 330 V96 L232 250 V78" fill="none" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/>
+    <circle class="in-joint" cx="88" cy="96" r="7"/><circle class="in-joint" cx="232" cy="250" r="7"/>
+    <!-- capul: desenat cu gura în jos; se rotește în jurul încheieturii (232, 78) -->
+    <g class="in-head">
+      <path d="M217 88 H247 L272 138 H192 Z"/>
+      <ellipse class="in-bulb-dim" cx="232" cy="138" rx="26" ry="9"/>
+      <ellipse class="in-bulb" cx="232" cy="138" rx="26" ry="9"/>
+    </g>
+    <circle class="in-joint" cx="232" cy="78" r="7"/>
+  </g>
 </svg>
             <small class="splash-tag">notele tale, sub lampă</small>
         </div>
     </div>
     <script>
-        try {
-            var sp = document.getElementById("splash");
-            if (sessionStorage.getItem("urn_splash_seen")) sp.remove();
-            else {
-                var day = new Date().toDateString();
-                if (matchMedia("(prefers-reduced-motion: reduce)").matches) sp.classList.add("is-still");
-                else if (localStorage.getItem("urn_intro_day") === day) sp.classList.add("is-quick");
-                else localStorage.setItem("urn_intro_day", day);
-            }
-        } catch (e) {}
+        try { if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.getElementById("splash").classList.add("is-still"); } catch (e) {}
     </script>
     <script>
         // Aplică tema salvată înainte de prima afișare (evită „flash”-ul alb în dark mode).
