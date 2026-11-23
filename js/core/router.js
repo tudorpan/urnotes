@@ -71,7 +71,8 @@ const appRoutes = (() => {
             return out;
         };
     }
-    window.addEventListener("popstate", applyPath);
+    // înapoi / înainte din browser: ca o atingere, pagina se desenează sub tranziție
+    window.addEventListener("popstate", () => { if (typeof switchTab === "function") switchTab.tapped = true; applyPath(); if (typeof switchTab === "function") switchTab.tapped = false; });
     window.addEventListener("load", () => { if (slugFromPath()) applyPath(); else setTitle(typeof ui !== "undefined" ? ui.activeTab : ""); });
 
     return { BASE, ROUTES, slugFromPath, urlFor: tab => (SLUG[tab] ? BASE + SLUG[tab] : BASE) };

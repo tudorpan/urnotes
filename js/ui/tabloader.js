@@ -5,6 +5,7 @@
 "use strict";
 
 const TAB_LOADER_MS = 950;
+const TAB_LOADER_FADE_MS = 70; // cât îi ia fondului să devină plin (6% din animație), plus un cadru
 
 function tabLoaderEl() {
     let el = document.getElementById("tab-loader");
@@ -34,12 +35,13 @@ function tabLoaderEl() {
     return el;
 }
 
-function showTabLoader() {
+function showTabLoader({ instant = false } = {}) {
     if (/jsdom/i.test(navigator.userAgent || "") || reduceMotion()) return;
     // pornește de la capăt dacă elevul schimbă repede filele: unul nou în locul celui vechi
     // (fără să forțeze browserul să recalculeze pagina, cum ar face scoaterea și punerea la loc a clasei)
     document.getElementById("tab-loader")?.classList.contains("is-on") && document.getElementById("tab-loader").remove();
     const el = tabLoaderEl();
+    el.classList.toggle("is-instant", instant); // plin din primul cadru (pagina nouă e deja desenată)
     el.classList.add("is-on");
     document.body.classList.add("tl-on");
     clearTimeout(showTabLoader.t);

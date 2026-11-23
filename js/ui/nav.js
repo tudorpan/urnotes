@@ -36,7 +36,9 @@ function switchTab(tabId) {
     let covered = false; // ecranul de tranziție acoperă pagina: o putem desena puțin mai târziu
     if (changed && document.body.dataset.page) {
         document.body.classList.add("page-in");
-        if (typeof showTabLoader === "function") covered = showTabLoader() === true;
+        // fără amânare (o schimbare din cod, nu o atingere): pagina nouă e gata chiar acum, deci ecranul de tranziție
+        // trebuie să fie plin din primul cadru, altfel s-ar vedea pagina înaintea animației
+        if (typeof showTabLoader === "function") covered = showTabLoader({ instant: !deferred }) === true;
         clearTimeout(switchTab.pageInT);
         switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), 520);
     }
@@ -65,7 +67,12 @@ function switchTab(tabId) {
         watchPageTitle();
     };
     requestAnimationFrame(() => moveNavPill()); // citește poziții: după desenare, nu în mijlocul ei
-    if (deferred && covered) requestAnimationFrame(() => requestAnimationFrame(draw));
+    if (deferred && covered) {
+        // pagina veche se stinge sub ecranul de tranziție; abia când acesta e plin (după ~60 ms) apare cea nouă, dedesubt
+        const t0 = performance.now();
+        const wait = () => (performance.now() - t0 >= TAB_LOADER_FADE_MS ? draw() : requestAnimationFrame(wait));
+        requestAnimationFrame(wait);
+    }
     else draw();
     switchTab.tapped = false;
 }

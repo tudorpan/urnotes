@@ -113,6 +113,7 @@ body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-nex
     -webkit-mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px));
     mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px)); }
 .tl.is-on { visibility: visible; animation: tlOpen .95s linear both; }
+.tl.is-on.is-instant { animation-name: tlOpenNow; }
 .tl-svg { overflow: visible; }
 .tl-drops { fill: var(--tint, #0058B8); }
 body.style-app.dark-mode .tl-drops { fill: var(--tint-text, #4DA3FF); }
@@ -123,6 +124,11 @@ body.style-app.dark-mode .tl-drops { fill: var(--tint-text, #4DA3FF); }
 @keyframes tlOpen {
     0% { opacity: 0; --tl-r: -80px; }
     6% { opacity: 1; }
+    64% { --tl-r: -80px; animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
+    100% { opacity: 1; --tl-r: 62vmax; }
+}
+@keyframes tlOpenNow {
+    0% { opacity: 1; --tl-r: -80px; }
     64% { --tl-r: -80px; animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
     100% { opacity: 1; --tl-r: 62vmax; }
 }

@@ -55,11 +55,13 @@ Object.assign(ACTIONS, {
         sideOpen.grades = here ? !sideOpen.grades : true;
         try { localStorage.setItem(SIDE_OPEN_KEY, JSON.stringify(sideOpen)); } catch (_) { /* fără stocare */ }
         if (ui.activeTab === "tab-catalog" && ui.catalog.showDetail) ui.catalog = { ...ui.catalog, showDetail: false };
+        switchTab.tapped = true; // atingere: pagina se desenează sub tranziție
         switchTab("tab-catalog");
         renderSideTree();
     },
     // logo-ul urNotes: înapoi la Azi, sus de tot
     "brand-home": () => {
+        switchTab.tapped = true; // atingere: pagina se desenează sub tranziție
         switchTab("tab-dashboard");
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
