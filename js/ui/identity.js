@@ -89,6 +89,7 @@ let hapticEl = null;
 /** O vibrație scurtă. Pe Android: navigator.vibrate; pe iPhone (Safari 18+): un comutator nativ ascuns, care vibrează când e atins. */
 function haptic() {
     if (state.settings.appearance?.haptics === false) return;
+    if (navigator.userActivation && !navigator.userActivation.isActive) return; // vibrația merge doar imediat după o atingere
     try {
         if (navigator.vibrate && navigator.vibrate(12)) return;
         if (!hapticEl) {
@@ -97,6 +98,10 @@ function haptic() {
             hapticEl.setAttribute("aria-hidden", "true");
             hapticEl.innerHTML = `<input type="checkbox" switch tabindex="-1">`;
             document.body.appendChild(hapticEl);
+            // apăsarea lui e falsă: nu are voie să ajungă la restul aplicației (ar închide meniuri și ferestre
+            // „la un clic în afară” sau ar fi luată drept o alegere)
+            const stop = event => { if (hapticEl.contains(event.target)) event.stopImmediatePropagation(); };
+            ["click", "change", "input", "focusin", "pointerdown"].forEach(t => window.addEventListener(t, stop, true));
         }
         hapticEl.click();
     } catch (_) { /* fără vibrații pe acest dispozitiv */ }
@@ -154,7 +159,9 @@ function nextCelebration() {
         box.classList.add("is-out");
         setTimeout(() => { box.remove(); nextCelebration(); }, 320);
     };
-    box.querySelector(".moment-card").addEventListener("click", away);
+    // nu oprește nimic: orice atingere (oriunde) îl închide și ajunge mai departe la ce ai atins
+    const anyTouch = () => { window.removeEventListener("pointerdown", anyTouch, true); away(); };
+    setTimeout(() => window.addEventListener("pointerdown", anyTouch, true), 350);
     setTimeout(away, c.big ? 3200 : 2400);
 }
 
