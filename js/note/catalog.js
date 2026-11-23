@@ -99,7 +99,10 @@ function renderCatalogNav() {
     // materia aleasă, la mijlocul benzii (fără să miște pagina)
     const strip = nav.querySelector(".cat-strip");
     const chip = strip?.querySelector(".is-on");
-    if (strip && chip && strip.clientWidth) strip.scrollLeft = chip.offsetLeft - strip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2;
+    // în cadrul următor, odată cu restul așezării paginii (măsurat acum, ar forța o așezare în plus)
+    if (strip && chip) requestAnimationFrame(() => {
+        if (strip.isConnected && strip.clientWidth) strip.scrollLeft = chip.offsetLeft - strip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2;
+    });
 }
 
 /** Text fără diacritice, pentru căutare: „matematica” găsește „Matematică”. */
@@ -564,7 +567,7 @@ function selectCatalogSubject(mat, { showDetail = true } = {}) {
         const pane = $("cat-detail-pane");
         if (pane) pane.scrollTop = 0;
         const top = $("catalog-layout")?.getBoundingClientRect().top ?? 0;
-        const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 0;
+        const bar = typeof appbarHeight === "function" ? appbarHeight() : 0;
         if (top < bar) window.scrollBy({ top: top - bar - 12 });
         // în listă, materia aleasă rămâne la vedere (ex. după ‹ ›)
         $("cat-list")?.querySelector(".cat-row.selected")?.scrollIntoView({ block: "nearest" });

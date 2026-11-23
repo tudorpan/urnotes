@@ -96,13 +96,20 @@ function animateTabEnter(tabId, from) {
 function moveNavPill(pop = true) {
     const pill = $("nav-pill");
     const nav = pill?.parentElement;
-    if (!pill || !nav || nav.offsetParent === null && getComputedStyle(nav).display === "none") return;
+    if (!pill || !nav) return;
     const btn = nav.querySelector(".mobile-nav-btn.active");
-    if (!btn) { pill.style.opacity = "0"; return; }
-    // offsetLeft/offsetWidth ignoră efectul de apăsare (scale), deci pastila nu se oprește strâmb
-    pill.style.opacity = "1";
-    pill.style.width = `${btn.offsetWidth}px`;
-    pill.style.transform = `translateX(${btn.offsetLeft}px)`;
+    // Pastila e ascunsă din CSS (fila activă e evidențiată direct): nu o mai măsurăm la fiecare schimbare de filă,
+    // fiindcă măsurarea obligă browserul să așeze toată pagina pe loc.
+    if (pill._off === undefined) pill._off = getComputedStyle(pill).display === "none";
+    if (!pill._off) {
+        if (nav.offsetParent === null) return;
+        if (!btn) { pill.style.opacity = "0"; return; }
+        // offsetLeft/offsetWidth ignoră efectul de apăsare (scale), deci pastila nu se oprește strâmb
+        pill.style.opacity = "1";
+        pill.style.width = `${btn.offsetWidth}px`;
+        pill.style.transform = `translateX(${btn.offsetLeft}px)`;
+    }
+    if (!btn) return;
     if (pop && !reduceMotion()) {
         // reia săritura fără să forțeze o nouă așezare a paginii
         if (btn.classList.contains("is-pop")) btn.getAnimations?.({ subtree: true }).forEach(a => { a.currentTime = 0; a.play(); });
@@ -110,6 +117,15 @@ function moveNavPill(pop = true) {
         document.querySelectorAll(".mobile-nav-btn.is-pop").forEach(b => b !== btn && b.classList.remove("is-pop"));
     }
 }
+
+/** Înălțimea barei de sus (--appbar-h), citită o singură dată și din nou doar când se schimbă ecranul:
+    citită la fiecare schimbare de filă, ar obliga browserul să recalculeze stilurile pe loc. */
+let appbarH = null;
+function appbarHeight() {
+    if (appbarH === null) appbarH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 0;
+    return appbarH;
+}
+if (typeof window !== "undefined") window.addEventListener("resize", () => { appbarH = null; }, { passive: true });
 
 /** Titlul mare al paginii „urcă” în bara de sus când derulezi (ca în aplicațiile de iPhone). */
 let titleObserver = null;
@@ -147,7 +163,7 @@ function watchPageTitle() {
     const h = $(ui.activeTab)?.querySelector("h2");
     if (!h) return;
     slot.textContent = [...h.childNodes].filter(n => n.nodeType === 3 || !n.matches?.(".help-dot")).map(n => n.textContent).join("").trim();
-    const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 60;
+    const bar = appbarHeight() || 60;
     titleObserver = new IntersectionObserver(([e]) => {
         document.body.classList.toggle("title-docked", !e.isIntersecting && e.boundingClientRect.top < bar);
     }, { rootMargin: `-${Math.round(bar)}px 0px 0px 0px`, threshold: 0 });

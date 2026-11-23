@@ -68,17 +68,21 @@ function renderMeInitials(name = state.settings.profile?.name || "") {
 }
 document.addEventListener("input", event => { if (event.target.id === "set-name") renderMeInitials(event.target.value); });
 
+/** „Eu”: butonul de temă spune mereu ce face acum (chemat și la orice schimbare de temă: lampa din antet, ora, sistemul). */
+function syncThemeButton() {
+    const themeBtn = $("eu-theme");
+    if (!themeBtn) return;
+    const dark = document.body.classList.contains("dark-mode");
+    themeBtn.querySelector("span").textContent = dark ? "Temă luminoasă" : "Temă întunecată";
+    themeBtn.querySelector("use")?.setAttribute("href", dark ? "#i-sun" : "#i-moon");
+}
+
 function loadSettingsIntoUI() {
     renderMeInitials();
     renderSealChrome();
     renderIdentitySettings();
     renderAziLayoutSetting();
-    const themeBtn = $("eu-theme"); // „Eu”: tema dintr-o atingere
-    if (themeBtn) {
-        const dark = document.body.classList.contains("dark-mode");
-        themeBtn.querySelector("span").textContent = dark ? "Temă luminoasă" : "Temă întunecată";
-        themeBtn.querySelector("use")?.setAttribute("href", dark ? "#i-sun" : "#i-moon");
-    }
+    syncThemeButton();
     if ($("set-county") && !$("set-county").options.length) $("set-county").innerHTML = countyOptions("");
     for (const [id, [group, key]] of Object.entries(SETTINGS_FIELDS)) {
         const el = $(id);

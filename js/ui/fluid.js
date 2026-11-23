@@ -229,12 +229,16 @@ function placeGlide(g, p, animate) {
     g.style.opacity = "1";
 }
 function glideAll() {
+    // întâi citim toate pozițiile, apoi scriem: citiri și scrieri amestecate ar reașeza pagina la fiecare cutie
+    const jobs = [];
     document.querySelectorAll(GLIDE_SEL).forEach(box => {
         if (!box.offsetParent) return; // ascuns: nu măsurăm
         const on = box.querySelector(".subnav-btn.active, :scope > [aria-pressed=\"true\"]");
-        let g = box.querySelector(":scope > .seg-glide");
+        const g = box.querySelector(":scope > .seg-glide");
+        jobs.push({ box, on, g, pos: on ? { x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight } : null });
+    });
+    jobs.forEach(({ box, on, g, pos }) => {
         if (!on) { if (g) g.style.opacity = "0"; return; }
-        const pos = { x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight };
         const key = glideKey(box);
         if (!g) {
             g = document.createElement("span");

@@ -518,6 +518,7 @@ function applyAppearanceSettings() {
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? THEME_BAR.dark : THEME_BAR.light; }); // peretele raftului
     applyLamp(dark); // culoarea lămpii și momentul zilei (js/ui/identity.js)
+    if (typeof syncThemeButton === "function") syncThemeButton();
     document.body.dataset.titles = a.titles || "serif"; // litera titlurilor (identity.css)
     if (typeof renderLampLogos === "function") renderLampLogos(); // lampa din logo: aprinsă seara
 

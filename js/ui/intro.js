@@ -321,6 +321,8 @@ function introStart() {
     intro.jointAt = th.map(v => { for (let t = 260; t <= 1060; t += 4) if (IT.draw(t) >= v) return t; return 1060; });
     intro.last = 0;
     el.addEventListener("pointerdown", introSkip, { once: true });
+    // plasă de siguranță: dacă aplicația nu anunță că e gata (o eroare la pornire), lampa pleacă oricum
+    setTimeout(() => { if (!intro.ready) introReady(); }, 9000);
     const tick = now => {
         if (intro.done) return;
         const t = now - intro.t0 + intro.jump;
