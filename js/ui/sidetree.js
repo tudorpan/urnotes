@@ -66,4 +66,4 @@ Object.assign(ACTIONS, {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 });
-["side-toggle", "side-subject", "side-note", "brand-home", "db-past", "cal-jump"].forEach(a => GUEST_OK.add(a));
+["side-toggle", "side-subject", "side-note", "brand-home", "lamp-toggle", "db-past", "cal-jump"].forEach(a => GUEST_OK.add(a));

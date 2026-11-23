@@ -16,7 +16,7 @@
     <meta name="theme-color" content="#EEF0F6" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0B1226" media="(prefers-color-scheme: dark)">
     <!-- Iconița: post-it-ul urNotes, cu două rânduri scrise cu cerneală violet -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22%3E%3Cdefs%3E%3ClinearGradient id=%22bg%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22#1B2650%22/%3E%3Cstop offset=%221%22 stop-color=%22#0B1226%22/%3E%3C/linearGradient%3E%3CradialGradient id=%22gl%22 cx=%2262%25%22 cy=%2262%25%22 r=%2255%25%22%3E%3Cstop offset=%220%22 stop-color=%22#F2C879%22 stop-opacity=%22.22%22/%3E%3Cstop offset=%221%22 stop-color=%22#F2C879%22 stop-opacity=%220%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22url(#bg)%22/%3E%3Crect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22url(#gl)%22/%3E%3Cdefs%3E%3ClinearGradient id=%22cone%22 gradientUnits=%22userSpaceOnUse%22 x1=%22341%22 y1=%22240%22 x2=%22380%22 y2=%22412%22%3E%3Cstop offset=%220%22 stop-color=%22#F7D995%22 stop-opacity=%22.5%22/%3E%3Cstop offset=%221%22 stop-color=%22#F7D995%22 stop-opacity=%22.06%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg transform=%22translate(256 262) scale(1.12) translate(-256 -256)%22%3E%3Cpath d=%22M395.4 228.8 L471.8 412.0 L287.5 412.0 L285.7 251.4 Z%22 fill=%22url(#cone)%22/%3E%3Cellipse cx=%22379.7%22 cy=%22412%22 rx=%2282.9%22 ry=%2212%22 fill=%22#F7D995%22 opacity=%22.35%22/%3E%3Cpath d=%22M152 410 V160 L322 330 V150%22 fill=%22none%22 stroke=%22#E9B85C%22 stroke-width=%2230%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3Crect x=%22100%22 y=%22400%22 width=%22104%22 height=%2222%22 rx=%2211%22 fill=%22#E9B85C%22/%3E%3Ccircle cx=%22152%22 cy=%22160%22 r=%2218%22 fill=%22#B8822E%22/%3E%3Ccircle cx=%22322%22 cy=%22330%22 r=%2218%22 fill=%22#B8822E%22/%3E%3Cpath d=%22M347.2 163.2 L304.1 172.1 L285.7 251.4 L395.4 228.8 Z%22 fill=%22#E9B85C%22/%3E%3Cpath d=%22M347.2 163.2 L331.5 166.4 L370.0 234.1 L395.4 228.8 Z%22 fill=%22#F7D995%22 opacity=%22.6%22/%3E%3Cellipse cx=%22340.6%22 cy=%22240.1%22 rx=%2234%22 ry=%2214%22 transform=%22rotate(-11.6 340.6 240.1)%22 fill=%22#FFF4DA%22/%3E%3Ccircle cx=%22322%22 cy=%22150%22 r=%2217%22 fill=%22#B8822E%22/%3E%3C/g%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22%3E%3Crect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22#111A38%22/%3E%3Cg transform=%22translate(256 262) scale(1.0) translate(-256 -256)%22%3E%0A%3Cg fill=%22#E9B85C%22 opacity=%22.26%22%3E%3Cpath d=%22M277 227 L287 412 L475 412 L394 202 Z%22/%3E%3Cellipse cx=%22381%22 cy=%22412%22 rx=%2275%22 ry=%2211%22/%3E%3C/g%3E%0A%3Cpath d=%22M152 410 V160 L322 330 V150%22 fill=%22none%22 stroke=%22#E9B85C%22 stroke-width=%2234%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%0A%3Crect x=%22100%22 y=%22398%22 width=%22104%22 height=%2224%22 rx=%2212%22 fill=%22#E9B85C%22/%3E%0A%3Cpath d=%22M300 132 H344 L382 216 H262 Z%22 fill=%22#E9B85C%22 transform=%22rotate(-12 322 150)%22/%3E%0A%3Cellipse cx=%22318%22 cy=%22222%22 rx=%2230%22 ry=%2211%22 fill=%22#FFF4DA%22 transform=%22rotate(-12 322 150)%22/%3E%3C/g%3E%3C/svg%3E">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ui.css">
@@ -190,10 +190,11 @@
 
     <!-- Meniul lateral (ecrane mari): ca marginea unui caiet -->
     <aside class="sidebar" aria-label="Meniu">
-        <button type="button" class="side-brand brand-home" data-action="brand-home" title="Înapoi la Azi" aria-label="urNotes: înapoi la Azi">
-            <img class="brand-logo" src="icons/logo.svg" alt="" aria-hidden="true">
-            <span class="side-brand-text"><b class="brand-name"><span class="brand-ur">ur</span>Notes</b><small>notele tale</small></span>
-        </button>
+        <div class="side-brand">
+            <!-- lampa din logo: atinsă, se aprinde (tema de seară) sau se stinge (tema de zi) — js/ui/identity.js -->
+            <button type="button" class="lamp-btn" data-action="lamp-toggle" data-lamp-logo aria-pressed="false" aria-label="Aprinde lampa"></button>
+            <button type="button" class="brand-home side-brand-text" data-action="brand-home" title="Înapoi la Azi" aria-label="urNotes: înapoi la Azi"><b class="brand-name"><span class="brand-ur">ur</span>Notes</b></button>
+        </div>
         <nav class="side-nav" aria-label="Navigație principală">
             <button type="button" class="tab-btn side-link active" data-action="nav" data-tab="tab-dashboard" data-group="home" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Azi</span></button>
             <div class="side-row side-row-grades">
@@ -219,11 +220,13 @@
             <button type="button" class="topbar-back" id="topbar-back" data-action="nav" data-tab="tab-dashboard" hidden><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span id="topbar-back-label">Azi</span></button>
             <!-- Ecrane mari: unde ești („Note › Progresul tău”) -->
             <nav class="topbar-crumb" id="topbar-crumb" aria-label="Unde ești"></nav>
-            <button type="button" class="topbar-brand brand-home" data-action="brand-home" title="Înapoi la Azi" aria-label="urNotes: înapoi la Azi">
-                <img class="brand-logo" src="icons/logo.svg" alt="" aria-hidden="true">
-                <b class="brand-name"><span class="brand-ur">ur</span>Notes</b>
-                <span class="topbar-title" id="topbar-title" aria-hidden="true"></span>
-            </button>
+            <div class="topbar-brand">
+                <button type="button" class="lamp-btn" data-action="lamp-toggle" data-lamp-logo aria-pressed="false" aria-label="Aprinde lampa"></button>
+                <button type="button" class="brand-home topbar-home" data-action="brand-home" title="Înapoi la Azi" aria-label="urNotes: înapoi la Azi">
+                    <b class="brand-name"><span class="brand-ur">ur</span>Notes</b>
+                    <span class="topbar-title" id="topbar-title" aria-hidden="true"></span>
+                </button>
+            </div>
             <div class="topbar-actions">
                 <button type="button" class="btn btn-primary quick-add-btn" id="quick-add-btn" data-action="quick-add" aria-haspopup="menu" aria-expanded="false" aria-controls="quick-add">
                     <svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span>

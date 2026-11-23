@@ -223,3 +223,48 @@ function bindIdentity() {
         if (event.target.checked) { if (id === "set-sounds") chime(); else haptic(); }
     });
 }
+
+/* ---------- logo-ul: lampa care desenează N-ul, vie ----------
+   Atinge lampa (lângă numele aplicației): se aprinde sau se stinge. Aprinsă = tema de seară, stinsă = tema de zi;
+   schimbarea se întinde pe ecran pornind din lampă. Cu mouse-ul deasupra, capul se apleacă puțin spre masă. */
+function lampLogoSVG() {
+    return `<svg class="lamp-logo" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+        <g class="ll-light"><path d="M277 227 L287 412 L475 412 L394 202 Z"/><ellipse cx="381" cy="412" rx="75" ry="11"/></g>
+        <path class="ll-arm" d="M152 410 V160 L322 330 V150" fill="none" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect class="ll-arm-fill" x="100" y="398" width="104" height="24" rx="12"/>
+        <g class="ll-head"><path class="ll-arm-fill" d="M300 132 H344 L382 216 H262 Z" transform="rotate(-12 322 150)"/>
+            <ellipse class="ll-bulb" cx="318" cy="222" rx="30" ry="11" transform="rotate(-12 322 150)"/></g>
+    </svg>`;
+}
+function renderLampLogos() {
+    document.querySelectorAll("[data-lamp-logo]").forEach(el => { if (!el.firstElementChild) el.innerHTML = lampLogoSVG(); });
+    const on = document.body.classList.contains("dark-mode");
+    document.querySelectorAll(".lamp-btn").forEach(b => {
+        b.setAttribute("aria-pressed", String(on));
+        b.setAttribute("aria-label", on ? "Stinge lampa (tema de zi)" : "Aprinde lampa (tema de seară)");
+        b.title = on ? "Stinge lampa" : "Aprinde lampa";
+    });
+}
+/** Atingerea lămpii: tema se schimbă, întinzându-se ca o lumină din lampă (unde se poate), cu o pâlpâire scurtă. */
+function toggleLamp(btn) {
+    const goDark = !document.body.classList.contains("dark-mode");
+    const apply = () => {
+        state.settings.appearance.theme = goDark ? "dark" : "light";
+        saveState();
+        applyAppearanceSettings();
+        renderLampLogos();
+        const sel = $("set-theme");
+        if (sel) sel.value = state.settings.appearance.theme;
+    };
+    haptic();
+    btn?.classList.remove("is-flick");
+    if (btn && !reduceMotion()) { void btn.offsetWidth; btn.classList.add("is-flick"); }
+    const r = btn?.getBoundingClientRect();
+    if (!document.startViewTransition || reduceMotion() || !r) { apply(); return; }
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    document.startViewTransition(apply).ready.then(() => {
+        document.documentElement.animate({ clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
+            { duration: 520, easing: "cubic-bezier(.4, 0, .2, 1)", pseudoElement: "::view-transition-new(root)" });
+    }).catch(() => {});
+}

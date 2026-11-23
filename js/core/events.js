@@ -33,6 +33,8 @@ const ACTIONS = {
         renderCalendar();
     },
     "shortcuts": () => { closeCalMenu?.(); openShortcuts(); },
+    // lampa din logo: aprinde / stinge (tema de seară / de zi)
+    "lamp-toggle": el => toggleLamp(el),
     // Eu: atelierul sigiliului (js/ui/seal.js)
     "seal-workshop": () => openSealWorkshop(),
     "seal-set": el => setSealDraft(el.dataset.group, el.dataset.key),

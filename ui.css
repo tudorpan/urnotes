@@ -1575,10 +1575,10 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
    ========================================================================== */
 @media (max-width: 760px), (pointer: coarse) {
     .ag-add, .ag-lesson, .cal-chip, .cal-arrow, .cal-ev-check, .stats-nav-link, .impact-row, .trend-row, .brief-link,
-    .nogrades-chip, .sim-chip, .cat-strip-chip, .btn-star, .topbar-brand, .toast-action, .btn-sm { position: relative; }
+    .nogrades-chip, .sim-chip, .cat-strip-chip, .btn-star, .toast-action, .btn-sm { position: relative; }
     .ag-add::before, .ag-lesson::before, .cal-chip::before, .cal-arrow::before, .cal-ev-check::before, .cat-quick::before,
     .stats-nav-link::before, .impact-row::before, .trend-row::before, .brief-link::before, .nogrades-chip::before, .sim-chip::before,
-    .cat-strip-chip::before, .help-dot::before, .btn-star::before, .azi-check::before, .topbar-brand::before, .toast-action::before, .btn-sm::before {
+    .cat-strip-chip::before, .help-dot::before, .btn-star::before, .azi-check::before, .toast-action::before, .btn-sm::before {
         content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
     }
     .btn { min-height: 44px; }

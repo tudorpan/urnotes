@@ -519,5 +519,6 @@ function applyAppearanceSettings() {
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? THEME_BAR.dark : THEME_BAR.light; }); // peretele raftului
     applyLamp(dark); // culoarea lămpii și momentul zilei (js/ui/identity.js)
     document.body.dataset.titles = a.titles || "serif"; // litera titlurilor (identity.css)
+    if (typeof renderLampLogos === "function") renderLampLogos(); // lampa din logo: aprinsă seara
 
 }

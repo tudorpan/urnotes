@@ -281,3 +281,55 @@ body.style-app .side-pill { background: var(--tint-soft); }
 body.style-app .side-nav.has-pill .tab-btn.side-link.active { background: transparent; }
 body.style-app.dark-mode .side-pill { background: #28346A; box-shadow: inset 0 1px 0 rgba(237, 232, 221, 0.08); }
 @media (max-width: 900px) { body.style-app.dark-mode .nav-pill { background: rgba(143, 163, 232, 0.16); } }
+
+/* ---------- logo-ul viu: lampa (js/ui/identity.js, lampLogoSVG) ---------- */
+.lamp-btn { flex: none; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 12px; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.topbar-brand .lamp-btn { width: 36px; height: 36px; }
+.lamp-logo { width: 100%; height: 100%; overflow: visible; }
+.lamp-logo .ll-arm { stroke: var(--lamp-logo, #C9962F); }
+.lamp-logo .ll-arm-fill { fill: var(--lamp-logo, #C9962F); }
+.lamp-logo .ll-bulb { fill: var(--lamp-logo, #C9962F); opacity: .35; transition: fill .3s ease, opacity .3s ease; }
+.lamp-logo .ll-light { fill: var(--lamp-fill, #E9B85C); opacity: 0; transition: opacity .35s ease; }
+.lamp-logo .ll-head { transform-box: view-box; transform-origin: 322px 150px; transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+body.dark-mode { --lamp-logo: var(--lamp-fill, #E9B85C); }
+body:not(.dark-mode) { --lamp-logo: var(--lamp-text, #7E5410); }
+/* aprinsă (tema de seară): becul strălucește și lumina cade pe masă */
+body.dark-mode .lamp-logo .ll-bulb { fill: #FFF4DA; opacity: 1; }
+body.dark-mode .lamp-logo .ll-light { opacity: .3; }
+/* mouse-ul deasupra: capul se apleacă spre masă; apăsat: coboară mai mult */
+@media (hover: hover) { .lamp-btn:hover .ll-head { transform: rotate(-8deg); } }
+.lamp-btn:active .ll-head { transform: rotate(-14deg); }
+.lamp-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* pâlpâirea de la aprindere */
+.lamp-btn.is-flick .ll-light, .lamp-btn.is-flick .ll-bulb { animation: lampFlick .5s steps(1, end); }
+@keyframes lampFlick { 0% { opacity: .9; } 20% { opacity: .1; } 35% { opacity: .8; } 50% { opacity: .2; } 70% { opacity: 1; } }
+.side-brand { display: flex; align-items: center; gap: 8px; }
+.side-brand .brand-home, .topbar-home { padding: 4px 6px; border: 0; background: none; color: inherit; cursor: pointer; border-radius: 10px; text-align: left; }
+.topbar-brand { gap: 6px; }
+.topbar-home { display: flex; align-items: center; gap: 10px; min-width: 0; }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+@media (prefers-reduced-motion: reduce) { .lamp-logo * { transition: none !important; animation: none !important; } }
+
+/* ---------- mai simplu: mai puține straturi, mai puțin auriu, fără umbre ----------
+   Lampa se vede doar seara (și discret); cardurile sunt suprafețe plate; auriul rămâne pentru ce e important
+   (butonul principal, ziua de azi, ce e ales); pictogramele materiilor stau singure, fără pătrățel. */
+body.style-app:not(.dark-mode)::before { display: none; }
+body.style-app.dark-mode[data-lamp="day"]::before, body.style-app.dark-mode[data-lamp="morning"]::before { opacity: .5; }
+body.style-app.dark-mode { --lamp-a: 0.1; }
+body.style-app.dark-mode[data-lamp="evening"] { --lamp-a: 0.12; }
+body.style-app :is(.glass-card, .home-tile, .cat-sum), body.style-app.dark-mode :is(.glass-card, .home-tile, .cat-sum), body.style-app:not(.dark-mode) :is(.glass-card, .home-tile, .cat-sum) { box-shadow: none; }
+body.style-app:not(.dark-mode) :is(.glass-card, .home-tile, .cat-sum) { border: 1px solid rgba(18, 26, 51, 0.06); }
+body.style-app .azi-date { color: var(--ink-2); }
+body.style-app .side-brand-text small { display: none; }
+/* pictogramele materiilor: doar desenul, în culoarea materiei */
+body.style-app .cat-row .subj-chip, body.style-app.dark-mode .cat-row .subj-chip, body.style-app .as-item .as-ico, body.style-app.dark-mode .as-item .as-ico { background: none; }
+body.style-app .cat-row .subj-chip { width: 26px; font-size: 22px; }
+body.style-app .as-item .as-ico { width: 22px; font-size: 19px; }
+/* meniul lateral: pictogramele neutre, doar pagina deschisă e aurie */
+body.style-app .sidebar .side-link .ico { color: var(--ink-2); }
+body.style-app .sidebar .side-link.active .ico { color: var(--tint-text); }
+/* sigiliul de lângă salut: mai mic, fără umbră grea */
+body.style-app .azi-seal-svg { width: 46px; height: 46px; filter: none; }
+@media (max-width: 760px) { body.style-app .azi-seal-svg { width: 42px; height: 42px; } }
+/* pe telefon sigiliul tău e deja sus, pe butonul Eu: nu-l mai repetăm lângă salut */
+@media (max-width: 900px) { body.style-app .azi-seal { display: none; } }
