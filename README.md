@@ -96,6 +96,8 @@ Ca pe iPhone (`js/ui/swipe.js`, stilurile `sw-*` din `motion.css`); sub ce tragi
 - o notificare din clopoțel: stânga sau dreapta o ascunde, cu „Anulează”; panoul întreg se închide trăgându-l spre dreapta;
 - un eveniment trecut din Calendar: dreapta = Făcut / Fără notă, stânga = Notă;
 - o materie din Note: spre stânga deschide nota rapidă la ea;
+- pagina unei materii (pe telefon): din marginea stângă spre dreapta te întoarce la toate materiile, ca „înapoi” din aplicațiile de iPhone (pagina urmează degetul; dincolo de o treime sau cu o aruncare pleacă, altfel revine);
+- nota rapidă: ții degetul pe o notă și aluneci peste celelalte; unde îl ridici, acolo pui nota;
 - calendarul (Zi, 3 zile, Săptămână, Lună): stânga / dreapta merge la următoarea / anterioara;
 - foile de jos (formularele, eveniment nou din Calendar, detaliile unui eveniment, „Adaugă”): le tragi în jos ca să se închidă (`js/ui/phone.js`).
 
@@ -108,6 +110,8 @@ Tasta `?` (sau „Taste scurte și gesturi” din meniul modului din Calendar) d
 - Ce tragi cu mouse-ul se mișcă și el (`flipMove()` din `js/ui/fluid.js`): în Calendar, evenimentul ridicat se estompează, iar o umbră cu titlul și ora arată din 15 în 15 minute unde ajunge (ca la Google); la lăsare se așază acolo, iar celelalte își fac loc alunecând. Blocul nou (Fără titlu) alunecă între sferturile de oră în loc să sară. Blocurile din notițe și orele din Orar alunecă în locurile noi, iar cel lăsat se așază din locul unde ți-a scăpat din mână; linia unde ajunge se deschide lin.
 - Între file apare un ecran scurt de 0,95 s (`js/ui/tabloader.js` și stilurile `tl-*` din `motion.css`): pe un fond plin, trei picături mici se rotesc una în jurul alteia, alunecă spre mijloc și se lipesc într-una (filtru SVG), care se umflă puțin și pocnește; în clipa aceea fondul se deschide din mijloc spre margini, cu marginea moale, și apare pagina nouă, deja gata (s-a desenat dedesubt). Nu întârzie nimic, nu oprește atingerile, nu apare la pornire și nici cu „reducere mișcare”.
 - Sticlă (liquid glass, variabilele `--lg-*` din `app.css`) doar pe ce plutește: bara de file (o capsulă), lentila filei alese, butoanele rotunde din colț, toast-urile și butoanele configurării. E aproape transparentă și înviorează culorile de dedesubt, cu o margine de 1 px care prinde lumina (gradient decupat cu mască), lumină moale în interior și o umbră largă și slabă. Cardurile cu note rămân opace.
+- Înainte să pui o notă (nota rapidă, `js/note/quickgrade.js`): apăsând sau trecând peste o notă vezi ce s-ar întâmpla: media materiei (▲/▼ cu cât), media finală, media generală și dacă atingi ținta. Nu se schimbă nimic până nu o pui.
+- Mediile se rostogolesc (`rollNumbers()` din `js/ui/nav.js`, atributul `data-roll`): după o notă, media generală, media de pe rândul materiei și cea din pagina ei numără până la valoarea nouă, cu o pulsație verde (a urcat) sau roșie (a coborât).
 - Gesturi (`js/ui/scena.js`): pe telefon glisezi între materii și tragi foaia „Adaugă” în jos ca s-o închizi; ții apăsat (sau clic dreapta) pe o carte de pe raft ca să pui o notă; atingi fila activă ca să urci sus; fiecare pagină își ține minte locul; „Anulează” are o bară cu timpul rămas.
 
 ### Mascotele

@@ -48,6 +48,7 @@ function renderActiveTab({ keepSettingsForm = false } = {}) {
         reportRenderError(err);
     }
     renderPageIcons(); // unele pagini își rescriu titlul (ex. Examene → „Bacalaureatul”)
+    if (typeof rollNumbers === "function") rollNumbers($(ui.activeTab) || document);
 }
 
 function emptyNote(text) {

@@ -191,3 +191,10 @@ body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, 
 /* ieșirea (js/ui/fluid.js, leaveGhost / leaveRemove): copia care pleacă nu-și mai joacă intrarea și nu se poate atinge */
 :is(.is-leaving, .is-leaving *):not(#_):not(#__) { animation: none !important; transition: none !important; pointer-events: none !important; }
 .is-leaving .stg:not(#_):not(#__) { opacity: 1 !important; }
+
+/* din marginea stângă, înapoi (js/ui/scena.js): pagina materiei urmează degetul, cu o umbră pe marginea ei,
+   iar în spațiul care se deschide apare „‹ Toate materiile” */
+.cat-detail-pane.edge-dragging { will-change: transform; }
+body.edge-back-on .cat-detail-pane { position: relative; z-index: 2; box-shadow: -14px 0 28px -10px rgba(0, 0, 0, calc(.35 * (1 - var(--edge-k, 0)))); background: var(--paper); }
+body.edge-back-on #tab-catalog::before { content: "‹  Toate materiile"; position: fixed; left: 14px; top: 50%; z-index: 1; color: var(--ink-2); font-weight: 700; font-size: 15px;
+    opacity: calc(min(1, var(--edge-k, 0) * 3)); transform: translateX(calc((var(--edge-k, 0) - .3) * 40px)); pointer-events: none; }

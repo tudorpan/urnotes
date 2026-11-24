@@ -53,7 +53,7 @@ if (typeof showToast === "function") {
     let x0 = 0, y0 = 0, t0 = 0, ok = false;
     document.addEventListener("touchstart", e => {
         const box = e.target.closest?.("#cat-detail");
-        ok = Boolean(box) && phoneWidth() && e.touches.length === 1
+        ok = Boolean(box) && phoneWidth() && e.touches.length === 1 && e.touches[0].clientX > EDGE_BACK_PX
             && !e.target.closest("input, textarea, select, canvas, .cat-chips, .cat-subj-strip, [data-noswipe], .chart-wrap");
         if (!ok) return;
         x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
@@ -67,6 +67,69 @@ if (typeof showToast === "function") {
         const dir = dx < 0 ? 1 : -1;
         stepCatalog(dir);
     }, { passive: true });
+})();
+
+/* ==================== telefon: din marginea stângă, înapoi la toate materiile ====================
+   Ca în aplicațiile de iPhone (o aplicație pusă pe ecranul principal nu are gestul „înapoi” al browserului): pagina
+   materiei urmează degetul spre dreapta, cu o umbră; dincolo de o treime (sau cu o aruncare rapidă) pleacă și apare
+   lista, venind puțin din stânga. Altfel se întoarce la loc. */
+const EDGE_BACK_PX = 22;
+(() => {
+    let g = null;
+    const pane = () => document.querySelector("#tab-catalog .cat-detail-pane");
+    const can = () => phoneWidth() && ui.activeTab === "tab-catalog" && ui.catalog.showDetail && pane()?.offsetParent !== null
+        && !document.querySelector(".modal-overlay:not([hidden]), .sheet-open, #quick-grade");
+    document.addEventListener("touchstart", e => {
+        g = null;
+        if (e.touches.length !== 1 || e.touches[0].clientX > EDGE_BACK_PX || !can()) return;
+        const t = e.touches[0];
+        g = { x0: t.clientX, y0: t.clientY, t0: performance.now(), on: false, dx: 0, v: 0, lx: t.clientX, lt: performance.now(), el: pane() };
+    }, { passive: true });
+    document.addEventListener("touchmove", e => {
+        if (!g) return;
+        const t = e.touches[0], dx = t.clientX - g.x0, dy = t.clientY - g.y0;
+        if (!g.on) {
+            if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { g = null; return; } // derulează: nu e gestul nostru
+            if (dx < 8) return;
+            g.on = true;
+            g.el.classList.add("edge-dragging");
+            document.body.classList.add("edge-back-on");
+        }
+        e.preventDefault();
+        const now = performance.now();
+        g.v = (t.clientX - g.lx) / Math.max(1, now - g.lt); g.lx = t.clientX; g.lt = now;
+        g.dx = Math.max(0, dx);
+        const w = window.innerWidth, k = Math.min(1, g.dx / w);
+        g.el.style.transform = `translateX(${g.dx.toFixed(1)}px)`;
+        document.body.style.setProperty("--edge-k", k.toFixed(3));
+    }, { passive: false });
+    const end = () => {
+        if (!g) return;
+        const st = g; g = null;
+        if (!st.on) return;
+        const w = window.innerWidth, el = st.el;
+        if (performance.now() - st.lt > 90) st.v = 0; // degetul s-a oprit înainte să-l ridici: nu e o aruncare
+        const go = st.dx > w * 0.33 || (st.v > 0.5 && st.dx > 40);
+        const ms = Math.round(Math.max(140, Math.min(320, ((go ? w - st.dx : st.dx) / Math.max(0.6, Math.abs(st.v))))));
+        el.classList.remove("edge-dragging");
+        el.style.transition = `transform ${ms}ms cubic-bezier(.2, .8, .3, 1)`;
+        el.style.transform = go ? `translateX(${w}px)` : "translateX(0)";
+        document.body.style.setProperty("--edge-k", go ? "1" : "0");
+        setTimeout(() => {
+            el.style.transition = ""; el.style.transform = "";
+            document.body.classList.remove("edge-back-on");
+            document.body.style.removeProperty("--edge-k");
+            if (!go) return;
+            haptic?.();
+            ACTIONS["cat-back"]?.();
+            // lista vine puțin din stânga, ca stratul de dedesubt la iPhone
+            const list = document.querySelector("#tab-catalog .cat-list-pane");
+            if (list && !reduceMotion()) list.animate([{ transform: "translateX(-24%)", opacity: 0.6 }, { transform: "none", opacity: 1 }],
+                { duration: 260, easing: "cubic-bezier(.2, .8, .3, 1)" });
+        }, ms);
+    };
+    document.addEventListener("touchend", end, { passive: true });
+    document.addEventListener("touchcancel", end, { passive: true });
 })();
 
 /* foaia „Adaugă” (Ce adaugi?) se trage în jos ca să se închidă: js/ui/phone.js (bindSheetDrag), ca toate foile */

@@ -238,7 +238,7 @@ function renderCatalogSummary(entries) {
         </div>`;
 
     $("cat-summary").innerHTML = [
-        tile("Media generală", metrics.globalAvg > 0 ? metrics.globalAvg.toFixed(2) : "–", escapeHTML(method), "is-accent"),
+        tile("Media generală", metrics.globalAvg > 0 ? `<span data-roll="gpa-note" data-v="${metrics.globalAvg}">${metrics.globalAvg.toFixed(2)}</span>` : "–", escapeHTML(method), "is-accent"),
         tile("Note", metrics.totalGrades, missing > 0 ? `încă ${plural(missing, "notă necesară", "note necesare")}` : "minimul e atins peste tot"),
         tile("La risc", metrics.riskCount, metrics.riskCount ? `sub ${state.settings.calc.riskThreshold.toFixed(2)}` : "nicio materie", metrics.riskCount > 0 ? "is-danger" : "is-ok")
     ].join("");
@@ -299,7 +299,7 @@ function renderCatalogList() {
                     <span class="subj-bar" aria-hidden="true"><i style="width:${pct.toFixed(0)}%"></i></span>
                 </span>
                 <span class="cat-row-avg">
-                    <b>${hasGrades ? d.exactAvg.toFixed(2) : "–"}</b>
+                    <b>${hasGrades ? `<span data-roll="row:${escapeHTML(mat)}" data-v="${d.exactAvg}">${d.exactAvg.toFixed(2)}</span>` : "–"}</b>
                     <small>${risk ? `${icon("alert")} risc` : hasGrades ? `→ ${d.roundedAvg}` : "fără note"}</small>
                 </span>
                 <span class="cat-dot ${statusTone(d)}" aria-hidden="true"></span>
@@ -384,7 +384,7 @@ function renderCatalogDetail() {
 
             ${subjectPropsHTML(mat, sub, d, { last, minTotal, reached, gap })}
             <div class="cat-stats">
-                ${stat("Media", sub.grades.length ? `${d.exactAvg.toFixed(2)} <span class="sim-round">→ ${d.roundedAvg}</span>` : "–",
+                ${stat("Media", sub.grades.length ? `<span data-roll="det:${safeMat}" data-v="${d.exactAvg}">${d.exactAvg.toFixed(2)}</span> <span class="sim-round">→ ${d.roundedAvg}</span>` : "–",
                     sub.grades.length ? "exactă → finală" : "încă fără note")}
                 ${stat("Ținta", fmtTarget(sub.target),
                     !sub.grades.length ? "media finală dorită" : reached ? "✓ atinsă" : `lipsesc ${Math.max(0.01, roundValue(gap, 2)).toFixed(2)} puncte`,

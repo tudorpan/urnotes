@@ -177,6 +177,11 @@ function countUp(el, key, to, decimals = 2) {
     const from = countedFrom[key];
     countedFrom[key] = to;
     if (from === undefined || from === to || reduceMotion()) return;
+    // o pulsație scurtă în culoarea schimbării: a urcat sau a coborât
+    el.classList.remove("roll-up", "roll-down");
+    void el.offsetWidth;
+    el.classList.add(to > from ? "roll-up" : "roll-down");
+    setTimeout(() => el.classList.remove("roll-up", "roll-down"), 1300);
     const start = performance.now(), dur = 650;
     const step = now => {
         const t = Math.min(1, (now - start) / dur);
@@ -185,6 +190,15 @@ function countUp(el, key, to, decimals = 2) {
         if (t < 1 && document.contains(el)) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
+}
+
+/** Toate numerele marcate cu data-roll="cheie" (și data-v = valoarea) se rostogolesc de la valoarea de data trecută
+    la cea nouă, ca un contor: vezi cum s-a mișcat media după o notă, nu doar că s-a schimbat. */
+function rollNumbers(root = document) {
+    root.querySelectorAll?.("[data-roll]").forEach(el => {
+        const v = Number(el.dataset.v);
+        if (Number.isFinite(v)) countUp(el, `roll:${el.dataset.roll}`, v, Number(el.dataset.dec ?? 2));
+    });
 }
 
 /** Tema întunecată / luminoasă, dintr-o atingere (pagina „Eu”). */

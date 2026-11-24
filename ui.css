@@ -1036,6 +1036,27 @@ body.viewer-empty .content-body > .tab-content { display: none !important; }
 .qg-val { height: 44px; border: 1px solid var(--rule); border-radius: 10px; background: var(--input-bg); font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; color: var(--ink); transition: transform 0.08s ease, background-color 0.1s ease; }
 .qg-val:hover, .qg-val:focus-visible { background: var(--accent-fill); color: var(--on-accent-fill); border-color: transparent; transform: translateY(-1px); outline: none; }
 .qg-val.tone-fail { color: var(--risk); }
+.qg-vals { touch-action: none; }
+.qg-val.is-scrub { background: var(--accent-fill); color: var(--on-accent-fill); border-color: transparent; transform: translateY(-2px) scale(1.06); }
+/* ce s-ar întâmpla cu media, înainte să pui nota */
+.qg-preview { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-height: 40px; margin: 0 0 10px; padding: 8px 10px; border-radius: 10px;
+    background: var(--input-bg); color: var(--ink-2); font-size: 12.5px; line-height: 1.35; transition: background-color .15s ease; }
+.qg-preview.is-live { color: var(--ink); }
+.qg-preview .qg-avg { font-variant-numeric: tabular-nums; }
+.qg-preview .qg-avg b { font-size: 17px; font-weight: 800; }
+.qg-preview .qg-avg em { font-style: normal; font-weight: 700; font-size: 12px; }
+.qg-preview.is-up .qg-avg em, .qg-preview.is-up .qg-avg b { color: var(--ok, #2E9E6B); }
+.qg-preview.is-down .qg-avg em, .qg-preview.is-down .qg-avg b { color: var(--risk); }
+.qg-preview .qg-final, .qg-preview .qg-gpa { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.qg-preview .qg-final.is-change b { color: var(--accent-color); }
+.qg-preview .qg-hit { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-color); font-weight: 700; }
+.qg-preview .qg-hit .ico { width: 13px; height: 13px; }
+/* numerele care se rostogolesc (js/ui/nav.js, rollNumbers): o pulsație scurtă în culoarea schimbării */
+.roll-up, .roll-down { animation: rollTint 1.2s ease; }
+.roll-up { --roll-c: var(--ok, #2E9E6B); }
+.roll-down { --roll-c: var(--risk); }
+@keyframes rollTint { 0%, 35% { color: var(--roll-c); } 100% { color: inherit; } }
+@media (prefers-reduced-motion: reduce) { .qg-val.is-scrub { transform: none; } }
 .qg-more { display: block; width: 100%; margin-top: 8px; padding: 6px; border: 0; background: none; color: var(--accent-color); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; border-radius: 8px; }
 .qg-more:hover { background: var(--hover, var(--input-bg)); }
 

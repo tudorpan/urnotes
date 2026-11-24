@@ -172,7 +172,8 @@ function openAddGradeModal(presetMat = null, link = null) {
         title: link ? `Nota la „${link.title}”` : presetMat ? `Notă nouă · ${presetMat}` : "Adaugă notă",
         confirmText: "Adaugă",
         body: (link ? `<p class="modal-hint">${escapeHTML(presetMat)} · ${escapeHTML(getDateLabel(link.eventDate))}. Nota apare în catalog și testul se bifează.</p>` : "")
-            + gradeFormHTML(link ? { type: link.type, date: link.eventDate } : {}, subjectField),
+            // un test pus într-o zi fără școală (weekend, vacanță): propunem ziua de școală dinainte, nu o dată pe care n-o primește
+            + gradeFormHTML(link ? { type: link.type, date: typeof lastSchoolDay === "function" ? lastSchoolDay(link.eventDate) : link.eventDate } : {}, subjectField),
         onConfirm: () => {
             const mat = presetMat || field("modal-grade-mat");
             if (!state.subjects[mat]) {
