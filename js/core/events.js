@@ -6,7 +6,16 @@
 // Toate butoanele folosesc data-action în loc de onclick inline,
 // așa că numele cu apostrof sau ghilimele nu mai pot strica nimic.
 const ACTIONS = {
-    "nav": el => { switchTab.tapped = true; switchTab(el.dataset.tab); }, // atingere: pagina se desenează sub tranziție
+    "nav": el => {
+        // fila pe care ești deja: ca pe iPhone, te duce la începutul ei (din pagina unei materii, înapoi la listă)
+        if (el.dataset.tab === ui.activeTab) {
+            if (ui.activeTab === "tab-catalog" && ui.catalog.showDetail && phoneWidth()) ACTIONS["cat-back"]();
+            else window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" });
+            return;
+        }
+        switchTab.tapped = true; // atingere: întâi se aprinde fila, pagina se desenează în cadrul următor
+        switchTab(el.dataset.tab);
+    },
     "add-grade": el => ccOpenGlobal({ type: "Notă", mat: el.dataset.mat || (ui.activeTab === "tab-catalog" ? ui.catalog.selected || "" : "") }),
     "add-subject": () => promptAddMaterie(),
     "add-event": el => openEventModal({ date: el.dataset.date, subject: el.dataset.mat, type: el.dataset.type }),

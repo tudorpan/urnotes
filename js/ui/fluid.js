@@ -150,12 +150,21 @@ function staggerIn(root) {
 
 /* ---------- alunecă din partea în care mergi ---------- */
 function slideIn(el, dir) {
-    if (!el || reduceMotion()) return;
-    el.classList.remove("slide-from-l", "slide-from-r", "slide-up");
-    void el.offsetWidth;
-    el.classList.add(dir < 0 ? "slide-from-l" : dir > 0 ? "slide-from-r" : "slide-up");
-    clearTimeout(el._slideT);
-    el._slideT = setTimeout(() => el.classList.remove("slide-from-l", "slide-from-r", "slide-up"), 450);
+    if (!el || reduceMotion() || !el.animate) return;
+    const x = dir < 0 ? -22 : dir > 0 ? 22 : 0;
+    el._slide?.cancel();
+    el._slide = el.animate([{ opacity: 0, transform: `translate3d(${x}px, ${x ? 0 : 10}px, 0)` }, { opacity: 1, transform: "none" }],
+        { duration: 280, easing: "cubic-bezier(.22, .8, .3, 1)" });
+}
+
+/* ---------- telefon: materia se deschide ca o pagină împinsă din dreapta, iar „înapoi” aduce lista din stânga ---------- */
+function pushPane(sel, dir) {
+    const pane = document.querySelector(`#tab-catalog ${sel}`);
+    if (!pane || !phoneWidth() || reduceMotion() || !pane.animate || !pane.offsetParent) return;
+    pane.animate(dir > 0
+        ? [{ transform: "translate3d(28%, 0, 0)", opacity: 0.4 }, { transform: "none", opacity: 1 }]
+        : [{ transform: "translate3d(-22%, 0, 0)", opacity: 0.5 }, { transform: "none", opacity: 1 }],
+        { duration: 300, easing: "cubic-bezier(.2, .8, .25, 1)" });
 }
 
 /* ---------- după ce tragi ceva: elementele alunecă din locul vechi în cel nou (FLIP) ----------
@@ -207,6 +216,8 @@ document.addEventListener("click", event => {
         if (a === "cal-nav") slideIn($("cal-body"), Number(el.dataset.offset));
         else if (a === "cal-view") slideIn($("cal-body"), 0);
         else if (a === "cat-step") slideIn(document.querySelector("#cat-detail .cat-detail-card"), Number(el.dataset.dir));
+        else if (a === "cat-select" && !el.classList.contains("cat-strip-chip")) pushPane(".cat-detail-pane", 1);
+        else if (a === "cat-back") pushPane(".cat-list-pane", -1);
         else if (a === "set-sec") slideIn($("settings-grid"), 0);
         else if (a === "stats-section" || a === "plan-day") slideIn(el.closest(".tab-content")?.querySelector("#stats-body, #plan-body"), 0);
         if (a === "event-done" || (a === "plan-toggle" && el.checked)) palReact("wink", 1800);

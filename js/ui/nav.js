@@ -23,25 +23,18 @@ function switchTab(tabId) {
     ui.activeTab = tabId;
     // cifrele „numără” doar la prima deschidere; la următoarele intrări pagina apare direct, fără să pară reîncărcată
     // Progresul apare direct (fără bare care cresc sau cifre care numără)
-    // O pagină nouă începe de sus, cu titlul ei vizibil sub bară (nu la jumătatea derulării paginii anterioare).
-    if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
+    // Fiecare filă își ține minte cât ai derulat (ca în aplicațiile de iPhone): te întorci exact unde rămăseseși.
+    const scrollMem = switchTab.scrollMem || (switchTab.scrollMem = {});
+    if (changed && document.body.dataset.page) scrollMem[document.body.dataset.page] = window.scrollY;
 
+    const from = document.body.dataset.page;
     const showTab = () => document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
-    const deferred = changed && switchTab.tapped && document.body.dataset.page && !/jsdom/i.test(navigator.userAgent || "") && !reduceMotion();
-    if (!deferred) showTab(); // altfel pagina nouă apare abia când e desenată (sub tranziție), ca să nu fie așezată de două ori
+    // după o atingere: întâi se aprinde fila (răspunsul imediat), pagina se desenează în cadrul următor
+    const deferred = changed && switchTab.tapped && from && !/jsdom/i.test(navigator.userAgent || "") && !reduceMotion();
+    if (!deferred) showTab();
 
     // Patru secțiuni (Azi, Note, Calendar, Plan) + Eu; paginile cu file (Progres, Ce-ar fi dacă, Examene) aprind secțiunea lor
     const group = TABS[tabId]?.group;
-    // o estompare scurtă la schimbarea filei, dar nu la prima pagină de la pornire
-    let covered = false; // ecranul de tranziție acoperă pagina: o putem desena puțin mai târziu
-    if (changed && document.body.dataset.page) {
-        document.body.classList.add("page-in");
-        // fără amânare (o schimbare din cod, nu o atingere): pagina nouă e gata chiar acum, deci ecranul de tranziție
-        // trebuie să fie plin din primul cadru, altfel s-ar vedea pagina înaintea animației
-        if (typeof showTabLoader === "function") covered = showTabLoader({ instant: !deferred }) === true;
-        clearTimeout(switchTab.pageInT);
-        switchTab.pageInT = setTimeout(() => document.body.classList.remove("page-in"), 520);
-    }
     document.body.dataset.page = tabId;
     document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));
     document.querySelectorAll("[data-action='nav'], [data-action='side-note']").forEach(btn => {
@@ -55,24 +48,19 @@ function switchTab(tabId) {
     });
 
     closeQuickAdd({ restoreFocus: false });
-    // Atingere pe bara de file: întâi se vede răspunsul (fila aprinsă, ecranul de tranziție), abia apoi se desenează
-    // pagina, dedesubt, cât timp e acoperită. Altfel degetul ar aștepta desenarea până să se întâmple ceva pe ecran.
     const draw = () => {
         if (ui.activeTab !== tabId) return; // între timp ai ales altă filă
         showTab();
         renderActiveTab();
+        if (changed && Math.abs(window.scrollY - (scrollMem[tabId] || 0)) > 1) window.scrollTo({ top: scrollMem[tabId] || 0 });
+        if (changed && from) animateTabEnter(tabId, from);
         // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
         requestAnimationFrame(() => moveNavPill(false));
         if (typeof queueSidePill === "function") queueSidePill();
         watchPageTitle();
     };
     requestAnimationFrame(() => moveNavPill()); // citește poziții: după desenare, nu în mijlocul ei
-    if (deferred && covered) {
-        // pagina veche se stinge sub ecranul de tranziție; abia când acesta e plin (după ~60 ms) apare cea nouă, dedesubt
-        const t0 = performance.now();
-        const wait = () => (performance.now() - t0 >= TAB_LOADER_FADE_MS ? draw() : requestAnimationFrame(wait));
-        requestAnimationFrame(wait);
-    }
+    if (deferred) requestAnimationFrame(draw);
     else draw();
     switchTab.tapped = false;
 }
@@ -82,14 +70,16 @@ const TAB_ORDER = ["tab-dashboard", "tab-catalog", "tab-statistici", "tab-simula
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animateTabEnter(tabId, from) {
     const el = $(tabId);
-    if (!el || reduceMotion()) return;
-    const dir = TAB_ORDER.indexOf(tabId) >= TAB_ORDER.indexOf(from) ? "fwd" : "back";
-    el.classList.remove("enter-fwd", "enter-back", "is-entering");
-    void el.offsetWidth; // repornește animația
-    el.classList.add(`enter-${dir}`, "is-entering");
-    clearTimeout(el._enterT);
-    document.body.classList.add("is-entering-page");
-    el._enterT = setTimeout(() => { el.classList.remove("enter-fwd", "enter-back", "is-entering"); document.body.classList.remove("is-entering-page"); }, 400);
+    if (!el || reduceMotion() || !el.animate) return;
+    // pagina nouă intră din partea în care mergi: puțin din lateral și estompată. O singură animație pe toată pagina,
+    // doar transform și opacitate: o face placa grafică, fără să redeseneze nimic.
+    const a = TAB_ORDER.indexOf(TABS[tabId]?.parent || tabId), b = TAB_ORDER.indexOf(TABS[from]?.parent || from);
+    const dx = a === b ? 0 : a > b ? 14 : -14;
+    el._enter?.cancel();
+    el._enter = el.animate([
+        { opacity: 0.3, transform: `translate3d(${dx}px, ${dx ? 0 : 8}px, 0)` }, // nu de la zero: fără un cadru gol între pagini
+        { opacity: 1, transform: "none" }
+    ], { duration: 240, easing: "cubic-bezier(.2, .8, .25, 1)" });
 }
 
 /** Pastila din bara de jos alunecă sub fila activă. */

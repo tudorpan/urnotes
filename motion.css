@@ -7,15 +7,8 @@
 .confetti, .tick-pop, .grade-fly, .ripple-host, .toast.is-celebrate::after { display: none !important; }
 .toast .toast-ico { animation: none !important; }
 
-/* schimbarea filei: doar o estompare scurtă */
+/* schimbarea filei: o face animateTabEnter (js/ui/nav.js), o singură animație pe toată pagina */
 .tab-content.active, .tab-content.active.enter-fwd, .tab-content.active.enter-back { animation: none !important; }
-body.page-in .tab-content.active { animation: mFade .2s ease-out both !important; }
-/* cardurile paginii noi urcă puțin, unul după altul (doar la schimbarea filei, nu la pornire sau la o redesenare) */
-body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation: mRise .38s cubic-bezier(.22, .8, .3, 1) both; }
-body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(2) { animation-delay: .035s; }
-body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(3) { animation-delay: .07s; }
-body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(4) { animation-delay: .1s; }
-body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card):nth-child(n+5) { animation-delay: .13s; }
 @keyframes mRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* bara de file: lentila alunecă cu un mic arc, iconița aleasă sare ușor */
@@ -103,56 +96,6 @@ body.page-in .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-nex
     .cc-head { touch-action: none; }
 }
 
-/* ecranul scurt dintre file (js/ui/tabloader.js), 0,95 s:
-   0–55 %   trei picături fac o tură liniștită una în jurul alteia și alunecă spre mijloc
-   52–64 %  s-au unit: picătura se umflă ușor
-   64–72 %  pocnește
-   64–100 % fondul se deschide din mijloc, cu marginea moale, iar pagina apare dedesubt */
-@property --tl-r { syntax: "<length>"; inherits: false; initial-value: -80px; }
-.tl { position: fixed; inset: 0; z-index: 990; display: grid; place-items: center; pointer-events: none; visibility: hidden; background: var(--paper, #F2F2F7);
-    -webkit-mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px));
-    mask: radial-gradient(circle at 50% 50%, transparent var(--tl-r), #000 calc(var(--tl-r) + 70px)); }
-.tl.is-on { visibility: visible; animation: tlOpen .95s linear both; }
-.tl.is-on.is-instant { animation-name: tlOpenNow; }
-.tl-svg { overflow: visible; }
-.tl-drops { fill: var(--tint, #0058B8); }
-body.style-app.dark-mode .tl-drops { fill: var(--tint-text, #4DA3FF); }
-.tl-drops, .tl-orbit, .tl-dot { transform-box: view-box; transform-origin: 0 0; }
-.tl.is-on .tl-orbit { animation: tlOrbit .95s linear both; }
-.tl.is-on .tl-dot { animation: tlDot .95s linear both; }
-.tl.is-on .tl-drops { animation: tlPop .95s linear both; }
-@keyframes tlOpen {
-    0% { opacity: 0; --tl-r: -80px; }
-    6% { opacity: 1; }
-    64% { --tl-r: -80px; animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
-    100% { opacity: 1; --tl-r: 62vmax; }
-}
-@keyframes tlOpenNow {
-    0% { opacity: 1; --tl-r: -80px; }
-    64% { --tl-r: -80px; animation-timing-function: cubic-bezier(.45, 0, .55, 1); }
-    100% { opacity: 1; --tl-r: 62vmax; }
-}
-@keyframes tlOrbit {
-    0% { transform: rotate(-40deg); animation-timing-function: cubic-bezier(.45, 0, .4, 1); }
-    55% { transform: rotate(320deg); }
-    100% { transform: rotate(320deg); }
-}
-@keyframes tlDot {
-    0% { transform: translateY(-12px) scale(.3); opacity: 0; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
-    12% { transform: translateY(-12px) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.5, 0, .5, 1); }
-    52% { transform: translateY(0) scale(1); }
-    100% { transform: translateY(0) scale(1); }
-}
-@keyframes tlPop {
-    0%, 52% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.3, .7, .4, 1); }
-    62% { transform: scale(1.4); opacity: 1; animation-timing-function: cubic-bezier(.6, 0, .9, .5); }
-    72% { transform: scale(2.3); opacity: 0; }
-    100% { transform: scale(2.3); opacity: 0; }
-}
-/* cu ecranul de încărcare, pagina e deja gata dedesubt: deschiderea din mijloc arată pagina întreagă, fără carduri care mai urcă */
-body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, .home-tile, .cat-sum, .azi-next, .insight, .cat-row, .ag-day, .me-card) { animation: none !important; }
-@media (prefers-reduced-motion: reduce) { .tl { display: none !important; } }
-
 /* glisări (js/ui/swipe.js): sub ce tragi apare culoarea și numele acțiunii */
 .toast { touch-action: none; }
 :is(.alert-card, .cal-att-row, .cat-row-wrap, #notif-panel .drawer-card) { touch-action: pan-y; }
@@ -198,3 +141,8 @@ body.tl-on .tab-content.active, body.tl-on .tab-content.active :is(.glass-card, 
 body.edge-back-on .cat-detail-pane { position: relative; z-index: 2; box-shadow: -14px 0 28px -10px rgba(0, 0, 0, calc(.35 * (1 - var(--edge-k, 0)))); background: var(--paper); }
 body.edge-back-on #tab-catalog::before { content: "‹  Toate materiile"; position: fixed; left: 14px; top: 50%; z-index: 1; color: var(--ink-2); font-weight: 700; font-size: 15px;
     opacity: calc(min(1, var(--edge-k, 0) * 3)); transform: translateX(calc((var(--edge-k, 0) - .3) * 40px)); pointer-events: none; }
+
+/* ce atingi se apasă puțin (rânduri, carduri care se deschid), ca un buton adevărat */
+:is(.cat-row, .azi-next, .cat-strip-chip, .ag-item, .plan-item) { transition: transform .14s ease; }
+:is(.cat-row, .azi-next, .cat-strip-chip, .ag-item, .plan-item):active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) { :is(.cat-row, .azi-next, .cat-strip-chip, .ag-item, .plan-item):active { transform: none; } }
