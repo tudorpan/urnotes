@@ -165,49 +165,59 @@
          îl luminează, dă din cap mulțumită, apoi zboară la locul ei din colțul de sus. O atingere îl sare. — js/ui/intro.js -->
     <div id="splash" class="splash intro" aria-hidden="true">
         <div class="splash-inner">
-<svg class="intro-art" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
-  <defs>
-    <!-- lumina e calculată în js/ui/intro.js din poziția becului: conul pleacă din gura abajurului, cade pe masă,
-         scade cu distanța; aici sunt doar valorile pentru lampa în repaus (aprinsă, privind numele) -->
-    <radialGradient id="inBeam" gradientUnits="userSpaceOnUse" cx="272" cy="122" r="420">
-      <stop class="in-warm" offset="0" stop-color="#F7D995" stop-opacity=".62"/><stop class="in-warm" offset=".22" stop-color="#F7D995" stop-opacity=".3"/>
-      <stop class="in-warm" offset=".5" stop-color="#F7D995" stop-opacity=".1"/><stop class="in-warm" offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
-    <radialGradient id="inPool" cx=".5" cy=".5" r=".5" fx=".3" fy=".5">
-      <stop class="in-warm" offset="0" stop-color="#F7D995" stop-opacity="1"/><stop class="in-warm" offset=".45" stop-color="#F7D995" stop-opacity=".42"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
-    <radialGradient id="inHalo"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".9"/><stop offset=".35" stop-color="#FCE3A8" stop-opacity=".35"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
-    <radialGradient id="inAmb"><stop offset="0" stop-color="#F7D995" stop-opacity="1"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
-    <mask id="inLit" maskUnits="userSpaceOnUse" x="-400" y="-400" width="1600" height="1200">
-      <path class="in-cone-om2" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="#fff" fill-opacity=".25"/>
-      <path class="in-cone-om" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="#fff" fill-opacity=".35"/>
-      <path class="in-cone-m" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="#fff"/></mask>
-  </defs>
-  <circle class="in-amb" cx="470" cy="320" r="380" fill="url(#inAmb)"/>
-  <path class="in-desk" d="M24 334 H616" stroke-width="2" stroke-linecap="round"/>
-  <g class="in-light">
-    <!-- în aer lumina abia se vede (puțin praf); se vede unde cade: pe masă și pe litere -->
-    <path class="in-cone-o2" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="url(#inBeam)" fill-opacity=".05"/>
-    <path class="in-cone-o" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="url(#inBeam)" fill-opacity=".08"/>
-    <path class="in-cone" d="M244.7 159.6 L353.2 334 L1060 334 L304.0 105.9 Z" fill="url(#inBeam)" fill-opacity=".13"/>
-    <ellipse class="in-pool" cx="560" cy="334" rx="230" ry="16" fill="url(#inPool)"/>
+<!-- intro-ul: fiecare parte a lămpii e un strat separat, mișcat doar prin transform și opacitate (le mută placa grafică,
+     fără redesenare), deci merge lin pe orice telefon. Mișcarea e în js/ui/intro.js; lumina e cea calculată pentru
+     lampa în repaus (aprinsă, privind numele): conul din abajur, pata de pe masă, umbra literelor. -->
+<div class="intro-fx"><div class="intro-fy"><div class="intro-art">
+  <svg class="in-l in-room" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
+    <path class="in-desk" d="M24 334 H616" stroke-width="2" stroke-linecap="round"/>
+    <text class="in-name in-name-dim" x="452" y="316" text-anchor="middle">urNotes</text>
+  </svg>
+  <svg class="in-l in-lit" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="inBeam" gradientUnits="userSpaceOnUse" cx="272.3" cy="122.4" r="678.8">
+        <stop offset="0" stop-color="#F7D995" stop-opacity=".62"/><stop offset=".22" stop-color="#F7D995" stop-opacity=".3"/>
+        <stop offset=".5" stop-color="#F7D995" stop-opacity=".1"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+      <radialGradient id="inPool" cx=".5" cy=".5" r=".5" fx=".28" fy=".5">
+        <stop offset="0" stop-color="#F7D995" stop-opacity="1"/><stop offset=".45" stop-color="#F7D995" stop-opacity=".42"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+      <radialGradient id="inAmb"><stop offset="0" stop-color="#F7D995" stop-opacity="1"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient>
+      <mask id="inLit" maskUnits="userSpaceOnUse" x="-400" y="-400" width="1800" height="1200">
+        <path d="M235.1 151.1 L269.6 334 L1151.6 334 L304.5 88.1Z" fill="#fff" fill-opacity=".25"/>
+        <path d="M239 150.3 L282 334 L1019.3 334 L303.3 91.8Z" fill="#fff" fill-opacity=".35"/>
+        <path d="M242.7 149.3 L294.6 334 L917.3 334 L302 95.5Z" fill="#fff"/></mask>
+    </defs>
+    <circle cx="605.9" cy="334" r="380" fill="url(#inAmb)" opacity=".07"/>
+    <path d="M235.1 151.1 L269.6 334 L1151.6 334 L304.5 88.1Z" fill="url(#inBeam)" fill-opacity=".05"/>
+    <path d="M239 150.3 L282 334 L1019.3 334 L303.3 91.8Z" fill="url(#inBeam)" fill-opacity=".08"/>
+    <path d="M242.7 149.3 L294.6 334 L917.3 334 L302 95.5Z" fill="url(#inBeam)" fill-opacity=".13"/>
+    <ellipse cx="467.3" cy="334" rx="188.7" ry="18.3" fill="url(#inPool)"/>
     <path class="in-desk-lit" d="M24 334 H616" stroke-width="2" stroke-linecap="round" mask="url(#inLit)"/>
-  </g>
-  <text class="in-name in-shadow" x="452" y="316" text-anchor="middle" mask="url(#inLit)" transform="matrix(1 0 -0.85 0.12 283.9 293.9)">urNotes</text>
-  <text class="in-name in-name-dim" x="452" y="316" text-anchor="middle">urNotes</text>
-  <text class="in-name in-name-lit" x="452" y="316" text-anchor="middle" mask="url(#inLit)">urNotes</text>
-  <g class="in-lamp">
-    <rect class="in-base" x="40" y="322" width="96" height="20" rx="10"/>
-    <path class="in-arm" d="M88 330 V96 L232 250 V78" fill="none" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/>
-    <circle class="in-joint" cx="88" cy="96" r="7"/><circle class="in-joint" cx="232" cy="250" r="7"/>
+    <text class="in-name in-shadow" x="452" y="316" text-anchor="middle" mask="url(#inLit)" transform="matrix(1 0 -0.849 0.12 283.6 293.9)" opacity=".55">urNotes</text>
+    <text class="in-name in-name-lit" x="452" y="316" text-anchor="middle" mask="url(#inLit)">urNotes</text>
+  </svg>
+  <div class="in-l in-body">
+    <svg class="in-l" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
+      <rect class="in-base" x="40" y="322" width="96" height="20" rx="10"/>
+      <path class="in-arm" d="M88 330 V96 L232 250 V78" fill="none" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle class="in-joint" cx="88" cy="96" r="7"/><circle class="in-joint" cx="232" cy="250" r="7"/>
+    </svg>
     <!-- capul: desenat cu gura în jos; se rotește în jurul încheieturii (232, 78) -->
-    <g class="in-head">
-      <path d="M217 88 H247 L272 138 H192 Z"/>
-      <ellipse class="in-bulb-dim" cx="232" cy="138" rx="26" ry="9"/>
-      <ellipse class="in-bulb" cx="232" cy="138" rx="26" ry="9"/>
-    </g>
-    <circle class="in-joint" cx="232" cy="78" r="7"/>
-  </g>
-  <circle class="in-halo" cx="281" cy="132" r="38" fill="url(#inHalo)"/>
-</svg>
+    <div class="in-l in-head">
+      <svg class="in-l" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
+        <path class="in-shade" d="M217 88 H247 L272 138 H192 Z"/>
+        <ellipse class="in-bulb-dim" cx="232" cy="138" rx="26" ry="9"/>
+      </svg>
+      <div class="in-l in-glow">
+        <svg class="in-l" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
+          <defs><radialGradient id="inHalo"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".9"/><stop offset=".35" stop-color="#FCE3A8" stop-opacity=".35"/><stop offset="1" stop-color="#F7D995" stop-opacity="0"/></radialGradient></defs>
+          <ellipse class="in-bulb" cx="232" cy="138" rx="26" ry="9"/>
+          <circle cx="232" cy="150" r="38" fill="url(#inHalo)"/>
+        </svg>
+      </div>
+      <svg class="in-l" viewBox="0 0 640 400" aria-hidden="true" focusable="false"><circle class="in-joint" cx="232" cy="78" r="7"/></svg>
+    </div>
+  </div>
+</div></div></div>
         </div>
     </div>
     <script>

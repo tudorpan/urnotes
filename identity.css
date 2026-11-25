@@ -354,29 +354,26 @@ body.style-app .azi-seal-svg { width: 46px; height: 46px; filter: none; }
    Aici doar culorile și starea de pornire (totul ascuns, până pornește intro.js). .is-still = fără mișcare: masa luminată. */
 .splash.intro { background: #0B1226; transition: none; }
 .splash.intro .splash-inner { gap: 10px; }
-.intro-art { width: min(88vw, 540px); height: auto; overflow: visible; transform-origin: 0 0; }
-.intro-art .in-base, .intro-art .in-head path { fill: #E9B85C; }
-.intro-art .in-arm { stroke: #E9B85C; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.intro-fx, .intro-fy { width: min(88vw, 540px); }
+.intro-art { position: relative; width: min(88vw, 540px); aspect-ratio: 640 / 400; transform-origin: 0 0; }
+.intro-art .in-l { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.intro-art .in-base, .intro-art .in-shade { fill: #E9B85C; }
+.intro-art .in-arm { stroke: #E9B85C; }
 .intro-art .in-joint { fill: #C9962F; }
 .intro-art .in-desk { stroke: rgba(237, 232, 221, 0.09); }
-.intro-art .in-bulb { fill: #FFF4DA; opacity: 0; }
+.intro-art .in-bulb { fill: #FFF4DA; }
 .intro-art .in-bulb-dim { fill: #C9962F; }
 .intro-art .in-name { font: 600 70px/1 ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, serif; letter-spacing: -0.015em; }
-.intro-art .in-name-dim { fill: rgba(237, 232, 221, 0.07); opacity: 0; }
-.intro-art .in-name-lit { fill: #F6DFA6; opacity: 0; }
-.intro-art :is(.in-light, .in-amb, .in-halo, .in-shadow) { opacity: 0; }
+.intro-art .in-name-dim { fill: rgba(237, 232, 221, 0.07); }
+.intro-art .in-name-lit { fill: #F6DFA6; }
 .intro-art .in-shadow { fill: #070C1C; }
 .intro-art .in-desk-lit { stroke: #F7D995; stroke-opacity: .8; fill: none; }
-.intro-art :is(.in-base, .in-joint, .in-head) { opacity: 0; }
-.intro-art .in-lamp { transform-box: view-box; transform-origin: 88px 332px; }
-.intro-art .in-head { transform-box: view-box; transform-origin: 232px 78px; }
-.intro-art :is(.in-base, .in-joint) { transform-box: fill-box; transform-origin: center; }
-/* fără mișcare: masa luminată, direct */
-.splash.intro.is-still .in-arm { stroke-dashoffset: 0; }
-.splash.intro.is-still :is(.in-base, .in-joint, .in-head, .in-bulb, .in-light, .in-name-lit, .in-halo) { opacity: 1; }
-.splash.intro.is-still .in-amb { opacity: .07; }
-.splash.intro.is-still .in-shadow { opacity: .55; }
-.splash.intro.is-still .in-head { transform: rotate(-42.25deg); }
+/* straturile care se mișcă: pornesc ascunse, le pune în mișcare js/ui/intro.js */
+.intro-art .in-body { transform-origin: 13.75% 83%; opacity: 0; will-change: transform, opacity; }
+.intro-art .in-head { transform-origin: 36.25% 19.5%; transform: rotate(30deg); will-change: transform; }
+.intro-art :is(.in-lit, .in-glow) { opacity: 0; will-change: opacity; }
+.splash.intro.is-still .intro-art :is(.in-body, .in-lit, .in-glow) { opacity: 1; }
+.splash.intro.is-still .intro-art .in-head { transform: rotate(-42.25deg); }
 /* cât zboară lampa spre colț, cea din antet așteaptă ascunsă */
 body.intro-on .lamp-btn .lamp-logo { opacity: 0; }
 body .lamp-btn .lamp-logo { transition: opacity .25s ease; }
