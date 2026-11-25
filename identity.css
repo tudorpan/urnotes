@@ -350,30 +350,16 @@ body.style-app .azi-seal-svg { width: 46px; height: 46px; filter: none; }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) { body.style-app .mobile-nav-btn .ico, body.style-app .mobile-nav-btn::before { transition: none; } }
 
-/* ---------- intro-ul: lampa cu suflet (index.html #splash; mișcarea e în js/ui/intro.js) ----------
-   Aici doar culorile și starea de pornire (totul ascuns, până pornește intro.js). .is-still = fără mișcare: masa luminată. */
+/* ---------- pornirea (index.html #splash, js/ui/intro.js): doar logoul, care apare și se aprinde ----------
+   O singură animație CSS scurtă (opacitate, scară și culoarea becului); .is-still = fără mișcare: logoul aprins. */
 .splash.intro { background: #0B1226; transition: none; }
 .splash.intro .splash-inner { gap: 10px; }
-.intro-fx, .intro-fy { width: min(88vw, 540px); }
-.intro-art { position: relative; width: min(88vw, 540px); aspect-ratio: 640 / 400; transform-origin: 0 0; }
-.intro-art .in-l { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.intro-art .in-base, .intro-art .in-shade { fill: #E9B85C; }
-.intro-art .in-arm { stroke: #E9B85C; }
-.intro-art .in-joint { fill: #C9962F; }
-.intro-art .in-desk { stroke: rgba(237, 232, 221, 0.09); }
-.intro-art .in-bulb { fill: #FFF4DA; }
-.intro-art .in-bulb-dim { fill: #C9962F; }
-.intro-art .in-name { font: 600 70px/1 ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, serif; letter-spacing: -0.015em; }
-.intro-art .in-name-dim { fill: rgba(237, 232, 221, 0.07); }
-.intro-art .in-name-lit { fill: #F6DFA6; }
-.intro-art .in-shadow { fill: #070C1C; }
-.intro-art .in-desk-lit { stroke: #F7D995; stroke-opacity: .8; fill: none; }
-/* straturile care se mișcă: pornesc ascunse, le pune în mișcare js/ui/intro.js */
-.intro-art .in-body { transform-origin: 13.75% 83%; opacity: 0; will-change: transform, opacity; }
-.intro-art .in-head { transform-origin: 36.25% 19.5%; transform: rotate(30deg); will-change: transform; }
-.intro-art :is(.in-lit, .in-glow) { opacity: 0; will-change: opacity; }
-.splash.intro.is-still .intro-art :is(.in-body, .in-lit, .in-glow) { opacity: 1; }
-.splash.intro.is-still .intro-art .in-head { transform: rotate(-42.25deg); }
-/* cât zboară lampa spre colț, cea din antet așteaptă ascunsă */
-body.intro-on .lamp-btn .lamp-logo { opacity: 0; }
-body .lamp-btn .lamp-logo { transition: opacity .25s ease; }
+.intro-logo { width: 112px; height: 112px; animation: logoIn .38s cubic-bezier(.2, .8, .3, 1) both; }
+.intro-logo .il-light { fill: #E9B85C; opacity: 0; animation: logoOn .3s ease-out .32s both; }
+.intro-logo .il-bulb { fill: #C9962F; animation: bulbOn .3s ease-out .32s both; }
+@keyframes logoIn { from { opacity: 0; transform: scale(.9); } }
+@keyframes logoOn { to { opacity: .26; } }
+@keyframes bulbOn { to { fill: #FFF4DA; } }
+.splash.intro.is-still .intro-logo, .splash.intro.is-still .intro-logo * { animation: none; }
+.splash.intro.is-still .intro-logo .il-light { opacity: .26; }
+.splash.intro.is-still .intro-logo .il-bulb { fill: #FFF4DA; }
